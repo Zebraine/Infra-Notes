@@ -33,3 +33,56 @@ n 翻倍时，权重和运算量都翻倍。
 隐藏向量是网络内部传递的特征表示，维度是每个 token 的向量长度。  
 **前馈网络**(FFN) 对每个 token 分别做特征变换，**注意力** 在token之间选择并汇总信息，两类运算交替组成网络的一层。
 
+### 注意力计算与位置编码
+
+查询 Q 提出“当前需要什么信息”， 键 K 用来与查询计算匹配分数， 值 V 是被选中后汇总到输出的信息。  
+
+输入矩阵 X 分别乘以参数矩阵 $W_Q, W_K, W_V$ 得到查询、键、值矩阵：
+$$
+Q = XW_Q, \quad K = XW_K, \quad V = XW_V
+$$  
+之后对一个 Q 头，查询向量与允许访问位置的 K 点积， 再除以头宽的平方根 $\sqrt{d_h}$， 最后屏蔽未来 token 的位置。  
+经过 Softmax 将分数变为正数，并归一化为概率分布，得到注意力权重矩阵 A：
+$$
+A = \text{Softmax}\left(\frac{QK^T}{\sqrt{d_h}}\right)
+$$
+
+最后用这部分权重对 V 做加权求和，再将各个 Q 头的结果拼接起来，乘以参数矩阵 $W_O$ ，转回隐藏向量。
+
+所以一个头的总计算为:
+$$
+A = \text{Softmax}\left(\frac{QK^T}{\sqrt{d_h}}\ +\ \mathbf{M}\right),\quad
+O = AV
+$$
+
+$A$ 是各查询对上下文 token 的权重， $\mathbf{M}$ 是因果掩码，$d_h$ 是每个头的宽度。
+
+关于点积的数量：  
+假设已经有 S 个上下文 token，输入 P 个新 token，第 $i$ 个 token 可以访问 $S+i$ 个token，点积数量为：
+$$
+N_{pair} = B \sum_{i=1}^{P} (S+i) = B \left(PS + \frac{P(P+1)}{2}\right)
+$$  
+
+一个 Q 头的 $QK^T$ 点积需要 $2d_h FLOPs$，随后的 $AV$ 点积也需要 $2d_h FLOPs$，
+考虑所有 Q 头， $QK^T$ 和 $AV$ 的有效矩阵运算量为：
+$$
+F_{attn} = 4n_Qd_hN_{pair} = 4n_Qd_hB \left(PS + \frac{P(P+1)}{2}\right)
+$$
+
+### 前馈网络与前向计算量
+
+前馈网络 (FFN) 对每个 token 分别做特征变换，通常由两层线性变换和一个非线性激活函数组成。
+
+SwiGLU 是一种带有门控的前馈结构，采用 SiLU 激活函数 $ \text{SiLU}(x) = x \cdot \sigma(x)$，其中 $\sigma(x)$ 是 Sigmoid 函数。
+
+Qwen3-8B中，输入分别经过 gate 和 up 两条升维投影，其中 gate 分支需要经过 SiLU，然后与 up 分支做逐元素乘法，最后经过 down 分支降维回原始维度。
+$$
+FFN(X) = \left[\text{SiLU}(XW_{gate}) \odot XW_{up}\right] W_{down}
+$$  
+其中 $\odot$ 表示逐元素相乘， gate 是门控分支， up 是升维分支，down 是降维投影。  
+gate 与 up 将每行从 d 维升到 f 维， down 再降回 d 维。  
+因此合计 $3df$ 个参数，处理 m 个 token 的计算量为 $ 6mdf FLOPs$
+
+对Qwen3-8B，FFN 参数量占总量的 78%。  
+在短上下文时，FFN 的计算量占主要部分。  
+随输入变长，FFN计算量线性增长，注意力随 $P(P+1)/2$ 平方增长。
