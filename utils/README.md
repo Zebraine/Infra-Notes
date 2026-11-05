@@ -265,9 +265,9 @@ KaTeX 字体也在本地。浏览器打开 `papers/index.html` 即可离线阅�
 4. 通过 GitHub Pages 官方 action 部署。
 
 首次使用时，在仓库的 **Settings → Pages → Build and deployment** 中把 Source 设为
-**GitHub Actions**。工作流里的 `configure-pages` 也会尝试自动启用 Pages。
-部署地址形如 `https://<user>.github.io/<repo>/`；站点内部全部使用相对链接，
-因此放在项目子路径下也能正常工作。
+**GitHub Actions**。`configure-pages` 默认使用 `GITHUB_TOKEN`，因此不会代替你启用 Pages；
+这一步需要手动完成一次。部署地址形如 `https://<user>.github.io/<repo>/`；站点内部全部
+使用相对链接，因此放在项目子路径下也能正常工作。
 
 只改 `notes/` 或 README 也会触发重新构建；如需限制触发路径，可在 workflow 的
 `on.push` 下添加 `paths` 过滤。
