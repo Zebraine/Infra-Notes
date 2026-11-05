@@ -92,63 +92,17 @@
     <button type="button" class="clear-filters" id="clear-filters" hidden>清除筛选 {{ icon("x", 14) }}</button>
   </div>
 
-  <div id="paper-list">
-    {% if featured %}
-    <article class="featured-card" data-slug="{{ featured.slug }}">
-      <div class="featured-cover">
-        {% if featured.cover %}
-        <div class="cover-art" role="img" aria-label="{{ featured.cover_alt }}" style="background-image:url('{{ featured.slug }}/{{ featured.cover }}')"></div>
-        {% else %}
-        <div class="cover-fallback">
-          <span class="cover-kicker">{{ featured.venue_zh or "PAPER" }}</span>
-          <strong>{{ featured.title_zh[:18] }}</strong>
-          <span class="cover-year">{{ featured.year }}</span>
-        </div>
-        {% endif %}
-        <div class="featured-cover-overlay">
-          <span class="paper-badge">PAPER {{ "%02d"|format(featured.number) }}</span>
-          <span class="paper-year">{{ featured.year }}</span>
-        </div>
-      </div>
-      <div class="featured-body">
-        <p class="eyebrow">FEATURED · {{ featured.venue_zh or "RESEARCH PAPER" }}</p>
-        <h3><a href="{{ featured.slug }}/index.html">{{ featured.title_zh }}</a></h3>
-        <p class="paper-alt-title" lang="en">{{ featured.title }}</p>
-        <p class="paper-authors">{{ featured.authors_line }}{% if featured.affiliation %} · {{ featured.affiliation }}{% endif %}</p>
-        <p class="featured-summary">{{ featured.abstract_zh|truncate(260, true, "…") }}</p>
-        <div class="paper-tags">
-          {% for tag in featured.tags[:4] %}<span class="chip chip-static">{{ tag }}</span>{% endfor %}
-        </div>
-        <div class="featured-footer">
-          <div class="paper-meta">
-            {% if featured.pages %}<span>{{ icon("file", 15) }}{{ featured.pages }} 页</span>{% endif %}
-            <span>{{ icon("clock", 15) }}约 {{ featured.reading_minutes }} 分钟</span>
-            <span>{{ icon("book", 15) }}中英双语</span>
-          </div>
-          <div class="featured-actions">
-            <a class="btn btn-primary btn-sm" href="{{ featured.slug }}/index.html">阅读译文 {{ icon("arrow-right", 15) }}</a>
-            <a class="btn btn-ghost btn-sm" href="{{ featured.slug }}/original/index.html" lang="en">Original</a>
-            <a class="icon-btn file-btn" href="{{ featured.slug }}/{{ featured.pdf }}" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF">{{ icon("file", 18) }}</a>
-          </div>
-        </div>
-      </div>
-    </article>
-    {% endif %}
+  <div class="paper-list" id="paper-list">
+    {% for paper in papers %}
+      {% include "partials/paper-card.html" %}
+    {% endfor %}
+  </div>
 
-    {% if others %}
-    <div class="paper-grid">
-      {% for paper in others %}
-        {% include "partials/paper-card.html" %}
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <div class="empty-state" id="no-results" hidden>
-      <span class="empty-icon">{{ icon("search", 28) }}</span>
-      <h3>没有匹配的论文</h3>
-      <p>换个关键词，或清除标签筛选试试。</p>
-      <button type="button" class="btn btn-ghost btn-sm" id="empty-clear">清除筛选</button>
-    </div>
+  <div class="empty-state" id="no-results" hidden>
+    <span class="empty-icon">{{ icon("search", 28) }}</span>
+    <h3>没有匹配的论文</h3>
+    <p>换个关键词，或清除标签筛选试试。</p>
+    <button type="button" class="btn btn-ghost btn-sm" id="empty-clear">清除筛选</button>
   </div>
 </section>
 

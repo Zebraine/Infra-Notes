@@ -190,10 +190,7 @@ class SiteRenderer:
 
     # ----------------------------------------------------------------- pages
     def render_index(self) -> None:
-        featured = self.papers[0] if self.papers else None
-        others = self.papers[1:]
         total_pages = sum(p.pages for p in self.papers if p.pages)
-        years = sorted({p.year for p in self.papers}, reverse=True)
         payload = [self._paper_json(p) for p in self.papers]
         ctx = self._base(
             root="",
@@ -206,12 +203,8 @@ class SiteRenderer:
         )
         ctx.update(
             {
-                "featured": featured,
-                "others": others,
                 "total_pages": total_pages,
-                "years": years,
                 "papers_json": payload,
-                "featured_json": self._paper_json(featured) if featured else None,
             }
         )
         html = self.env.get_template("index.html").render(**ctx)

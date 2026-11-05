@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="stylesheet" href="assets/site/pygments.css">
-  <link rel="stylesheet" href="assets/site/site.css?v=44efb5f68d">
+  <link rel="stylesheet" href="assets/site/site.css?v=215425023e">
 </head>
 <body id="top" class="page-website nav-library">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -232,109 +232,138 @@
     <button type="button" class="clear-filters" id="clear-filters" hidden>清除筛选 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
   </div>
 
-  <div id="paper-list">
-    <article class="featured-card" data-slug="bidkv">
-      <div class="featured-cover">
-        <div class="cover-art" role="img" aria-label="BidKV 论文封面：KV 压力网格、P95 TTFT 631 ms、SLO 83.2% 与 29× 效用" style="background-image:url('bidkv/assets/cover.svg')"></div>
-        <div class="featured-cover-overlay">
-          <span class="paper-badge">PAPER 01</span>
-          <span class="paper-year">2026</span>
-        </div>
-      </div>
-      <div class="featured-body">
-        <p class="eyebrow">FEATURED · SC26</p>
-        <h3><a href="bidkv/index.html">BidKV：面向 KV 压力场景的效用引导抢占调度</a></h3>
-        <p class="paper-alt-title" lang="en">BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</p>
-        <p class="paper-authors">Yanbo Chen · Mingqi Wang · Shuhao Zhang · Xiaofei Liao · Hai Jin · Huazhong University of Science and Technology (HUST)</p>
-        <p class="featured-summary">在线 LLM 服务过程中，当 KV 缓存需求超过 GPU 显存容量时，服务引擎会从活跃请求中回收缓存， 以便接纳等待中的请求。糟糕的牺牲者选择会浪费重算工作、推迟排队请求的准入，并恶化首 token 延迟——这是用户可以直接感知的指标。现有策略依赖粗粒度的请求顺序启发式（LIFO、FCFS）或 独立的单请求打分规则，既缺乏显式的回收代价信号，也缺乏跨请求协调。我们提出 BidKV，一种 效用引导的回收策略，用于改善 KV 压力下的准入响应性。每个活跃请求产生一个投标（bid）， 编码可回收容量与估计的中断代价；在…</p>
-        <div class="paper-tags">
-<span class="chip chip-static">LLM Serving</span><span class="chip chip-static">KV Cache</span><span class="chip chip-static">调度</span><span class="chip chip-static">抢占</span>        </div>
-        <div class="featured-footer">
-          <div class="paper-meta">
-<span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>10 页</span>            <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 40 分钟</span>
-            <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
-          </div>
-          <div class="featured-actions">
-            <a class="btn btn-primary btn-sm" href="bidkv/index.html">阅读译文 <svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
-            <a class="btn btn-ghost btn-sm" href="bidkv/original/index.html" lang="en">Original</a>
-            <a class="icon-btn file-btn" href="bidkv/assets/source.pdf" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg></a>
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <div class="paper-grid">
-<article class="paper-card" data-slug="transmla">
-  <a class="card-cover" href="transmla/index.html" tabindex="-1" aria-hidden="true">
-    <img src="transmla/assets/figures/fig1.png" alt="" loading="lazy" decoding="async">
-    <span class="card-number">02</span>
+  <div class="paper-list" id="paper-list">
+<article class="paper-card" data-slug="bidkv">
+  <a class="card-cover" href="bidkv/index.html" aria-label="阅读《BidKV：面向 KV 压力场景的效用引导抢占调度》">
+    <span class="cover-art" role="img" aria-label="BidKV 论文封面：KV 压力网格、P95 TTFT 631 ms、SLO 83.2% 与 29× 效用" style="background-image:url('bidkv/assets/cover.svg')"></span>
+    <span class="cover-overlay">
+      <span class="paper-badge">PAPER 01</span>
+      <span class="paper-year">2026</span>
+    </span>
   </a>
   <div class="card-body">
-    <div class="card-topline">
-      <span>2025</span>
-      <span class="card-dot"></span>
-      <span>arXiv 预印本</span>
+    <p class="eyebrow">SC26 · 2026</p>
+    <h3><a href="bidkv/index.html">BidKV：面向 KV 压力场景的效用引导抢占调度</a></h3>
+    <p class="paper-alt-title" lang="en">BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</p>
+    <p class="paper-authors">Yanbo Chen · Mingqi Wang · Shuhao Zhang · Xiaofei Liao · Hai Jin · Huazhong University of Science and Technology (HUST)</p>
+    <p class="card-summary">在线 LLM 服务过程中，当 KV 缓存需求超过 GPU 显存容量时，服务引擎会从活跃请求中回收缓存， 以便接纳等待中的请求。糟糕的牺牲者选择会浪费重算工作、推迟排队请求的准入，并恶化首 token 延迟——这是用户可以直接感知的指标。现有策略依赖粗粒度的请求顺序启发式（LIFO、FCFS）或 独立的单请求打分规则，既缺乏显式的回收代价信号，也缺乏跨请求协调。我们提出 BidKV，一种 效用引导的回收策略，用于改善 KV 压力下的准入响应性。每个活跃请求产生一个投标（bid）， 编码可回收容量与估计的中断代价；在…</p>
+    <div class="paper-tags">
+<span class="chip chip-static">LLM Serving</span><span class="chip chip-static">KV Cache</span><span class="chip chip-static">调度</span><span class="chip chip-static">抢占</span>    </div>
+    <div class="card-footer">
+      <div class="paper-meta">
+<span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>10 页</span>        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 40 分钟</span>
+        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn btn-primary btn-sm" href="bidkv/index.html">阅读译文 <svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+        <a class="btn btn-ghost btn-sm" href="bidkv/original/index.html" lang="en">Original</a>
+        <a class="icon-btn file-btn" href="bidkv/assets/source.pdf" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg></a>
+      </div>
     </div>
+  </div>
+</article><article class="paper-card" data-slug="transmla">
+  <a class="card-cover card-cover--figure" href="transmla/index.html" aria-label="阅读《TransMLA：多头潜变量注意力足矣》">
+    <span class="cover-art cover-art--figure" role="img" aria-label="GQA、MLA、MQA 的单向等价转换，以及 TransMLA 的 RoRoPE、FreqFold、BKV-PCA 流程" style="background-image:url('transmla/assets/figures/fig1.png')"></span>
+    <span class="cover-caption" aria-hidden="true">
+      <span>FIGURE</span>
+      <strong>TransMLA</strong>
+    </span>
+    <span class="cover-overlay">
+      <span class="paper-badge">PAPER 02</span>
+      <span class="paper-year">2025</span>
+    </span>
+  </a>
+  <div class="card-body">
+    <p class="eyebrow">arXiv 预印本 · 2025</p>
     <h3><a href="transmla/index.html">TransMLA：多头潜变量注意力足矣</a></h3>
     <p class="paper-alt-title" lang="en">TransMLA: Multi-Head Latent Attention Is All You Need</p>
-    <p class="card-summary">现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩 矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理 速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投…</p>
+    <p class="paper-authors">Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang · Peking University · BIGAI · Tencent Youtu Lab · Xiaomi Corp.</p>
+    <p class="card-summary">现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩 矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理 速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投入大量优化，缺乏从零 训练 MLA 模型的动力。本文证明：在相同 KV 缓存开销下，MLA 的表达能力优于 GQA，从而为从 GQA 迁移到 MLA 提供了理论依据。我们还提出 TransMLA，一个能把任意 GQA 预…</p>
     <div class="paper-tags">
-<span class="chip chip-static">MLA</span><span class="chip chip-static">GQA</span><span class="chip chip-static">KV Cache</span>    </div>
+<span class="chip chip-static">MLA</span><span class="chip chip-static">GQA</span><span class="chip chip-static">KV Cache</span><span class="chip chip-static">推理加速</span>    </div>
     <div class="card-footer">
-      <span><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 29 分钟</span>
-      <span class="card-link">阅读 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+      <div class="paper-meta">
+<span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>27 页</span>        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 29 分钟</span>
+        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn btn-primary btn-sm" href="transmla/index.html">阅读译文 <svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+        <a class="btn btn-ghost btn-sm" href="transmla/original/index.html" lang="en">Original</a>
+        <a class="icon-btn file-btn" href="transmla/assets/source.pdf" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg></a>
+      </div>
     </div>
   </div>
 </article><article class="paper-card" data-slug="deepseek-v2">
-  <a class="card-cover" href="deepseek-v2/index.html" tabindex="-1" aria-hidden="true">
-    <img src="deepseek-v2/assets/figures/mha-gqa-mqa-mla.png" alt="" loading="lazy" decoding="async">
-    <span class="card-number">03</span>
+  <a class="card-cover card-cover--figure" href="deepseek-v2/index.html" aria-label="阅读《DeepSeek-V2：强大、经济且高效的混合专家语言模型》">
+    <span class="cover-art cover-art--figure" role="img" aria-label="MHA、GQA、MQA 与 MLA 的 KV 缓存结构对比" style="background-image:url('deepseek-v2/assets/figures/mha-gqa-mqa-mla.png')"></span>
+    <span class="cover-caption" aria-hidden="true">
+      <span>FIGURE</span>
+      <strong>DeepSeek-V2</strong>
+    </span>
+    <span class="cover-overlay">
+      <span class="paper-badge">PAPER 03</span>
+      <span class="paper-year">2024</span>
+    </span>
   </a>
   <div class="card-body">
-    <div class="card-topline">
-      <span>2024</span>
-      <span class="card-dot"></span>
-      <span>arXiv 预印本</span>
-    </div>
+    <p class="eyebrow">arXiv 预印本 · 2024</p>
     <h3><a href="deepseek-v2/index.html">DeepSeek-V2：强大、经济且高效的混合专家语言模型</a></h3>
     <p class="paper-alt-title" lang="en">DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</p>
-    <p class="card-summary">DeepSeek-V2 是一个强大的混合专家（MoE）语言模型，以经济的训练和高效的推理为特征。它总参数量为 236B，每个 token 激活 21B，支持 128K 的上下文长度。DeepSeek-V2 采用多头潜变量注意力（MLA）与 DeepSeekMoE 等创新架构：MLA 通过把键值（K…</p>
+    <p class="paper-authors">DeepSeek-AI</p>
+    <p class="card-summary">DeepSeek-V2 是一个强大的混合专家（MoE）语言模型，以经济的训练和高效的推理为特征。它总参数量为 236B，每个 token 激活 21B，支持 128K 的上下文长度。DeepSeek-V2 采用多头潜变量注意力（MLA）与 DeepSeekMoE 等创新架构：MLA 通过把键值（KV）缓存显著压缩为潜向量来保证高效推理，DeepSeekMoE 则通过稀疏计算以经济成本训练强模型。与 DeepSeek 67B 相比，DeepSeek-V2 性能显著更强，同时节省 42.5% 的训练成本、将 KV 缓…</p>
     <div class="paper-tags">
-<span class="chip chip-static">MLA</span><span class="chip chip-static">MoE</span><span class="chip chip-static">KV Cache</span>    </div>
+<span class="chip chip-static">MLA</span><span class="chip chip-static">MoE</span><span class="chip chip-static">KV Cache</span><span class="chip chip-static">LLM 架构</span>    </div>
     <div class="card-footer">
-      <span><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 10 分钟</span>
-      <span class="card-link">阅读 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+      <div class="paper-meta">
+<span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>52 页</span>        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 10 分钟</span>
+        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn btn-primary btn-sm" href="deepseek-v2/index.html">阅读译文 <svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+        <a class="btn btn-ghost btn-sm" href="deepseek-v2/original/index.html" lang="en">Original</a>
+        <a class="icon-btn file-btn" href="deepseek-v2/assets/source.pdf" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg></a>
+      </div>
     </div>
   </div>
 </article><article class="paper-card" data-slug="roformer">
-  <a class="card-cover" href="roformer/index.html" tabindex="-1" aria-hidden="true">
-    <img src="roformer/assets/figures/fig1.png" alt="" loading="lazy" decoding="async">
-    <span class="card-number">04</span>
+  <a class="card-cover card-cover--figure" href="roformer/index.html" aria-label="阅读《RoFormer：使用旋转位置嵌入增强的 Transformer》">
+    <span class="cover-art cover-art--figure" role="img" aria-label="RoPE 的二维旋转与多头维度成对旋转示意" style="background-image:url('roformer/assets/figures/fig1.png')"></span>
+    <span class="cover-caption" aria-hidden="true">
+      <span>FIGURE</span>
+      <strong>RoFormer</strong>
+    </span>
+    <span class="cover-overlay">
+      <span class="paper-badge">PAPER 04</span>
+      <span class="paper-year">2021</span>
+    </span>
   </a>
   <div class="card-body">
-    <div class="card-topline">
-      <span>2021</span>
-      <span class="card-dot"></span>
-      <span>arXiv 预印本</span>
-    </div>
+    <p class="eyebrow">arXiv 预印本 · 2021</p>
     <h3><a href="roformer/index.html">RoFormer：使用旋转位置嵌入增强的 Transformer</a></h3>
     <p class="paper-alt-title" lang="en">RoFormer: Enhanced Transformer with Rotary Position Embedding</p>
-    <p class="card-summary">位置编码近来在 Transformer 架构中展现出有效性，它为序列中不同位置元素之间的依赖建模提供了 有价值的监督信号。本文首先梳理了把位置信息融入 Transformer 语言模型学习过程的各种方法，然后 提出一种新方法——旋转位置嵌入（RoPE），以有效利用位置信息。具体而言，RoPE 用旋…</p>
+    <p class="paper-authors">Jianlin Su · Yu Lu · Shengfeng Pan · Ahmed Murtadha · Bo Wen · Yunfeng Liu · Zhuiyi Technology Co., Ltd., Shenzhen</p>
+    <p class="card-summary">位置编码近来在 Transformer 架构中展现出有效性，它为序列中不同位置元素之间的依赖建模提供了 有价值的监督信号。本文首先梳理了把位置信息融入 Transformer 语言模型学习过程的各种方法，然后 提出一种新方法——旋转位置嵌入（RoPE），以有效利用位置信息。具体而言，RoPE 用旋转矩阵编码 绝对位置，同时在自注意力公式中显式引入相对位置依赖。值得注意的是，RoPE 具有若干有价值的性质： 序列长度上的灵活性、token 间依赖随相对距离增大而衰减，以及为线性自注意力配备相对位置编码的 能力。最后…</p>
     <div class="paper-tags">
-<span class="chip chip-static">RoPE</span><span class="chip chip-static">位置编码</span><span class="chip chip-static">Transformer</span>    </div>
+<span class="chip chip-static">RoPE</span><span class="chip chip-static">位置编码</span><span class="chip chip-static">Transformer</span><span class="chip chip-static">长文本</span>    </div>
     <div class="card-footer">
-      <span><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 30 分钟</span>
-      <span class="card-link">阅读 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+      <div class="paper-meta">
+<span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>14 页</span>        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 30 分钟</span>
+        <span><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn btn-primary btn-sm" href="roformer/index.html">阅读译文 <svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+        <a class="btn btn-ghost btn-sm" href="roformer/original/index.html" lang="en">Original</a>
+        <a class="icon-btn file-btn" href="roformer/assets/source.pdf" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg></a>
+      </div>
     </div>
   </div>
-</article>    </div>
+</article>  </div>
 
-    <div class="empty-state" id="no-results" hidden>
-      <span class="empty-icon"><svg class="icon " width="28" height="28" aria-hidden="true" focusable="false"><use href="#i-search"></use></svg></span>
-      <h3>没有匹配的论文</h3>
-      <p>换个关键词，或清除标签筛选试试。</p>
-      <button type="button" class="btn btn-ghost btn-sm" id="empty-clear">清除筛选</button>
-    </div>
+  <div class="empty-state" id="no-results" hidden>
+    <span class="empty-icon"><svg class="icon " width="28" height="28" aria-hidden="true" focusable="false"><use href="#i-search"></use></svg></span>
+    <h3>没有匹配的论文</h3>
+    <p>换个关键词，或清除标签筛选试试。</p>
+    <button type="button" class="btn btn-ghost btn-sm" id="empty-clear">清除筛选</button>
   </div>
 </section>
 
@@ -404,6 +433,6 @@
     </div>
   </footer>
 
-  <script src="assets/site/site.js?v=44efb5f68d"></script>
+  <script src="assets/site/site.js?v=215425023e"></script>
 </body>
 </html>

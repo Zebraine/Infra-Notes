@@ -118,7 +118,7 @@ python3 utils/new_paper.py \
 | `pdf` | | 默认 `assets/source.pdf` |
 | `source_url` | | 原文在线地址 |
 | `pages` | | 原文页数 |
-| `featured` | | 是否置顶到论文库首页 |
+| `featured` | | 是否置顶到论文库首页；所有卡片均使用同一版式，此字段只影响排序 |
 | `order` | | 同日期时的排序权重 |
 | `citation_key` | | BibTeX key，默认由 slug + 年份生成 |
 

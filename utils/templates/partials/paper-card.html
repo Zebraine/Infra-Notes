@@ -1,32 +1,46 @@
 {% from "partials/icons.html" import icon %}
 <article class="paper-card" data-slug="{{ paper.slug }}">
-  <a class="card-cover" href="{{ paper.slug }}/index.html" tabindex="-1" aria-hidden="true">
+  <a class="card-cover{% if paper.cover and not paper.cover.endswith('.svg') %} card-cover--figure{% endif %}" href="{{ paper.slug }}/index.html" aria-label="阅读《{{ paper.title_zh }}》">
     {% if paper.cover %}
-    <img src="{{ paper.slug }}/{{ paper.cover }}" alt="" loading="lazy" decoding="async">
+    <span class="cover-art{% if not paper.cover.endswith('.svg') %} cover-art--figure{% endif %}" role="img" aria-label="{{ paper.cover_alt }}" style="background-image:url('{{ paper.slug }}/{{ paper.cover }}')"></span>
     {% else %}
-    <div class="cover-fallback">
+    <span class="cover-fallback">
       <span class="cover-kicker">{{ paper.venue_zh or "PAPER" }}</span>
-      <strong>{{ paper.title_zh[:16] }}</strong>
+      <strong>{{ paper.title_zh[:18] }}</strong>
       <span class="cover-year">{{ paper.year }}</span>
-    </div>
+    </span>
     {% endif %}
-    <span class="card-number">{{ "%02d"|format(paper.number) }}</span>
+    {% if paper.cover and not paper.cover.endswith('.svg') %}
+    <span class="cover-caption" aria-hidden="true">
+      <span>FIGURE</span>
+      <strong>{{ paper.short_title }}</strong>
+    </span>
+    {% endif %}
+    <span class="cover-overlay">
+      <span class="paper-badge">PAPER {{ "%02d"|format(paper.number) }}</span>
+      <span class="paper-year">{{ paper.year }}</span>
+    </span>
   </a>
   <div class="card-body">
-    <div class="card-topline">
-      <span>{{ paper.year }}</span>
-      <span class="card-dot"></span>
-      <span>{{ paper.venue_zh or "Research paper" }}</span>
-    </div>
+    <p class="eyebrow">{{ paper.venue_zh or "RESEARCH PAPER" }} · {{ paper.year }}</p>
     <h3><a href="{{ paper.slug }}/index.html">{{ paper.title_zh }}</a></h3>
     <p class="paper-alt-title" lang="en">{{ paper.title }}</p>
-    <p class="card-summary">{{ paper.abstract_zh|truncate(150, true, "…") }}</p>
+    <p class="paper-authors">{{ paper.authors_line }}{% if paper.affiliation %} · {{ paper.affiliation }}{% endif %}</p>
+    <p class="card-summary">{{ paper.abstract_zh|truncate(260, true, "…") }}</p>
     <div class="paper-tags">
-      {% for tag in paper.tags[:3] %}<span class="chip chip-static">{{ tag }}</span>{% endfor %}
+      {% for tag in paper.tags[:4] %}<span class="chip chip-static">{{ tag }}</span>{% endfor %}
     </div>
     <div class="card-footer">
-      <span>{{ icon("clock", 14) }}约 {{ paper.reading_minutes }} 分钟</span>
-      <span class="card-link">阅读 {{ icon("arrow-right", 14) }}</span>
+      <div class="paper-meta">
+        {% if paper.pages %}<span>{{ icon("file", 15) }}{{ paper.pages }} 页</span>{% endif %}
+        <span>{{ icon("clock", 15) }}约 {{ paper.reading_minutes }} 分钟</span>
+        <span>{{ icon("book", 15) }}中英双语</span>
+      </div>
+      <div class="card-actions">
+        <a class="btn btn-primary btn-sm" href="{{ paper.slug }}/index.html">阅读译文 {{ icon("arrow-right", 15) }}</a>
+        <a class="btn btn-ghost btn-sm" href="{{ paper.slug }}/original/index.html" lang="en">Original</a>
+        <a class="icon-btn file-btn" href="{{ paper.slug }}/{{ paper.pdf }}" target="_blank" rel="noopener" aria-label="打开 PDF" title="打开 PDF">{{ icon("file", 18) }}</a>
+      </div>
     </div>
   </div>
 </article>

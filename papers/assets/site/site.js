@@ -659,9 +659,8 @@
     var clear = $("#clear-filters");
     var empty = $("#no-results");
     var emptyClear = $("#empty-clear");
-    var grid = $(".paper-grid");
-    var featured = $(".featured-card");
-    var cards = $$(".paper-card");
+    var list = $(".paper-list");
+    var cards = $$(".paper-list .paper-card");
     var tagButtons = $$(".tag-filter [data-tag]");
     var state = { query: "", tag: "", sort: "latest" };
 
@@ -691,7 +690,7 @@
       }
       if (clear) clear.hidden = !state.query && !state.tag;
       if (empty) empty.hidden = visible !== 0;
-      if (grid) grid.hidden = visible === 0;
+      if (list) list.hidden = visible === 0;
     }
 
     function apply() {
@@ -702,12 +701,6 @@
         card.hidden = !show;
         if (show) visible += 1;
       });
-      if (featured) {
-        var featuredPaper = bySlug[featured.dataset.slug];
-        var showFeatured = match(featuredPaper);
-        featured.hidden = !showFeatured;
-        if (showFeatured) visible += 1;
-      }
       setCount(visible);
       tagButtons.forEach(function (button) {
         var active = (button.dataset.tag || "") === state.tag;
@@ -730,7 +723,7 @@
     }
 
     function sortCards() {
-      if (!grid) return;
+      if (!list) return;
       var nodes = cards.slice();
       nodes.sort(function (a, b) {
         var left = bySlug[a.dataset.slug];
@@ -746,7 +739,7 @@
         return right.date.localeCompare(left.date);
       });
       nodes.forEach(function (node) {
-        grid.appendChild(node);
+        list.appendChild(node);
       });
     }
 
@@ -813,7 +806,6 @@
       }
     });
 
-    sortCards();
     apply();
   }
 
