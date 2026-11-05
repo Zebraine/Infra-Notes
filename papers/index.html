@@ -23,7 +23,7 @@
     })();
   </script>
   <link rel="stylesheet" href="assets/site/pygments.css">
-  <link rel="stylesheet" href="assets/site/site.css?v=8001617773">
+  <link rel="stylesheet" href="assets/site/site.css?v=44efb5f68d">
 </head>
 <body id="top" class="page-website nav-library">
   <a class="skip-link" href="#main">跳到正文</a>
@@ -97,9 +97,9 @@
         <a class="btn btn-ghost" href="about/index.html">查看格式手册</a>
       </div>
       <dl class="hero-stats">
-        <div><dt>论文</dt><dd>1</dd></div>
-        <div><dt>主题</dt><dd>6</dd></div>
-        <div><dt>原文页数</dt><dd>10</dd></div>
+        <div><dt>论文</dt><dd>4</dd></div>
+        <div><dt>主题</dt><dd>17</dd></div>
+        <div><dt>原文页数</dt><dd>103</dd></div>
         <div><dt>更新</dt><dd>2026.11</dd></div>
       </dl>
     </div>
@@ -207,17 +207,28 @@
   </div>
 
   <div class="tag-filter" role="group" aria-label="按标签筛选">
-    <button type="button" class="chip is-active" data-tag="" aria-pressed="true">全部 <span>1</span></button>
-    <button type="button" class="chip" data-tag="KV Cache" aria-pressed="false">KV Cache <span>1</span></button>
+    <button type="button" class="chip is-active" data-tag="" aria-pressed="true">全部 <span>4</span></button>
+    <button type="button" class="chip" data-tag="KV Cache" aria-pressed="false">KV Cache <span>3</span></button>
+    <button type="button" class="chip" data-tag="MLA" aria-pressed="false">MLA <span>2</span></button>
+    <button type="button" class="chip" data-tag="DeepSeek" aria-pressed="false">DeepSeek <span>1</span></button>
+    <button type="button" class="chip" data-tag="GQA" aria-pressed="false">GQA <span>1</span></button>
     <button type="button" class="chip" data-tag="LLM Serving" aria-pressed="false">LLM Serving <span>1</span></button>
+    <button type="button" class="chip" data-tag="LLM 架构" aria-pressed="false">LLM 架构 <span>1</span></button>
+    <button type="button" class="chip" data-tag="MoE" aria-pressed="false">MoE <span>1</span></button>
+    <button type="button" class="chip" data-tag="RoPE" aria-pressed="false">RoPE <span>1</span></button>
     <button type="button" class="chip" data-tag="SGLang" aria-pressed="false">SGLang <span>1</span></button>
+    <button type="button" class="chip" data-tag="Transformer" aria-pressed="false">Transformer <span>1</span></button>
     <button type="button" class="chip" data-tag="vLLM" aria-pressed="false">vLLM <span>1</span></button>
+    <button type="button" class="chip" data-tag="位置编码" aria-pressed="false">位置编码 <span>1</span></button>
     <button type="button" class="chip" data-tag="抢占" aria-pressed="false">抢占 <span>1</span></button>
+    <button type="button" class="chip" data-tag="推理加速" aria-pressed="false">推理加速 <span>1</span></button>
+    <button type="button" class="chip" data-tag="模型转换" aria-pressed="false">模型转换 <span>1</span></button>
     <button type="button" class="chip" data-tag="调度" aria-pressed="false">调度 <span>1</span></button>
+    <button type="button" class="chip" data-tag="长文本" aria-pressed="false">长文本 <span>1</span></button>
   </div>
 
   <div class="result-line">
-    <p id="result-count">共 1 篇论文</p>
+    <p id="result-count">共 4 篇论文</p>
     <button type="button" class="clear-filters" id="clear-filters" hidden>清除筛选 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
   </div>
 
@@ -252,6 +263,71 @@
       </div>
     </article>
 
+    <div class="paper-grid">
+<article class="paper-card" data-slug="transmla">
+  <a class="card-cover" href="transmla/index.html" tabindex="-1" aria-hidden="true">
+    <img src="transmla/assets/figures/fig1.png" alt="" loading="lazy" decoding="async">
+    <span class="card-number">02</span>
+  </a>
+  <div class="card-body">
+    <div class="card-topline">
+      <span>2025</span>
+      <span class="card-dot"></span>
+      <span>arXiv 预印本</span>
+    </div>
+    <h3><a href="transmla/index.html">TransMLA：多头潜变量注意力足矣</a></h3>
+    <p class="paper-alt-title" lang="en">TransMLA: Multi-Head Latent Attention Is All You Need</p>
+    <p class="card-summary">现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩 矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理 速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投…</p>
+    <div class="paper-tags">
+<span class="chip chip-static">MLA</span><span class="chip chip-static">GQA</span><span class="chip chip-static">KV Cache</span>    </div>
+    <div class="card-footer">
+      <span><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 29 分钟</span>
+      <span class="card-link">阅读 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+    </div>
+  </div>
+</article><article class="paper-card" data-slug="deepseek-v2">
+  <a class="card-cover" href="deepseek-v2/index.html" tabindex="-1" aria-hidden="true">
+    <img src="deepseek-v2/assets/figures/mha-gqa-mqa-mla.png" alt="" loading="lazy" decoding="async">
+    <span class="card-number">03</span>
+  </a>
+  <div class="card-body">
+    <div class="card-topline">
+      <span>2024</span>
+      <span class="card-dot"></span>
+      <span>arXiv 预印本</span>
+    </div>
+    <h3><a href="deepseek-v2/index.html">DeepSeek-V2：强大、经济且高效的混合专家语言模型</a></h3>
+    <p class="paper-alt-title" lang="en">DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</p>
+    <p class="card-summary">DeepSeek-V2 是一个强大的混合专家（MoE）语言模型，以经济的训练和高效的推理为特征。它总参数量为 236B，每个 token 激活 21B，支持 128K 的上下文长度。DeepSeek-V2 采用多头潜变量注意力（MLA）与 DeepSeekMoE 等创新架构：MLA 通过把键值（K…</p>
+    <div class="paper-tags">
+<span class="chip chip-static">MLA</span><span class="chip chip-static">MoE</span><span class="chip chip-static">KV Cache</span>    </div>
+    <div class="card-footer">
+      <span><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 10 分钟</span>
+      <span class="card-link">阅读 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+    </div>
+  </div>
+</article><article class="paper-card" data-slug="roformer">
+  <a class="card-cover" href="roformer/index.html" tabindex="-1" aria-hidden="true">
+    <img src="roformer/assets/figures/fig1.png" alt="" loading="lazy" decoding="async">
+    <span class="card-number">04</span>
+  </a>
+  <div class="card-body">
+    <div class="card-topline">
+      <span>2021</span>
+      <span class="card-dot"></span>
+      <span>arXiv 预印本</span>
+    </div>
+    <h3><a href="roformer/index.html">RoFormer：使用旋转位置嵌入增强的 Transformer</a></h3>
+    <p class="paper-alt-title" lang="en">RoFormer: Enhanced Transformer with Rotary Position Embedding</p>
+    <p class="card-summary">位置编码近来在 Transformer 架构中展现出有效性，它为序列中不同位置元素之间的依赖建模提供了 有价值的监督信号。本文首先梳理了把位置信息融入 Transformer 语言模型学习过程的各种方法，然后 提出一种新方法——旋转位置嵌入（RoPE），以有效利用位置信息。具体而言，RoPE 用旋…</p>
+    <div class="paper-tags">
+<span class="chip chip-static">RoPE</span><span class="chip chip-static">位置编码</span><span class="chip chip-static">Transformer</span>    </div>
+    <div class="card-footer">
+      <span><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 30 分钟</span>
+      <span class="card-link">阅读 <svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+    </div>
+  </div>
+</article>    </div>
 
     <div class="empty-state" id="no-results" hidden>
       <span class="empty-icon"><svg class="icon " width="28" height="28" aria-hidden="true" focusable="false"><use href="#i-search"></use></svg></span>
@@ -299,7 +375,7 @@
   </div>
 </section>
 
-<script id="paper-data" type="application/json">[{"slug":"bidkv","number":1,"title":"BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving","title_zh":"BidKV：面向 KV 压力场景的效用引导抢占调度","short_title":"BidKV","authors":["Yanbo Chen","Mingqi Wang","Shuhao Zhang","Xiaofei Liao","Hai Jin"],"affiliation":"Huazhong University of Science and Technology (HUST)","year":2026,"date":"2026-11-18","venue":"SC26: International Conference for High Performance Computing, Networking, Storage and Analysis","venue_zh":"SC26","venue_full_zh":"SC26 国际高性能计算、网络、存储与分析会议","conference_url":"https://sc26.conference-program.com/presentation/?id=pap1108&sess=sess210","code_url":"https://github.com/CGCL-codes/BidKV","tags":["LLM Serving","KV Cache","调度","抢占","vLLM","SGLang"],"abstract":"When KV-cache demand exceeds GPU memory capacity during online LLM serving, serving engines reclaim cache from active requests to admit waiting ones. Poor victim selection wastes recomputation, delays admission of queued requests, and degrades first-token latency—a metric directly visible to users. Existing policies rely on coarse request-order heuristics (LIFO, FCFS) or independent per-request scoring rules, lacking both explicit reclamation-cost signals and cross-request coordination. We present BidKV, a utility-guided reclamation policy that improves admission responsiveness under KV pressure. Each active request produces a bid encoding recoverable capacity and estimated disruption cost; at each pressure event, an online utility-ranked selection policy identifies the intended highest-utility victim and preempts it via the framework's native mechanism. The current prototype instantiates disruption cost from request-lifecycle proxies (completion progress, prompt length, preemption history) under recompute-fallback semantics. BidKV integrates non-invasively with vLLM and SGLang via a portable adapter layer. Evaluated with Llama-3.1-8B-Instruct on an NVIDIA RTX A6000 under ShareGPT traces, BidKV reduces P95 TTFT by 89% and improves 300 ms SLO attainment by 14.9 pp over vLLM's native policy, at a modest throughput cost.","abstract_zh":"在线 LLM 服务过程中，当 KV 缓存需求超过 GPU 显存容量时，服务引擎会从活跃请求中回收缓存， 以便接纳等待中的请求。糟糕的牺牲者选择会浪费重算工作、推迟排队请求的准入，并恶化首 token 延迟——这是用户可以直接感知的指标。现有策略依赖粗粒度的请求顺序启发式（LIFO、FCFS）或 独立的单请求打分规则，既缺乏显式的回收代价信号，也缺乏跨请求协调。我们提出 BidKV，一种 效用引导的回收策略，用于改善 KV 压力下的准入响应性。每个活跃请求产生一个投标（bid）， 编码可回收容量与估计的中断代价；在每次压力事件中，在线效用排序选择策略找出预期效用最高的 牺牲者，并通过框架原生机制抢占它。当前原型在重算回退语义下，用请求生命周期代理指标 （完成进度、提示长度、抢占历史）实例化中断代价。BidKV 通过可移植适配层以非侵入方式集成 vLLM 与 SGLang。在 NVIDIA RTX A6000 上使用 Llama-3.1-8B-Instruct 和 ShareGPT 轨迹评估， BidKV 相比 vLLM 原生策略将 P95 TTFT 降低 89%，将 300 ms SLO 达成率提高 14.9 个百分点， 代价是适度的吞吐损失。","summary":"用“投标”把每个请求的回收代价显式化，并在批次层面按效用选择牺牲者；在不改 vLLM/SGLang 源码的前提下显著降低 KV 压力下的 P95 首 token 延迟。","cover":"bidkv/assets/cover.svg","cover_alt":"BidKV 论文封面：KV 压力网格、P95 TTFT 631 ms、SLO 83.2% 与 29× 效用","pdf":"bidkv/assets/source.pdf","source_url":"https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf","pages":10,"reading_minutes":40,"url":"bidkv/index.html","original_url":"bidkv/original/index.html"}]</script>
+<script id="paper-data" type="application/json">[{"slug":"bidkv","number":1,"title":"BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving","title_zh":"BidKV：面向 KV 压力场景的效用引导抢占调度","short_title":"BidKV","authors":["Yanbo Chen","Mingqi Wang","Shuhao Zhang","Xiaofei Liao","Hai Jin"],"affiliation":"Huazhong University of Science and Technology (HUST)","year":2026,"date":"2026-11-18","venue":"SC26: International Conference for High Performance Computing, Networking, Storage and Analysis","venue_zh":"SC26","venue_full_zh":"SC26 国际高性能计算、网络、存储与分析会议","conference_url":"https://sc26.conference-program.com/presentation/?id=pap1108&sess=sess210","code_url":"https://github.com/CGCL-codes/BidKV","tags":["LLM Serving","KV Cache","调度","抢占","vLLM","SGLang"],"abstract":"When KV-cache demand exceeds GPU memory capacity during online LLM serving, serving engines reclaim cache from active requests to admit waiting ones. Poor victim selection wastes recomputation, delays admission of queued requests, and degrades first-token latency—a metric directly visible to users. Existing policies rely on coarse request-order heuristics (LIFO, FCFS) or independent per-request scoring rules, lacking both explicit reclamation-cost signals and cross-request coordination. We present BidKV, a utility-guided reclamation policy that improves admission responsiveness under KV pressure. Each active request produces a bid encoding recoverable capacity and estimated disruption cost; at each pressure event, an online utility-ranked selection policy identifies the intended highest-utility victim and preempts it via the framework's native mechanism. The current prototype instantiates disruption cost from request-lifecycle proxies (completion progress, prompt length, preemption history) under recompute-fallback semantics. BidKV integrates non-invasively with vLLM and SGLang via a portable adapter layer. Evaluated with Llama-3.1-8B-Instruct on an NVIDIA RTX A6000 under ShareGPT traces, BidKV reduces P95 TTFT by 89% and improves 300 ms SLO attainment by 14.9 pp over vLLM's native policy, at a modest throughput cost.","abstract_zh":"在线 LLM 服务过程中，当 KV 缓存需求超过 GPU 显存容量时，服务引擎会从活跃请求中回收缓存， 以便接纳等待中的请求。糟糕的牺牲者选择会浪费重算工作、推迟排队请求的准入，并恶化首 token 延迟——这是用户可以直接感知的指标。现有策略依赖粗粒度的请求顺序启发式（LIFO、FCFS）或 独立的单请求打分规则，既缺乏显式的回收代价信号，也缺乏跨请求协调。我们提出 BidKV，一种 效用引导的回收策略，用于改善 KV 压力下的准入响应性。每个活跃请求产生一个投标（bid）， 编码可回收容量与估计的中断代价；在每次压力事件中，在线效用排序选择策略找出预期效用最高的 牺牲者，并通过框架原生机制抢占它。当前原型在重算回退语义下，用请求生命周期代理指标 （完成进度、提示长度、抢占历史）实例化中断代价。BidKV 通过可移植适配层以非侵入方式集成 vLLM 与 SGLang。在 NVIDIA RTX A6000 上使用 Llama-3.1-8B-Instruct 和 ShareGPT 轨迹评估， BidKV 相比 vLLM 原生策略将 P95 TTFT 降低 89%，将 300 ms SLO 达成率提高 14.9 个百分点， 代价是适度的吞吐损失。","summary":"用“投标”把每个请求的回收代价显式化，并在批次层面按效用选择牺牲者；在不改 vLLM/SGLang 源码的前提下显著降低 KV 压力下的 P95 首 token 延迟。","cover":"bidkv/assets/cover.svg","cover_alt":"BidKV 论文封面：KV 压力网格、P95 TTFT 631 ms、SLO 83.2% 与 29× 效用","pdf":"bidkv/assets/source.pdf","source_url":"https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf","pages":10,"reading_minutes":40,"url":"bidkv/index.html","original_url":"bidkv/original/index.html"},{"slug":"transmla","number":2,"title":"TransMLA: Multi-Head Latent Attention Is All You Need","title_zh":"TransMLA：多头潜变量注意力足矣","short_title":"TransMLA","authors":["Fanxu Meng","Pingzhi Tang","Xiaojuan Tang","Zengwei Yao","Xing Sun","Muhan Zhang"],"affiliation":"Peking University · BIGAI · Tencent Youtu Lab · Xiaomi Corp.","year":2025,"date":"2025-06-12","venue":"arXiv:2502.07864","venue_zh":"arXiv 预印本","venue_full_zh":"arXiv 预印本 arXiv:2502.07864","conference_url":"","code_url":"https://github.com/fxmeng/TransMLA","tags":["MLA","GQA","KV Cache","推理加速","模型转换"],"abstract":"Modern large-language models often face communication bottlenecks on current hardware rather than computational limitations. Multi-head latent attention (MLA) addresses this by compressing the key-value cache using low-rank matrices, while the Absorb operation prevents the KV cache from reverting to its original size, significantly boosting both training and inference speed. Despite the success of DeepSeek V2/V3/R1, most model providers have heavily invested in optimizing GQA-based models and, therefore, lack strong incentives to retrain MLA-based models from scratch. This paper demonstrates that MLA provides superior expressive power compared to GQA with the same KV cache overhead, thereby offering a rationale for transitioning from GQA to MLA. In addition, we introduce TransMLA, a framework that seamlessly converts any GQA-based pre-trained model (e.g., LLaMA, Qwen, Gemma, Mistral/Mixtral) into an MLA-based model. For the first time, our method enables direct conversion of these models into a format compatible with DeepSeek's codebase, allowing them to fully leverage DeepSeek-specific optimizations such as vLLM and SGLang. By compressing 93% of the KV cache in LLaMA-2-7B, we achieve a 10.6x speedup with an 8K context length while maintaining meaningful output. Moreover, the model requires only 6B tokens for fine-tuning to recover comparable performance across multiple benchmarks. TransMLA provides a practical path for migrating GQA-based models to the MLA structure, and when combined with DeepSeek's advanced optimizations—such as FP8 quantization and Multi-Token Prediction—further inference acceleration can be achieved.","abstract_zh":"现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩 矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理 速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投入大量优化，缺乏从零 训练 MLA 模型的动力。本文证明：在相同 KV 缓存开销下，MLA 的表达能力优于 GQA，从而为从 GQA 迁移到 MLA 提供了理论依据。我们还提出 TransMLA，一个能把任意 GQA 预训练模型（如 LLaMA、 Qwen、Gemma、Mistral/Mixtral）无缝转换为 MLA 模型的框架。该方法首次让这些模型可以直接转换为 与 DeepSeek 代码库兼容的格式，从而充分利用 vLLM、SGLang 等 DeepSeek 特定优化。在 LLaMA-2-7B 上压缩 93% 的 KV 缓存后，我们在 8K 上下文下取得 10.6 倍加速，同时保持有意义的输出；只需 6B token 的微调，就能在多个基准上恢复与原模型相当的性能。TransMLA 为 GQA 模型迁移到 MLA 结构 提供了一条实用路径，结合 FP8 量化、多 token 预测等 DeepSeek 高级优化还能进一步加速。","summary":"把 GQA 模型的 KV 头合并、用 RoRoPE/FreqFold 解耦位置信息、再做平衡的低秩压缩，从而低成本 迁移到 MLA，兼容 DeepSeek 推理栈。","cover":"transmla/assets/figures/fig1.png","cover_alt":"GQA、MLA、MQA 的单向等价转换，以及 TransMLA 的 RoRoPE、FreqFold、BKV-PCA 流程","pdf":"transmla/assets/source.pdf","source_url":"https://arxiv.org/abs/2502.07864","pages":27,"reading_minutes":29,"url":"transmla/index.html","original_url":"transmla/original/index.html"},{"slug":"deepseek-v2","number":3,"title":"DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model","title_zh":"DeepSeek-V2：强大、经济且高效的混合专家语言模型","short_title":"DeepSeek-V2","authors":["DeepSeek-AI"],"affiliation":"","year":2024,"date":"2024-05-07","venue":"arXiv:2405.04434","venue_zh":"arXiv 预印本","venue_full_zh":"arXiv 技术报告 arXiv:2405.04434","conference_url":"","code_url":"https://github.com/deepseek-ai/DeepSeek-V2","tags":["MLA","MoE","KV Cache","LLM 架构","DeepSeek"],"abstract":"We present DeepSeek-V2, a strong Mixture-of-Experts (MoE) language model characterized by economical training and efficient inference. It comprises 236B total parameters, of which 21B are activated for each token, and supports a context length of 128K tokens. DeepSeek-V2 adopts innovative architectures including Multi-head Latent Attention (MLA) and DeepSeekMoE. MLA guarantees efficient inference through significantly compressing the Key-Value (KV) cache into a latent vector, while DeepSeekMoE enables training strong models at an economical cost through sparse computation. Compared with DeepSeek 67B, DeepSeek-V2 achieves significantly stronger performance, and meanwhile saves 42.5% of training costs, reduces the KV cache by 93.3%, and boosts the maximum generation throughput to 5.76 times. We pretrain DeepSeek-V2 on a high-quality and multi-source corpus consisting of 8.1T tokens, and further perform Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to fully unlock its potential. Evaluation results show that, even with only 21B activated parameters, DeepSeek-V2 and its chat versions still achieve top-tier performance among open-source models.","abstract_zh":"DeepSeek-V2 是一个强大的混合专家（MoE）语言模型，以经济的训练和高效的推理为特征。它总参数量为 236B，每个 token 激活 21B，支持 128K 的上下文长度。DeepSeek-V2 采用多头潜变量注意力（MLA）与 DeepSeekMoE 等创新架构：MLA 通过把键值（KV）缓存显著压缩为潜向量来保证高效推理，DeepSeekMoE 则通过稀疏计算以经济成本训练强模型。与 DeepSeek 67B 相比，DeepSeek-V2 性能显著更强，同时节省 42.5% 的训练成本、将 KV 缓存减少 93.3%，并把最大生成吞吐提升至 5.76 倍。我们在 8.1T token 的 高质量多源语料上预训练 DeepSeek-V2，并通过监督微调（SFT）与强化学习（RL）充分释放其潜力。 评估结果表明，即使只有 21B 激活参数，DeepSeek-V2 及其对话版本仍在开源模型中达到顶级水平。","summary":"用低秩联合压缩把 KV 缓存压成潜向量，并用解耦 RoPE 保持位置信息；MLA 让 236B/21B 的 MoE 模型在 128K 上下文下仍能高效推理。","cover":"deepseek-v2/assets/figures/mha-gqa-mqa-mla.png","cover_alt":"MHA、GQA、MQA 与 MLA 的 KV 缓存结构对比","pdf":"deepseek-v2/assets/source.pdf","source_url":"https://arxiv.org/abs/2405.04434","pages":52,"reading_minutes":10,"url":"deepseek-v2/index.html","original_url":"deepseek-v2/original/index.html"},{"slug":"roformer","number":4,"title":"RoFormer: Enhanced Transformer with Rotary Position Embedding","title_zh":"RoFormer：使用旋转位置嵌入增强的 Transformer","short_title":"RoFormer","authors":["Jianlin Su","Yu Lu","Shengfeng Pan","Ahmed Murtadha","Bo Wen","Yunfeng Liu"],"affiliation":"Zhuiyi Technology Co., Ltd., Shenzhen","year":2021,"date":"2021-04-20","venue":"arXiv:2104.09864","venue_zh":"arXiv 预印本","venue_full_zh":"arXiv 预印本 arXiv:2104.09864","conference_url":"","code_url":"https://github.com/ZhuiyiTechnology/roformer","tags":["RoPE","位置编码","Transformer","长文本"],"abstract":"Position encoding recently has shown effective in the transformer architecture. It enables valuable supervision for dependency modeling between elements at different positions of the sequence. In this paper, we first investigate various methods to integrate positional information into the learning process of transformer-based language models. Then, we propose a novel method named Rotary Position Embedding (RoPE) to effectively leverage the positional information. Specifically, the proposed RoPE encodes the absolute position with a rotation matrix and meanwhile incorporates the explicit relative position dependency in self-attention formulation. Notably, RoPE enables valuable properties, including the flexibility of sequence length, decaying inter-token dependency with increasing relative distances, and the capability of equipping the linear self-attention with relative position encoding. Finally, we evaluate the enhanced transformer with rotary position embedding, also called RoFormer, on various long text classification benchmark datasets. Our experiments show that it consistently overcomes its alternatives. Furthermore, we provide a theoretical analysis to explain some experimental results.","abstract_zh":"位置编码近来在 Transformer 架构中展现出有效性，它为序列中不同位置元素之间的依赖建模提供了 有价值的监督信号。本文首先梳理了把位置信息融入 Transformer 语言模型学习过程的各种方法，然后 提出一种新方法——旋转位置嵌入（RoPE），以有效利用位置信息。具体而言，RoPE 用旋转矩阵编码 绝对位置，同时在自注意力公式中显式引入相对位置依赖。值得注意的是，RoPE 具有若干有价值的性质： 序列长度上的灵活性、token 间依赖随相对距离增大而衰减，以及为线性自注意力配备相对位置编码的 能力。最后，我们在多个长文本分类基准上评估了使用旋转位置嵌入增强的 Transformer（RoFormer）。 实验表明，它稳定优于替代方案；我们还提供理论分析来解释部分实验结果。RoFormer 已集成到 Hugging Face Transformers。","summary":"用旋转矩阵把绝对位置写进 query/key，使内积自然只依赖相对距离；RoPE 由此成为现代 LLM 位置编码的事实标准。","cover":"roformer/assets/figures/fig1.png","cover_alt":"RoPE 的二维旋转与多头维度成对旋转示意","pdf":"roformer/assets/source.pdf","source_url":"https://arxiv.org/abs/2104.09864","pages":14,"reading_minutes":30,"url":"roformer/index.html","original_url":"roformer/original/index.html"}]</script>
   </main>
 
   <footer class="footer">
@@ -328,6 +404,6 @@
     </div>
   </footer>
 
-  <script src="assets/site/site.js?v=8001617773"></script>
+  <script src="assets/site/site.js?v=44efb5f68d"></script>
 </body>
 </html>

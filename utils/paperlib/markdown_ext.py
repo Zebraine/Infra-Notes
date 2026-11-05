@@ -497,6 +497,10 @@ class LinkAndAssetPostprocessor(Postprocessor):
             url = url[2:]
         if url.startswith("assets/") and self.asset_prefix:
             return self.asset_prefix + url
+        # Links such as ../transmla/index.html are written relative to the
+        # paper directory; the original-language page sits one level deeper.
+        if self.asset_prefix and url.startswith("../"):
+            return self.asset_prefix + url
         return url
 
     def run(self, text: str) -> str:

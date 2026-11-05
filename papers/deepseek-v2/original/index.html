@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model · AI Infra 论文库</title>
+  <meta name="description" content="We present DeepSeek-V2, a strong Mixture-of-Experts (MoE) language model characterized by economical training and efficient inference. It comprises 236B total p">
+  <meta name="author" content="DeepSeek-AI">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model · AI Infra 论文库">
+  <meta property="og:description" content="We present DeepSeek-V2, a strong Mixture-of-Experts (MoE) language model characterized by economical training and efficient inference. It comprises 236B total p">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2024-05-07">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=44efb5f68d">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 03</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 03 · 2024 · arXiv 预印本</p>
+        <h1>DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</h1>
+        <p class="paper-alt-title" lang="zh-CN">DeepSeek-V2：强大、经济且高效的混合专家语言模型</p>
+        <p class="paper-authors">DeepSeek-AI</p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>52 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 9 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>5 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=MLA">MLA</a><a class="chip chip-static" href="../../index.html?tag=MoE">MoE</a><a class="chip chip-static" href="../../index.html?tag=KV%20Cache">KV Cache</a><a class="chip chip-static" href="../../index.html?tag=LLM%20%E6%9E%B6%E6%9E%84">LLM 架构</a><a class="chip chip-static" href="../../index.html?tag=DeepSeek">DeepSeek</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Introduction</a></li>
+<li><a href="#sec-3">2 Architecture</a><ul>
+<li><a href="#sec-3-1">2.1 Multi-Head Latent Attention</a></li>
+<li><a href="#sec-3-2">2.2 DeepSeekMoE Overview</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">3 Pre-Training and Evaluation</a></li>
+<li><a href="#sec-5">4 Alignment</a></li>
+<li><a href="#sec-6">5 Conclusion, Limitation, and Future Work</a></li>
+<li><a href="#sec-7">Further Reading</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English reading edition: abstract, MLA architecture, and key passages. The complete 52-page report is available in the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>We present DeepSeek-V2, a strong Mixture-of-Experts (MoE) language model characterized by economical training and efficient inference. It comprises 236B total parameters, of which 21B are activated for each token, and supports a context length of 128K tokens. DeepSeek-V2 adopts innovative architectures including Multi-head Latent Attention (MLA) and DeepSeekMoE. MLA guarantees efficient inference through significantly compressing the Key-Value (KV) cache into a latent vector, while DeepSeekMoE enables training strong models at an economical cost through sparse computation. Compared with DeepSeek 67B, DeepSeek-V2 achieves significantly stronger performance, and meanwhile saves 42.5% of training costs, reduces the KV cache by 93.3%, and boosts the maximum generation throughput to 5.76 times. We pretrain DeepSeek-V2 on a high-quality and multi-source corpus consisting of 8.1T tokens, and further perform Supervised Fine-Tuning (SFT) and Reinforcement Learning (RL) to fully unlock its potential. Evaluation results show that, even with only 21B activated parameters, DeepSeek-V2 and its chat versions still achieve top-tier performance among open-source models.</p>
+<h2 id="sec-2">1 Introduction<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>Large language models continue to scale, but training and inference costs remain a barrier to widespread deployment. A dense model activates all parameters for every token; during autoregressive generation, the KV cache also grows linearly with context length and becomes a bottleneck in memory capacity and bandwidth. DeepSeek-V2 attacks both problems at once:</p>
+<ul>
+<li><strong>Attention:</strong> MLA jointly compresses keys and values into a low-rank latent vector. At inference, only that latent vector is cached; the up-projection matrices are absorbed into the query/output projections, so full K/V never needs to be materialized.</li>
+<li><strong>Feed-forward network:</strong> DeepSeekMoE uses fine-grained expert segmentation and shared-expert isolation to obtain stronger expert specialization at the same activated-parameter budget, with device-limited routing, load-balancing losses, and token dropping to control communication and training stability.</li>
+</ul>
+<p>DeepSeek-V2 has 236B total parameters, 21B activated per token, and supports a 128K context. Compared with DeepSeek 67B, it is stronger on benchmarks such as MMLU while saving 42.5% of training cost, reducing the KV cache by 93.3%, and increasing maximum generation throughput by 5.76×. The model is pretrained on 8.1T tokens, then fine-tuned on 1.5M conversational sessions with SFT and aligned with online GRPO.</p>
+<p>The main contributions are:</p>
+<ol>
+<li>MLA, which reduces per-token KV cache from <span class="arithmatex">\(2n_h d_h l\)</span> to <span class="arithmatex">\((d_c+d_h^R)l\)</span> through low-rank KV joint compression while matching or exceeding MHA quality.</li>
+<li>Decoupled RoPE, which moves positional information into a small set of extra query/key dimensions so that the KV up-projections remain absorbable.</li>
+<li>DeepSeekMoE, which activates only 21B of 236B parameters and enables economical training and efficient inference.</li>
+<li>A complete pretraining, long-context extension, SFT, and RL pipeline, with open model weights and inference code.</li>
+</ol>
+<h2 id="sec-3">2 Architecture<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>DeepSeek-V2 remains a Transformer: each block contains an attention module and an FFN. The attention module uses MLA, and the FFN uses DeepSeekMoE; other details such as RMSNorm and activation functions largely follow DeepSeek 67B.</p>
+<h3 id="sec-3-1">2.1 Multi-Head Latent Attention<a class="headerlink" href="#sec-3-1" title="复制本节链接">§</a></h3>
+<p>Standard MHA must cache all historical keys and values during generation. As context grows, this KV cache becomes the main limit on batch size and sequence length. MQA and GQA reduce the cache by sharing key/value heads across query heads, but usually lose quality. MLA aims to shrink the cache substantially without sacrificing — and in practice improving — expressiveness.</p>
+<h4 id="sec-3-1-1">2.1.1 Standard Multi-Head Attention<a class="headerlink" href="#sec-3-1-1" title="复制本节链接">§</a></h4>
+<p>Let <span class="arithmatex">\(d\)</span> be the embedding dimension, <span class="arithmatex">\(n_h\)</span> the number of attention heads, <span class="arithmatex">\(d_h\)</span> the per-head dimension, and <span class="arithmatex">\(h_t\in\mathbb{R}^d\)</span> the input of token <span class="arithmatex">\(t\)</span> at one layer. MHA first computes</p>
+<div class="arithmatex">\[
+q_t=W^Q h_t,\qquad
+k_t=W^K h_t,\qquad
+v_t=W^V h_t,
+\]</div>
+<p>with <span class="arithmatex">\(W^Q,W^K,W^V\in\mathbb{R}^{d_h n_h\times d}\)</span>, then slices them into <span class="arithmatex">\(n_h\)</span> heads:</p>
+<div class="arithmatex">\[
+[q_{t,1};\dots;q_{t,n_h}]=q_t,\quad
+[k_{t,1};\dots;k_{t,n_h}]=k_t,\quad
+[v_{t,1};\dots;v_{t,n_h}]=v_t.
+\]</div>
+<p>The output of head <span class="arithmatex">\(i\)</span> is</p>
+<div class="arithmatex">\[
+o_{t,i}=\sum_{j=1}^{t}
+\mathrm{Softmax}_j\left(
+\frac{q_{t,i}^{\top}k_{j,i}}{\sqrt{d_h}}
+\right)v_{j,i},
+\qquad
+u_t=W^O[o_{t,1};\dots;o_{t,n_h}],
+\]</div>
+<p>where <span class="arithmatex">\(W^O\in\mathbb{R}^{d\times d_h n_h}\)</span>. Inference must cache <span class="arithmatex">\(2n_h d_h l\)</span> elements per token (<span class="arithmatex">\(l\)</span> layers) — the target of MLA.</p>
+<h4 id="sec-3-1-2">2.1.2 Low-Rank Key-Value Joint Compression<a class="headerlink" href="#sec-3-1-2" title="复制本节链接">§</a></h4>
+<p>MLA jointly compresses keys and values. A down-projection maps the input into a low-dimensional latent space, and two up-projections reconstruct keys and values:</p>
+<div class="arithmatex">\[
+c_t^{KV}=W^{DKV}h_t,\qquad
+k_t^C=W^{UK}c_t^{KV},\qquad
+v_t^C=W^{UV}c_t^{KV},
+\]</div>
+<p>where <span class="arithmatex">\(c_t^{KV}\in\mathbb{R}^{d_c}\)</span> is the compressed latent vector, <span class="arithmatex">\(d_c\ll d_h n_h\)</span>; <span class="arithmatex">\(W^{DKV}\in\mathbb{R}^{d_c\times d}\)</span> is the down-projection, and <span class="arithmatex">\(W^{UK},W^{UV}\in\mathbb{R}^{d_h n_h\times d_c}\)</span> are the up-projections. At inference, only <span class="arithmatex">\(c_t^{KV}\)</span> is cached, reducing the per-token, per-layer KV cache from <span class="arithmatex">\(2n_h d_h\)</span> to <span class="arithmatex">\(d_c\)</span>.</p>
+<p>Crucially, <span class="arithmatex">\(W^{UK}\)</span> can be absorbed into <span class="arithmatex">\(W^Q\)</span>, and <span class="arithmatex">\(W^{UV}\)</span> into <span class="arithmatex">\(W^O\)</span>. Inference therefore never needs to materialize full keys and values: query–key products can be computed in the latent space, and the weighted sum of values can be accumulated before a single up-projection. This is the <strong>Absorb</strong> operation. It makes MLA behave like an MQA-style structure with one shared large KV head at inference, combining a small cache with low compute.</p>
+<p>To reduce activation memory during training, MLA also compresses queries (this does not reduce KV cache):</p>
+<div class="arithmatex">\[
+c_t^Q=W^{DQ}h_t,\qquad
+q_t^C=W^{UQ}c_t^Q,
+\]</div>
+<p>where <span class="arithmatex">\(c_t^Q\in\mathbb{R}^{d_c'}\)</span> and <span class="arithmatex">\(d_c'\ll d_h n_h\)</span>.</p>
+<h4 id="sec-3-1-3">2.1.3 Decoupled Rotary Position Embedding<a class="headerlink" href="#sec-3-1-3" title="复制本节链接">§</a></h4>
+<p>DeepSeek-V2 wants RoPE's positional encoding, but RoPE is not directly compatible with low-rank KV compression. RoPE is position-sensitive for both keys and queries: applying it to <span class="arithmatex">\(k_t^C\)</span> couples <span class="arithmatex">\(W^{UK}\)</span> with a position-dependent rotation matrix. That matrix sits between <span class="arithmatex">\(W^Q\)</span> and <span class="arithmatex">\(W^{UK}\)</span> at inference and prevents absorption, because matrix multiplication does not commute. The engine would have to recompute keys for all prefix tokens, erasing the benefit of compression.</p>
+<p>MLA therefore uses <strong>decoupled RoPE</strong>: extra multi-head queries <span class="arithmatex">\(q_{t,i}^R\)</span> and a shared key <span class="arithmatex">\(k_t^R\)</span> carry positional information only:</p>
+<div class="arithmatex">\[
+[q_{t,1}^R;\dots;q_{t,n_h}^R]
+=q_t^R=\mathrm{RoPE}(W^{QR}c_t^Q),
+\qquad
+k_t^R=\mathrm{RoPE}(W^{KR}h_t).
+\]</div>
+<p>The position-free compressed part and the RoPE part are concatenated:</p>
+<div class="arithmatex">\[
+q_{t,i}=[q_{t,i}^C;q_{t,i}^R],
+\qquad
+k_{t,i}=[k_{t,i}^C;k_t^R],
+\]</div>
+<div class="arithmatex">\[
+o_{t,i}=\sum_{j=1}^{t}
+\mathrm{Softmax}_j\left(
+\frac{q_{t,i}^{\top}k_{j,i}}{\sqrt{d_h+d_h^R}}
+\right)v_{j,i}^C,
+\qquad
+u_t=W^O[o_{t,1};\dots;o_{t,n_h}],
+\]</div>
+<p>where <span class="arithmatex">\(d_h^R\)</span> is the per-head dimension of the decoupled queries/key. The decoupled key <span class="arithmatex">\(k_t^R\)</span> is also cached, so total KV cache is <span class="arithmatex">\((d_c+d_h^R)l\)</span>. Positional information occupies a small fraction of dimensions, while the main K/V path remains absorbable — the key to combining RoPE with low-rank compression.</p>
+<h4 id="sec-3-1-4">2.1.4 Comparison of Key-Value Cache<a class="headerlink" href="#sec-3-1-4" title="复制本节链接">§</a></h4>
+<p>Table 1 compares per-token KV cache across MHA, GQA, MQA, and MLA. DeepSeek-V2 sets <span class="arithmatex">\(d_c=4d_h\)</span> and <span class="arithmatex">\(d_h^R=d_h/2\)</span>, so MLA needs <span class="arithmatex">\((4d_h+0.5d_h)l=4.5d_h l\)</span>, equal to GQA with 2.25 groups, while reporting stronger quality than MHA.</p>
+<figure class="paper-table"><figcaption id="tab-1">Table 1: Per-token KV cache and capability of different attention mechanisms.</figcaption><div class="table-scroll"><table aria-labelledby="tab-1">
+<thead>
+<tr>
+<th>Mechanism</th>
+<th style="text-align: right;">KV cache per token (elements)</th>
+<th>Capability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Multi-Head Attention (MHA)</td>
+<td style="text-align: right;"><span class="arithmatex">\(2n_h d_h l\)</span></td>
+<td>Strong</td>
+</tr>
+<tr>
+<td>Grouped-Query Attention (GQA)</td>
+<td style="text-align: right;"><span class="arithmatex">\(2n_g d_h l\)</span></td>
+<td>Moderate</td>
+</tr>
+<tr>
+<td>Multi-Query Attention (MQA)</td>
+<td style="text-align: right;"><span class="arithmatex">\(2d_h l\)</span></td>
+<td>Weak</td>
+</tr>
+<tr>
+<td>MLA (ours)</td>
+<td style="text-align: right;"><span class="arithmatex">\((d_c+d_h^R)l\approx 4.5d_h l\)</span></td>
+<td>Stronger</td>
+</tr>
+</tbody>
+</table>
+</div></figure><figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/mha-gqa-mqa-mla.png"><img alt="Figure 1: KV-cache structure of MHA, GQA, MQA, and MLA. MLA jointly compresses keys and values into a latent vector and caches only the compressed latent state; hatched blocks are cached during inference." decoding="async" loading="lazy" src="../assets/figures/mha-gqa-mqa-mla.png"></a><figcaption>Figure 1: KV-cache structure of MHA, GQA, MQA, and MLA. MLA jointly compresses keys and values into a latent vector and caches only the compressed latent state; hatched blocks are cached during inference.</figcaption></figure><p>The figure highlights MLA's counterintuitive design: it still has many query heads, but all heads share one compressed KV latent vector. Absorption folds the up-projections into query/output at inference, approaching MQA's cache efficiency while retaining MHA-level expressiveness.</p>
+<h3 id="sec-3-2">2.2 DeepSeekMoE Overview<a class="headerlink" href="#sec-3-2" title="复制本节链接">§</a></h3>
+<p>The FFN uses DeepSeekMoE with two key ideas:</p>
+<ul>
+<li><strong>Fine-grained expert segmentation:</strong> each expert is smaller, so a token can combine more experts and specialization has more room.</li>
+<li><strong>Shared-expert isolation:</strong> a set of always-active shared experts captures common knowledge and reduces redundancy among routed experts.</li>
+</ul>
+<p>For token <span class="arithmatex">\(t\)</span>,</p>
+<div class="arithmatex">\[
+h_t'=u_t+\sum_{i=1}^{N_s}\mathrm{FFN}_i^{(s)}(u_t)
++\sum_{i=1}^{N_r}g_{i,t}\mathrm{FFN}_i^{(r)}(u_t),
+\]</div>
+<p>where <span class="arithmatex">\(N_s\)</span> and <span class="arithmatex">\(N_r\)</span> are the numbers of shared and routed experts, <span class="arithmatex">\(g_{i,t}\)</span> is the routing gate, and only the top-<span class="arithmatex">\(K_r\)</span> routed experts are active. To keep MoE efficient under expert parallelism, DeepSeek-V2 adds device-limited routing (each token's experts span at most <span class="arithmatex">\(M\)</span> devices; <span class="arithmatex">\(M\ge3\)</span> in practice), expert-/device-/communication-level load-balancing losses, and a token-dropping strategy late in training. As a result, only 21B of 236B parameters are active per token.</p>
+<h2 id="sec-4">3 Pre-Training and Evaluation<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<p>DeepSeek-V2 is pretrained on 8.1T tokens from a high-quality, multi-source corpus; relative to DeepSeek 67B, the corpus is larger, higher-quality, and contains more Chinese data. After pretraining, YaRN extends the default 4K context to 128K. YaRN is applied only to the decoupled shared key <span class="arithmatex">\(k_t^R\)</span>, because that is the only part carrying RoPE. This detail matters: once MLA isolates positional information, long-context extrapolation only needs to touch that small set of dimensions.</p>
+<p>On evaluation, DeepSeek-V2 reaches top-tier open-model quality on MMLU, Chinese tasks, code, and math. The headline efficiency numbers are: 42.5% lower training cost, 93.3% smaller KV cache, and 5.76× higher maximum generation throughput than DeepSeek 67B. The 93.3% reduction comes mainly from MLA's KV compression; the throughput gain comes from the smaller cache (larger feasible batches) together with MoE sparsity.</p>
+<h2 id="sec-5">4 Alignment<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>Alignment has two stages:</p>
+<ol>
+<li><strong>SFT:</strong> about 1.5M conversational sessions covering math, code, writing, reasoning, and safety produce DeepSeek-V2 Chat (SFT).</li>
+<li><strong>RL:</strong> GRPO from DeepSeekMath performs online human-preference alignment, producing DeepSeek-V2 Chat (RL).</li>
+</ol>
+<p>The paper reports MT-Bench 8.97, a 38.9% length-controlled win rate on AlpacaEval 2.0, and 7.91 on AlignBench for DeepSeek-V2 Chat (RL). It also discusses two practical observations: with fewer than 10K SFT instances, IFEval degrades noticeably; and RL alignment introduces an "alignment tax" — open-ended generation improves while standard benchmarks such as BBH may drop. DeepSeek-V2 trades off the two through data processing and training strategy.</p>
+<h2 id="sec-6">5 Conclusion, Limitation, and Future Work<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>DeepSeek-V2 shows that MLA + DeepSeekMoE can deliver strong quality, low training cost, and efficient inference with 236B total / 21B activated parameters. Its limitations are those common to LLMs: knowledge is not continuously updated after pretraining, it may produce non-factual or hallucinated content, and training data is mainly Chinese and English, limiting other languages. DeepSeek released the model weights and inference code, plus DeepSeek-V2-Lite (15.7B total, 2.4B activated) for the community.</p>
+<p>For today's systems reader, the lasting value of DeepSeek-V2 is that it turns "KV cache is the inference bottleneck" into a composable architectural design: low-rank compression, matrix absorption, and decoupled RoPE together form the MLA paradigm. DeepSeek-V3/R1, TransMLA, and many MLA inference optimizations build on this paradigm.</p>
+<h2 id="sec-7">Further Reading<a class="headerlink" href="#sec-7" title="复制本节链接">§</a></h2>
+<ul>
+<li><a href="../../transmla/index.html">TransMLA: converting GQA models to MLA</a></li>
+<li><a href="../../roformer/index.html">RoFormer: rotary position embedding (RoPE)</a></li>
+<li><a href="../../bidkv/index.html">BidKV: utility-guided preemption under KV pressure</a></li>
+</ul>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{deepseekv2_2024,
+  author = {DeepSeek-AI},
+  title = {DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model},
+  year = {2024},
+  howpublished = {arXiv:2405.04434},
+  url = {https://arxiv.org/abs/2405.04434},
+  note = {AI Infra Paper Library, deepseek-v2}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</dd></div>
+        <div><dt>作者</dt><dd>DeepSeek-AI</dd></div>
+        <div><dt>发表</dt><dd>arXiv 技术报告 arXiv:2405.04434 · 2024</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/deepseek-ai/DeepSeek-V2" target="_blank" rel="noopener noreferrer">https://github.com/deepseek-ai/DeepSeek-V2</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/2405.04434" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2405.04434</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（52 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../../transmla/original/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>TransMLA: Multi-Head Latent Attention Is All You Need</strong>
+      </a>
+      <a class="pager-link pager-next" href="../../roformer/original/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>RoFormer: Enhanced Transformer with Rotary Position Embedding</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/figures/mha-gqa-mqa-mla.png" alt="MHA、GQA、MQA 与 MLA 的 KV 缓存结构对比" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>DeepSeek-V2</h2>
+      <p class="rail-authors">DeepSeek-AI</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2024</dd></div>
+        <div><dt>页数</dt><dd>52</dd></div>
+        <div><dt>阅读</dt><dd>9 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/deepseek-ai/DeepSeek-V2" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/2405.04434" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线 PDF</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../../bidkv/original/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../../transmla/original/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA: Multi-Head Latent Attention Is All You Need</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=44efb5f68d"></script>
+</body>
+</html>

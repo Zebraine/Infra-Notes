@@ -1,0 +1,800 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TransMLA：多头潜变量注意力足矣 · AI Infra 论文库</title>
+  <meta name="description" content="现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩 矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理 速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投入大量优化，缺乏从零 ">
+  <meta name="author" content="Fanxu Meng, Pingzhi Tang, Xiaojuan Tang, Zengwei Yao, Xing Sun, Muhan Zhang">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="TransMLA：多头潜变量注意力足矣 · AI Infra 论文库">
+  <meta property="og:description" content="现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩 矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理 速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投入大量优化，缺乏从零 ">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2025-06-12">  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../assets/site/pygments.css">
+  <link rel="stylesheet" href="../assets/site/site.css?v=44efb5f68d">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 02</span>
+      <span aria-hidden="true">/</span>
+      <span>中文译文</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 02 · 2025 · arXiv 预印本</p>
+        <h1>TransMLA：多头潜变量注意力足矣</h1>
+        <p class="paper-alt-title" lang="en">TransMLA: Multi-Head Latent Attention Is All You Need</p>
+        <p class="paper-authors">Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang <span class="affiliation">· Peking University · BIGAI · Tencent Youtu Lab · Xiaomi Corp.</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>27 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 29 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>5 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="index.html" class="is-active" aria-current="page" data-lang="zh">中文译文</a>
+          <a href="original/index.html" class="" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">译文由 AI 辅助完成，技术细节以原文为准。</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../index.html?tag=MLA">MLA</a><a class="chip chip-static" href="../index.html?tag=GQA">GQA</a><a class="chip chip-static" href="../index.html?tag=KV%20Cache">KV Cache</a><a class="chip chip-static" href="../index.html?tag=%E6%8E%A8%E7%90%86%E5%8A%A0%E9%80%9F">推理加速</a><a class="chip chip-static" href="../index.html?tag=%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2">模型转换</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">摘要</a></li>
+<li><a href="#sec-2">1 引言</a></li>
+<li><a href="#sec-3">2 相关工作</a></li>
+<li><a href="#sec-4">3 预备知识</a><ul>
+<li><a href="#sec-4-1">3.1 旋转位置嵌入（RoPE）</a></li>
+<li><a href="#sec-4-2">3.2 分组查询注意力（GQA）</a></li>
+<li><a href="#sec-4-3">3.3 多头潜变量注意力（MLA）</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 TransMLA</a><ul>
+<li><a href="#sec-5-1">4.1 将所有键头合并为一个</a></li>
+<li><a href="#sec-5-2">4.2 RoRoPE 与 FreqFold</a></li>
+<li><a href="#sec-5-3">4.3 平衡的联合低秩近似</a></li>
+</ul>
+</li>
+<li><a href="#sec-6">5 实验</a><ul>
+<li><a href="#sec-6-1">5.1 主实验</a></li>
+<li><a href="#sec-6-2">5.2 键范数分析</a></li>
+<li><a href="#sec-6-3">5.3 KV 范数差异与 BKV</a></li>
+<li><a href="#sec-6-4">5.4 推理加速</a></li>
+</ul>
+</li>
+<li><a href="#sec-7">6 结论、局限与未来工作</a></li>
+<li><a href="#sec-8">延伸阅读</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>中文译文</strong><span>中文精读版：正文第 1–6 节完整对译；附录 A–G 见 PDF。</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">摘要<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>现代大语言模型在当前硬件上遇到的往往不是计算能力上限，而是通信瓶颈。多头潜变量注意力（MLA）用低秩矩阵压缩键值缓存，并通过 Absorb 操作避免推理时 KV 缓存回退到原始大小，从而同时提升训练与推理速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投入大量优化，因而缺乏从零重训 MLA 模型的动力。本文证明：在相同 KV 缓存开销下，MLA 的表达能力强于 GQA，从而为从 GQA 转向 MLA 提供了依据。我们还提出 TransMLA，一个能把任意 GQA 预训练模型（如 LLaMA、Qwen、Gemma、Mistral/Mixtral）无缝转换为 MLA 模型的框架。该方法首次让这些模型可以直接转换为与 DeepSeek 代码库兼容的格式，从而充分利用 vLLM、SGLang 等 DeepSeek 特定优化。在 LLaMA-2-7B 上压缩 93% 的 KV 缓存后，我们在 8K 上下文下取得 10.6 倍加速，同时保持有意义的输出；此外，模型只需 6B token 的微调，就能在多个基准上恢复到可比性能。TransMLA 为 GQA 模型迁移到 MLA 结构提供了实用路径；结合 FP8 量化、多 token 预测（MTP）等 DeepSeek 高级优化，还可进一步加速推理。</p>
+<h2 id="sec-2">1 引言<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>大语言模型（LLM）正在快速演进，但推理成本并没有随参数规模同步下降。自回归生成逐个 token 进行，每一步都要对全部历史 token 计算自注意力；为避免重复计算，实现会把历史 token 的键值（KV）对保存在缓存中。随着模型变大、上下文变长，KV 缓存本身逐渐成为推理的主要瓶颈：它随序列长度线性增长，占用大量显存，并限制批大小与并发度。换句话说，问题常常不是“算不动”，而是“搬不动、存不下”。</p>
+<p>为缓解这一矛盾，分组查询注意力（GQA）把 query 头分组，每组共享一个 key/value 头。当组数为 1 时，GQA 退化为多查询注意力（MQA）；当组数等于头数时，它退化为标准多头注意力（MHA）。GQA 与 MQA 都以一定的模型质量为代价换取更小的 KV 缓存。另一条路线是训练后的 KV 缓存压缩，例如 Duo-Attention、KiVi、KV-Quant、H2O 等；这些方法能进一步降低显存占用，但往往依赖非标准实现和专门优化的算子，难以被广泛采用。</p>
+<p>多头潜变量注意力（MLA）由 DeepSeek V2 提出，并在 DeepSeek V3 与 R1 中继续完善。它把 KV 缓存压缩到一个低秩潜向量中，在训练阶段保持接近 MHA 的并行计算形式，在推理阶段则通过 Absorb 操作切换为类似 MQA 的形式，从而在计算效率与模型质量之间取得很好的平衡。配备 MLA 的模型取得了当时最好的结果，同时把训练和推理成本压到新低；DeepSeek 团队持续开源的实现与部署方案，也让这些优化更容易被社区使用。</p>
+<p>本文首先证明：在相同的 KV 缓存开销下，MLA 的表达能力严格强于 GQA。这为“为什么 MLA 值得用”提供了理论解释。但现实中的障碍不在理论，而在沉没成本：大多数厂商已经在 GQA 模型上投入了大量预训练与工程优化，不可能轻易推倒重来。于是本文追问：能否把一个已有的 GQA 预训练模型（如 LLaMA、Qwen）无缝转换为 MLA，从而继承原有权重与预训练成果，而不是从零训练一个 MLA 模型？</p>
+<p>把 GQA 转成 MLA 的关键障碍是 RoPE。在 GQA 中，每个 query–key 头都携带自己的旋转位置嵌入（RoPE），而 DeepSeek 的 Absorb 操作要求 key 的上投影可以被吸收进 query 投影；只要每个头各自持有 RoPE，这一吸收就无法成立。借鉴 DeepSeek 的解耦 RoPE 方案，本文把 key 中的位置信号集中到一小部分维度 <span class="arithmatex">\(K_{rope}\)</span>，其余维度 <span class="arithmatex">\(K_{nope}\)</span> 几乎不含位置信息。随后丢弃 <span class="arithmatex">\(K_{nope}\)</span> 上的 RoPE，把它与 value 合并后做低秩分解。一旦 RoPE 被隔离，key 的上投影就不再含位置变换，可以像 DeepSeek 那样被吸收进 query 投影，MLA 转换因此得以成立。</p>
+<p>要把位置信息高效地集中到少数维度，本文提出 RoRoPE：对 key 输出做主成分分析（PCA），对 RoPE 的实部与虚部施加同一个旋转，并把所有注意力头的主成分合并到第一个头的维度中。作者证明：用矩阵 <span class="arithmatex">\(U\)</span> 同时旋转 query 与 key 时，只要满足两个条件，内积就保持不变——旋转只发生在所有头中相同的维度上，且 RoPE 的实部与虚部以相同方式旋转。进一步地，利用相邻 RoPE 维度频率相近的特点，本文提出 FreqFold，把多个相邻频率合并为一组再做联合 PCA，从而提高第一个头对位置信息的集中效率。</p>
+<p>最后，作者观察到 <span class="arithmatex">\(K_{nope}\)</span> 的 <span class="arithmatex">\(\ell_2\)</span> 范数远大于 value 的范数。若直接对拼接矩阵 <span class="arithmatex">\([K_{nope};V]\)</span> 做 PCA，主成分会被 key 主导，value 子空间的信息严重丢失，精度随之骤降。为此本文引入平衡键值（BKV）过程：先重新缩放 <span class="arithmatex">\(K_{nope}\)</span> 与 <span class="arithmatex">\(V\)</span>，使二者范数匹配，再做联合 PCA。这个看似简单的归一化恢复了两个子空间之间的平衡，显著改善了压缩质量。</p>
+<p>上述步骤合起来构成 TransMLA。在 LLaMA-2 7B 上，TransMLA 把 KV 缓存压缩 68.75%，在不训练的情况下六项基准平均分仅下降 1.65 分；同等压缩率下，同期工作 MHA2MLA 的平均分则从 59.85 跌到 37.90。把压缩率提高到 93% 时模型仍能生成有意义的回答，而仅用 6B token 微调后性能基本恢复。作者在三种不同硬件上用 vLLM 测试原始模型与 TransMLA 模型，最高取得 10.6 倍加速。更重要的是，转换后的模型完全兼容 DeepSeek 的代码与推理生态，可以直接享受其算子、量化和部署优化。</p>
+<p>本文的贡献可以概括为三点：</p>
+<ul>
+<li><strong>理论：</strong> 证明在相同 KV 缓存预算下，MLA 的表达能力强于 GQA；GQA 可以写成 MLA 的特例，反之则不成立。</li>
+<li><strong>方法：</strong> 提出头合并、RoRoPE、FreqFold 与 BKV 联合低秩近似，使 GQA 模型能够在很小的转换损失下迁移到 MLA。</li>
+<li><strong>系统：</strong> 转换后的模型可直接运行在 DeepSeek 推理栈上，在多种消费级加速器上取得随上下文增长的实测加速。</li>
+</ul>
+<figure class="paper-figure"><a aria-label="查看大图" class="figure-media" href="assets/figures/fig1.png"><img alt="图 1：GQA、MLA 与 MQA 的单向等价转换，以及 TransMLA 的整体流程。(a) 在相同 KV 缓存大小下，表达能力按 GQA、MLA、MQA 的顺序递增；箭头表示单向转换关系。(b) TransMLA 先用 RoRoPE 与 FreqFold 把位置信息集中到 Krope，再对 Knope 与 V 做 BKV-PCA 联合低秩压缩，最终只缓存 Krope 与 Ckv。" decoding="async" loading="lazy" src="assets/figures/fig1.png"></a><figcaption>图 1：GQA、MLA 与 MQA 的单向等价转换，以及 TransMLA 的整体流程。(a) 在相同 KV 缓存大小下，表达能力按 GQA、MLA、MQA 的顺序递增；箭头表示单向转换关系。(b) TransMLA 先用 RoRoPE 与 FreqFold 把位置信息集中到 Krope，再对 Knope 与 V 做 BKV-PCA 联合低秩压缩，最终只缓存 Krope 与 Ckv。</figcaption></figure><h2 id="sec-3">2 相关工作<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>KV 缓存压缩是长上下文推理的核心问题之一。现有工作大致可以分为三类：改变注意力结构、在训练后裁剪或跨层共享缓存、以及把已有模型转换为更高效的注意力形式。</p>
+<p>第一类以 MQA、GQA 和 MLA 为代表。MQA 让所有 query 头共享一组 key/value，GQA 则在组内共享，二者都能减小缓存，但通常会损失精度。MLA 通过低秩潜变量与解耦 RoPE，在接近 SOTA 的质量下降低训练和推理成本。GLA 为潜变量注意力提供了对并行更友好的实现，进一步加速 MLA 推理；TPA 则通过动态分解激活把运行时 KV 缓存降低一个数量级，但要求从零训练。TransMLA 与它们不同：它不提出新的注意力变体，而是把已有的 GQA 模型转换为 MLA，只需轻量微调，就能继承 MLA 的显存与速度优势。</p>
+<p>第二类在预训练完成后处理缓存。LazyLLM、A2SF、SnapKV 等方法动态裁剪不重要的 token；YONO、MiniCache、MLKV 等方法则跨层共享 KV 表示，从而大幅降低显存并加速推理。这些方法确实有效，但通常需要自定义 kernel 或运行时改动，部署复杂，采用门槛较高。TransMLA 走的是另一条路：转换后的 checkpoint 可以直接加载进成熟的 DeepSeek 生态，在所有受支持的平台上获得 MLA 级别的加速。</p>
+<p>与本文最相关的两项工作是 Palu 和 MHA2MLA。Palu 对 key 与 value 同时做低秩分解，并配合专门优化实现加速；但它没有专门处理 RoPE，因此无法在推理时使用 Absorb，只能把压缩表示重新投影回原始大小，这一步在推理中会带来可观的计算开销，限制了整体加速。MHA2MLA 是同期工作，同样声称可以把 MHA 转成 MLA，并把 RoPE 从主计算路径中解耦。需要澄清的是，TransMLA 并不是 MHA2MLA 的“GQA 扩展”：两者都支持 MHA 与 GQA 架构。区别在于，MHA2MLA 仅根据 query/key 向量的范数决定删除哪些 RoPE 维度，在相同删除比例下往往造成更大的信息损失；而且重要维度在 MHA2MLA 中分布不均匀，需要稀疏索引，增加了优化与加速的复杂度。MHA2MLA 报告了 KV 压缩率，却没有展示真实推理加速；它还直接对 KV 做联合奇异值分解，损失高于本文的平衡键值 PCA。</p>
+<h2 id="sec-4">3 预备知识<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<p>本节统一记号。设输入序列第 <span class="arithmatex">\(t\)</span> 个 token 的表示为 <span class="arithmatex">\(\mathbf{x}_t\in\mathbb{R}^{D}\)</span>，<span class="arithmatex">\(D\)</span> 为隐藏维度；query 头数为 <span class="arithmatex">\(h\)</span>，每个头的维度为 <span class="arithmatex">\(d=D/h\)</span>；GQA 的 KV 组数为 <span class="arithmatex">\(g\)</span>。</p>
+<h3 id="sec-4-1">3.1 旋转位置嵌入（RoPE）<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>RoPE 用不同频率的旋转编码绝对位置，同时让注意力分数显式依赖相对位置。对第 <span class="arithmatex">\(t\)</span> 个 token 的表示 <span class="arithmatex">\(\mathbf{x}_t\)</span>，RoPE 把相邻的两个维度视为复数的一对实部与虚部，并按位置旋转：</p>
+<div class="arithmatex">\[
+\begin{pmatrix} x_{t,2k-1}^{R} \\[2pt] x_{t,2k}^{R} \end{pmatrix}
+=
+\begin{pmatrix}
+\cos t\theta_k &amp; -\sin t\theta_k \\[2pt]
+\sin t\theta_k &amp; \cos t\theta_k
+\end{pmatrix}
+\begin{pmatrix} x_{t,2k-1} \\[2pt] x_{t,2k} \end{pmatrix},
+\qquad
+\theta_k = 10000^{-2(k-1)/d},
+\]</div>
+<p>其中 <span class="arithmatex">\(k=1,\dots,d/2\)</span>。写成向量形式就是</p>
+<div class="arithmatex">\[
+\mathbf{x}_t^{R}=\mathrm{RoPE}(\mathbf{x}_t,t)
+=\mathbf{x}_t\odot\mathbf{c}_t+\mathbf{x}_t^{\perp}\odot\mathbf{s}_t,
+\]</div>
+<p>这里 <span class="arithmatex">\(\mathbf{c}_t\)</span> 与 <span class="arithmatex">\(\mathbf{s}_t\)</span> 由各频率的 <span class="arithmatex">\(\cos t\theta_k\)</span>、<span class="arithmatex">\(\sin t\theta_k\)</span> 组成，<span class="arithmatex">\(\mathbf{x}_t^{\perp}\)</span> 表示把每一对维度 <span class="arithmatex">\((x_{2k-1},x_{2k})\)</span> 变为 <span class="arithmatex">\((-x_{2k},x_{2k-1})\)</span> 后的向量。由于旋转只依赖位置差，两个 token 的 query/key 内积只通过 <span class="arithmatex">\(t-j\)</span> 进入，因而 RoPE 天然编码相对位置。</p>
+<h3 id="sec-4-2">3.2 分组查询注意力（GQA）<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>GQA 用投影矩阵 <span class="arithmatex">\(\mathbf{W}^{Q}\in\mathbb{R}^{hd\times D}\)</span>、<span class="arithmatex">\(\mathbf{W}^{K},\mathbf{W}^{V}\in\mathbb{R}^{gd\times D}\)</span> 和输出投影 <span class="arithmatex">\(\mathbf{W}^{O}\in\mathbb{R}^{D\times hd}\)</span> 生成 query、key 与 value，再把它们切分为头或组：</p>
+<div class="arithmatex">\[
+[\mathbf{q}_{t,1};\dots;\mathbf{q}_{t,h}]=\mathbf{q}_t=\mathbf{W}^{Q}\mathbf{x}_t,
+\]</div>
+<div class="arithmatex">\[
+[\mathbf{k}_{t,1};\dots;\mathbf{k}_{t,g}]=\mathbf{k}_t=\mathbf{W}^{K}\mathbf{x}_t,
+\qquad
+[\mathbf{v}_{t,1};\dots;\mathbf{v}_{t,g}]=\mathbf{v}_t=\mathbf{W}^{V}\mathbf{x}_t.
+\]</div>
+<p>第 <span class="arithmatex">\(i\)</span> 个 query 头（<span class="arithmatex">\(i=1,\dots,h\)</span>）只访问第 <span class="arithmatex">\(\lceil i/(h/g)\rceil\)</span> 组 key/value。对 token <span class="arithmatex">\(t\)</span> 的第 <span class="arithmatex">\(i\)</span> 个头，注意力输出为</p>
+<div class="arithmatex">\[
+\mathbf{o}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{(\mathbf{q}_{t,i}^{R})^{\top}\mathbf{k}_{j,\lceil i/(h/g)\rceil}^{R}}{\sqrt{d}}
+\right)
+\mathbf{v}_{j,\lceil i/(h/g)\rceil},
+\]</div>
+<div class="arithmatex">\[
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{o}_{t,1};\dots;\mathbf{o}_{t,h}].
+\]</div>
+<p>当 <span class="arithmatex">\(g=h\)</span> 时 GQA 退化为 MHA，当 <span class="arithmatex">\(g=1\)</span> 时退化为 MQA。GQA 的 KV 缓存为每 token 每层 <span class="arithmatex">\(2gd\)</span> 个元素，这就是本文反复使用的“相同缓存预算”基准。</p>
+<h3 id="sec-4-3">3.3 多头潜变量注意力（MLA）<a class="headerlink" href="#sec-4-3" title="复制本节链接">§</a></h3>
+<p>MLA 不直接缓存完整的 key/value，而是先把它压成一个低秩潜向量。具体地，用 <span class="arithmatex">\(\mathbf{W}^{DKV}\in\mathbb{R}^{r_{kv}\times D}\)</span> 得到</p>
+<div class="arithmatex">\[
+\mathbf{c}_t^{KV}=\mathbf{W}^{DKV}\mathbf{x}_t,
+\]</div>
+<p>再用 <span class="arithmatex">\(\mathbf{W}^{UK},\mathbf{W}^{UV}\in\mathbb{R}^{hd\times r_{kv}}\)</span> 分别上投影出各头的 key 与 value。query 侧也做低秩分解：<span class="arithmatex">\(\mathbf{W}^{DQ}\in\mathbb{R}^{r_q\times D}\)</span> 得到 <span class="arithmatex">\(\mathbf{c}_t^{Q}\)</span>，<span class="arithmatex">\(\mathbf{W}^{UQ}\in\mathbb{R}^{hd\times r_q}\)</span> 得到各头 query，以减少训练时的激活显存。</p>
+<p>位置信息由解耦 RoPE 承担：额外的多 query 头 <span class="arithmatex">\(\mathbf{q}_{t,i}^{R}\in\mathbb{R}^{d_R}\)</span> 与共享 key <span class="arithmatex">\(\mathbf{k}_t^{R}\in\mathbb{R}^{d_R}\)</span> 分别由 <span class="arithmatex">\(\mathbf{W}^{QR}\)</span> 与 <span class="arithmatex">\(\mathbf{W}^{KR}\)</span> 生成并施加 RoPE：</p>
+<div class="arithmatex">\[
+\mathbf{k}_t^{R}=\mathrm{RoPE}(\mathbf{W}^{KR}\mathbf{x}_t,t),
+\qquad
+[\mathbf{q}_{t,1}^{R};\dots;\mathbf{q}_{t,h}^{R}]
+=\mathrm{RoPE}(\mathbf{W}^{QR}\mathbf{c}_t^{Q},t),
+\]</div>
+<div class="arithmatex">\[
+\mathbf{k}_{t,i}=[\mathbf{k}_{t,i}^{C};\mathbf{k}_t^{R}],
+\qquad
+\mathbf{q}_{t,i}=[\mathbf{q}_{t,i}^{C};\mathbf{q}_{t,i}^{R}].
+\]</div>
+<p>MLA 的关键是同一套参数支持两种计算范式。训练时它接近标准 MHA：</p>
+<div class="arithmatex">\[
+\mathbf{o}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{\mathbf{q}_{t,i}^{\top}\mathbf{k}_{j,i}}{\sqrt{d+d_R}}
+\right)\mathbf{v}_{j,i}^{C},
+\qquad
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{o}_{t,1};\dots;\mathbf{o}_{t,h}].
+\]</div>
+<p>推理时则切换为类似 MQA 的 Absorb 形式，把 key 的上投影吸收进 query，只缓存潜向量与 RoPE key：</p>
+<div class="arithmatex">\[
+\hat{\mathbf{q}}_{t,i}
+=\left[(\mathbf{W}_i^{UK})^{\top}\mathbf{q}_{t,i}^{C};\ \mathbf{q}_{t,i}^{R}\right],
+\qquad
+\hat{\mathbf{k}}_t=\left[\mathbf{c}_t^{KV};\ \mathbf{k}_t^{R}\right],
+\]</div>
+<div class="arithmatex">\[
+\hat{\mathbf{o}}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{\hat{\mathbf{q}}_{t,i}^{\top}\hat{\mathbf{k}}_j}{\sqrt{d+d_R}}
+\right)\mathbf{c}_j^{KV},
+\qquad
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{W}_1^{UV}\hat{\mathbf{o}}_{t,1};\dots;\mathbf{W}_h^{UV}\hat{\mathbf{o}}_{t,h}].
+\]</div>
+<p>在 Absorb 形式下，潜向量 <span class="arithmatex">\(\mathbf{c}_t^{KV}\)</span> 相当于一个所有 query 头共享的大 KV 头，推理时无需把缓存还原成完整的 key/value，这正是 MLA 加速的来源。也正因如此，任何破坏“上投影可被吸收”的改动——例如每个头各自保留 RoPE——都会让 MLA 退回高开销路径。</p>
+<h2 id="sec-5">4 TransMLA<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>TransMLA 的设计基于两个观察。</p>
+<p>第一，在固定 KV 缓存预算下，MLA 严格比 GQA 更有表达力。任取一个 GQA 层，只要增加一个投影矩阵，就能把它改写成 MLA 层；反过来不一定成立，因此 MLA 包含 GQA。存在 RoPE 时，这种等价必须写成 Absorb 形式，否则缓存不会真正变小。</p>
+<p>第二，只有 MLA 实际使用更小的 KV 缓存，推理才会加速。仅仅构造一个与 GQA 等价的 MLA 表示没有意义，必须真正减少每 token 缓存的向量数。TransMLA 因此把 GQA 网络转换成 DeepSeek 风格的 MLA，使转换后的模型能直接跑在 DeepSeek 的优化推理栈上，获得完整的显存与延迟收益。</p>
+<p><strong>表达能力论证。</strong> 设 KV 缓存预算相同，每 token 每层均为 <span class="arithmatex">\(2gd\)</span>，query 头数为 <span class="arithmatex">\(h\)</span>。论文比较三种核心投影机制：GQA、对 K/V 做低秩分解的 MLA（记为 <span class="arithmatex">\(\mathrm{MLA}_{\mathrm{factorized}}\)</span>）以及 MQA，并证明</p>
+<div class="arithmatex">\[
+\mathrm{GQA} \;&lt;\; \mathrm{MLA}_{\mathrm{factorized}} \;&lt;\; \mathrm{MQA}.
+\]</div>
+<p>先看 <span class="arithmatex">\(\mathrm{GQA}\le\mathrm{MLA}_{\mathrm{factorized}}\)</span>。令</p>
+<div class="arithmatex">\[
+\mathbf{W}^{DKV}=\begin{pmatrix}\mathbf{W}^{K}\\[2pt]\mathbf{W}^{V}\end{pmatrix}\in\mathbb{R}^{2gd\times D},
+\qquad r_{kv}=2gd,
+\]</div>
+<p>并把每个头的 <span class="arithmatex">\(\mathbf{W}_i^{UK},\mathbf{W}_i^{UV}\in\mathbb{R}^{d\times 2gd}\)</span> 初始化为块选择矩阵：只在对应该组的 <span class="arithmatex">\(d\times d\)</span> 块上取单位阵，其余为零。于是 MLA 用潜向量 <span class="arithmatex">\(\mathbf{c}_j^{KV}\in\mathbb{R}^{2gd}\)</span> 就能精确复现 GQA 的 key/value 生成，缓存大小也同为 <span class="arithmatex">\(2gd\)</span>。</p>
+<p>再看 <span class="arithmatex">\(\mathrm{MLA}_{\mathrm{factorized}}\le\mathrm{MQA}\)</span>。把上投影折进 query：</p>
+<div class="arithmatex">\[
+\mathbf{q}_{t,i}^{\top}\mathbf{k}_{j,i}
+=\left((\mathbf{W}_i^{UK})^{\top}\mathbf{W}_i^{Q}\mathbf{x}_t\right)^{\top}
+\left(\mathbf{W}^{DKV}\mathbf{x}_j\right)
+=\hat{\mathbf{q}}_{t,i}^{\top}\mathbf{c}_j^{KV}.
+\]</div>
+<p>这样每个头用一个 <span class="arithmatex">\(2gd\)</span> 维的“加宽 query”访问同一个共享 key/value，正是 MQA 的形式。由于 <span class="arithmatex">\(2gd&gt;d\)</span>，MQA 允许的交互矩阵秩上限高于 MLA 每个头的有效秩，因此表达力更强。</p>
+<p>两个不等号都是严格的。GQA 写成 MLA 时，<span class="arithmatex">\(\mathbf{W}^{UK},\mathbf{W}^{UV}\)</span> 必须取稀疏的块选择结构，而一般 MLA 的上投影是稠密可学的，可以从同一个潜空间组合出 <span class="arithmatex">\(h\)</span> 个不同的 key/value，而不是把 <span class="arithmatex">\(g\)</span> 组复制 <span class="arithmatex">\(h/g\)</span> 次。另一方面，MLA 每个头的双线性分数矩阵形如</p>
+<div class="arithmatex">\[
+\mathbf{x}_t^{\top}(\mathbf{W}_i^{Q})^{\top}\mathbf{W}_i^{UK}\mathbf{W}^{DKV}\mathbf{x}_j,
+\]</div>
+<p>其秩不超过 <span class="arithmatex">\(d\)</span>；而折叠后的 MQA 形式秩上限为 <span class="arithmatex">\(2gd\)</span>。完整的 MLA 进一步把“内容”部分交给 <span class="arithmatex">\(\mathrm{MLA}_{\mathrm{factorized}}\)</span>、把“位置”部分交给共享 key 的 MQA 结构，因此整体表达力强于 GQA。需要注意，这里的“表达力”是架构容量的上界，不等同于实际模型质量；本文的结论是为 MLA 相对 GQA 的优势提供依据，而不是说 MQA 应当取代 MLA。</p>
+<h3 id="sec-5-1">4.1 将所有键头合并为一个<a class="headerlink" href="#sec-5-1" title="复制本节链接">§</a></h3>
+<p>MLA 把所有 KV 头绑定到同一个潜空间，因此把 GQA 转成 MLA 的第一步，是在压缩缓存之前把每个 GQA key/value 组合并成一个潜头。</p>
+<p>对第 <span class="arithmatex">\(i\)</span> 个 query 头，设它所属的组为 <span class="arithmatex">\(j=\lceil i/(h/g)\rceil-1\)</span>（组号从 0 开始；矩阵切片沿用 Python/PyTorch 记号）。引入 <span class="arithmatex">\(\mathbf{W}_i^{UK}\in\mathbb{R}^{d\times gd}\)</span>，初始化时只把第 <span class="arithmatex">\(j\)</span> 个 <span class="arithmatex">\(d\times d\)</span> 块置为单位阵：</p>
+<div class="arithmatex">\[
+\mathbf{W}_i^{UK}[:,\,jd:(j+1)d]=\mathbf{I}_d,
+\]</div>
+<p>其余元素全部为零。这样，把合并后的 key 潜表示投影到第 <span class="arithmatex">\(i\)</span> 个头时，只有对应组的 key 会被选中，效果与原 GQA 完全一致。value 侧同理：初始化 <span class="arithmatex">\(\mathbf{W}_i^{UV}\)</span>，只保留对应 value 组的单位映射，其余为零，从而保证输出不变。</p>
+<p>合并 key 头之后，还要把不同头的 RoPE 合并成一次大 RoPE，记作 <span class="arithmatex">\(\widehat{\mathrm{RoPE}}\)</span>，作用在整个合并后的 key 上。由于原 GQA 中每个头的 RoPE 相同，<span class="arithmatex">\(\widehat{\mathrm{RoPE}}\)</span> 只需每隔 <span class="arithmatex">\(d\)</span> 维重复同一旋转。于是 GQA 的注意力可以写成</p>
+<div class="arithmatex">\[
+[\mathbf{c}_t^{K};\mathbf{c}_t^{V}]=\mathbf{c}_t^{KV}=\mathbf{W}^{DKV}\mathbf{x}_t,
+\qquad
+\mathbf{W}^{DKV}=\begin{pmatrix}\mathbf{W}^{K}\\[2pt]\mathbf{W}^{V}\end{pmatrix}\in\mathbb{R}^{2gd\times D},
+\]</div>
+<div class="arithmatex">\[
+[\mathbf{q}_{t,1};\dots;\mathbf{q}_{t,h}]=\mathbf{q}_t=\mathbf{W}^{Q}\mathbf{x}_t,
+\]</div>
+<div class="arithmatex">\[
+\hat{\mathbf{q}}_{t,i}^{R}
+=\widehat{\mathrm{RoPE}}\!\left((\mathbf{W}_i^{UK})^{\top}\mathbf{q}_{t,i},t\right),
+\qquad
+\hat{\mathbf{k}}_t^{R}
+=\widehat{\mathrm{RoPE}}\!\left(\mathbf{c}_t^{K},t\right),
+\]</div>
+<div class="arithmatex">\[
+\hat{\mathbf{o}}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{(\hat{\mathbf{q}}_{t,i}^{R})^{\top}\hat{\mathbf{k}}_j^{R}}{\sqrt{d}}
+\right)\mathbf{c}_j^{V},
+\qquad
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{W}_1^{UV}\hat{\mathbf{o}}_{t,1};\dots;\mathbf{W}_h^{UV}\hat{\mathbf{o}}_{t,h}].
+\]</div>
+<p>此时总 KV 缓存仍是 <span class="arithmatex">\(2gd\)</span>，没有变小；每个合并 key 头的维度反而扩大了 <span class="arithmatex">\(g\)</span> 倍，新增的 <span class="arithmatex">\(\mathbf{W}_i^{UK}\)</span>、<span class="arithmatex">\(\mathbf{W}_i^{UV}\)</span> 也带来额外计算。因此，头合并本身只是“把舞台搭好”，真正的加速必须依赖后续压缩。它的价值有二：一是把多个 KV 头放到同一个空间里，更容易识别共享主成分，从而在更低维的潜空间中表示缓存；二是为下一步高效解耦 RoPE 创造条件。</p>
+<h3 id="sec-5-2">4.2 RoRoPE 与 FreqFold<a class="headerlink" href="#sec-5-2" title="复制本节链接">§</a></h3>
+<p>合并之后，每个头仍然带着 RoPE，Absorb 依然无法使用。RoRoPE 的目标是把位置信号从绝大多数 key 维度中剥离，只留下一个携带 RoPE 的头，同时尽量不改变模型输出。</p>
+<p>先看 RoPE 内积的结构。对每个二维旋转子空间，把所有头中对应的实部与虚部拼在一起，整个内积可以写成</p>
+<div class="arithmatex">\[
+(\hat{\mathbf{q}}_{t,i}^{R})^{\top}\hat{\mathbf{k}}_j^{R}
+=
+\sum_{l=1}^{d/2}
+\left[
+\hat{\mathbf{q}}_{t,i}^{[2l-1::d]};
+\hat{\mathbf{q}}_{t,i}^{[2l::d]}
+\right]^{R\top}
+\left[
+\hat{\mathbf{k}}_j^{[2l-1::d]};
+\hat{\mathbf{k}}_j^{[2l::d]}
+\right]^{R}.
+\]</div>
+<p>这里的切片记号 <span class="arithmatex">\([2l-1::d]\)</span> 表示从第 <span class="arithmatex">\(2l-1\)</span> 维开始、每隔 <span class="arithmatex">\(d\)</span> 维取一个元素，即跨头收集同一频率的实部；虚部同理。每个频率对应的拼接向量维度为 <span class="arithmatex">\(2g\)</span>。</p>
+<p>由于所有头共享同一个 RoPE，第 <span class="arithmatex">\(l\)</span> 个频率在所有头上的旋转角完全相同。设 <span class="arithmatex">\(\mathbf{U}_l\in\mathbb{R}^{g\times g}\)</span> 为正交矩阵，把它同时作用到该频率的实部与虚部上，则</p>
+<div class="arithmatex">\[
+\sum_{l=1}^{d/2}
+\left(
+\mathbf{U}_l\hat{\mathbf{q}}^{[2l-1::d]};
+\mathbf{U}_l\hat{\mathbf{q}}^{[2l::d]}
+\right)^{R\top}
+\left(
+\mathbf{U}_l\hat{\mathbf{k}}^{[2l-1::d]};
+\mathbf{U}_l\hat{\mathbf{k}}^{[2l::d]}
+\right)^{R}
+=
+(\hat{\mathbf{q}}^{R})^{\top}\hat{\mathbf{k}}^{R}.
+\]</div>
+<p>原因是每个频率的旋转量 <span class="arithmatex">\(\cos t\theta_l,\sin t\theta_l\)</span> 对所有头一视同仁，而在同一子空间内做正交变换满足 <span class="arithmatex">\(\mathbf{U}_l^{\top}\mathbf{U}_l=\mathbf{I}\)</span>，内积不变。这个性质给出了一个关键约束：实部与虚部必须用同一个 <span class="arithmatex">\(\mathbf{U}_l\)</span> 旋转，不能对二者分别做 PCA；否则 RoPE 的相对位置结构会被破坏。</p>
+<p>于是问题转化为：寻找一组正交矩阵，把 key 的主成分尽量集中到前几个头。作者在小型校准集上收集每层的 key 激活，对每个频率 <span class="arithmatex">\(l\)</span> 计算实部与虚部的协方差 <span class="arithmatex">\(\boldsymbol{\Sigma}_{x,l}\)</span>、<span class="arithmatex">\(\boldsymbol{\Sigma}_{y,l}\)</span>，求解</p>
+<div class="arithmatex">\[
+\max_{\mathbf{U}_l}\ 
+\mathrm{Tr}\!\left[
+\left(\mathbf{U}_l^{\top}(\boldsymbol{\Sigma}_{x,l}+\boldsymbol{\Sigma}_{y,l})\mathbf{U}_l\right)_{:m,:m}
+\right]
+\quad
+\text{s.t.}\quad
+\mathbf{U}_l^{\top}\mathbf{U}_l=\mathbf{I}.
+\]</div>
+<p>其中 <span class="arithmatex">\((\cdot)_{:m,:m}\)</span> 表示左上角 <span class="arithmatex">\(m\times m\)</span> 子矩阵。最优解是对求和后的协方差做特征分解，按特征值从大到小排列特征向量。这样得到的旋转会把实部与虚部的主成分对齐到前 <span class="arithmatex">\(m\)</span> 个头。随后就可以丢弃其余头上的 RoPE，只保留第一个头（或前几个头）中的位置信息。由于 <span class="arithmatex">\(\hat{\mathbf{q}}\)</span> 与 <span class="arithmatex">\(\hat{\mathbf{k}}\)</span> 分别由 <span class="arithmatex">\(\mathbf{W}^{UK}\)</span> 与 <span class="arithmatex">\(\mathbf{W}^{K}\)</span> 生成，实际操作中只需旋转这两个投影矩阵，等价于旋转它们的输出。</p>
+<p>换个角度看，RoRoPE 并不是把非主成分全部扔掉，而是“保留主成分的位置编码，去掉其余维度的 RoPE”。这比直接按范数裁剪 RoPE 维度更温和，也更少破坏位置结构。</p>
+<p>但只用第一个头中每个频率的一个主成分来承载位置信息仍然不够。RoPE 中相邻频率的取值非常接近，本文据此提出 FreqFold：把 <span class="arithmatex">\(M\)</span> 个相邻频率视为近似等价，把它们对应的 <span class="arithmatex">\(M\)</span> 段 <span class="arithmatex">\(2g\)</span> 维向量拼接起来，在 <span class="arithmatex">\(M\cdot 2g\)</span> 维上做一次联合 PCA，并保留 <span class="arithmatex">\(M\)</span> 个主成分。这样，同一个头内就有 <span class="arithmatex">\(2M\)</span> 个维度来承载原来 <span class="arithmatex">\(M\)</span> 个频率的位置信息，比“每个频率只留一个主成分”保留更多方差。论文进一步证明，合并后的联合 PCA 所保留的方差不少于分别对每组做最优一维压缩之和，即 <span class="arithmatex">\(V_2\ge V_1\)</span>。</p>
+<p>FreqFold 也有代价：把频率近似为相同会引入偏差，<span class="arithmatex">\(M\)</span> 越大、分组越激进，位置编码的失真越明显。因此需要在“保留更多主成分”和“频率近似误差”之间取舍。实验表明，对 LLaMA 3 8B 而言，RoRoPE 配合 4 维 FreqFold（即 4 个相邻频率一组）是较好的折中点。</p>
+<figure class="paper-figure"><a aria-label="查看大图" class="figure-media" href="assets/figures/fig2.png"><img alt="图 2：RoRoPE 的解耦流程。蓝线表示实部维度，橙线表示虚部维度。多个头的 key 拼接后，重排维度不改变计算，因此可以按相同旋转频率跨头收集同一维度，并对实部与虚部施加相同的联合 PCA；每个频率保留一个主成分，它捕获主要的位置变化，并可由单个注意力头中的标准 RoPE 表示。" decoding="async" loading="lazy" src="assets/figures/fig2.png"></a><figcaption>图 2：RoRoPE 的解耦流程。蓝线表示实部维度，橙线表示虚部维度。多个头的 key 拼接后，重排维度不改变计算，因此可以按相同旋转频率跨头收集同一维度，并对实部与虚部施加相同的联合 PCA；每个频率保留一个主成分，它捕获主要的位置变化，并可由单个注意力头中的标准 RoPE 表示。</figcaption></figure><h3 id="sec-5-3">4.3 平衡的联合低秩近似<a class="headerlink" href="#sec-5-3" title="复制本节链接">§</a></h3>
+<p>完成 RoPE 解耦后，key 被分成两部分：携带位置信息的 <span class="arithmatex">\(K_{rope}\)</span>（第一个头）与不含位置信息的 <span class="arithmatex">\(K_{nope}\)</span>（其余头）。接下来对 <span class="arithmatex">\(K_{nope}\)</span> 与 value 做联合低秩压缩。</p>
+<p>具体做法是：在小型校准集（如 WikiText-2）上收集激活。为避免 key 的范数主导联合 PCA，先用 BKV 把 <span class="arithmatex">\(K_{nope}\)</span> 与 <span class="arithmatex">\(V\)</span> 的尺度对齐（细节见下文），再把平衡后的 <span class="arithmatex">\(K_{nope}\)</span> 与 <span class="arithmatex">\(V\)</span> 拼成</p>
+<div class="arithmatex">\[
+\mathbf{c}_{nope,t}
+=
+\begin{pmatrix}
+\mathbf{k}'_{nope,t}\\[2pt]
+\mathbf{v}_t
+\end{pmatrix}
+\in\mathbb{R}^{(2g-1)d},
+\]</div>
+<p>对这批向量做 PCA，取前 <span class="arithmatex">\(r_{kv}\)</span> 个特征向量组成投影矩阵 <span class="arithmatex">\(\mathbf{R}_{KV}\in\mathbb{R}^{((2g-1)d)\times r_{kv}}\)</span>。然后把它分别乘到两侧的投影矩阵上：</p>
+<div class="arithmatex">\[
+\mathbf{W}^{\prime DKV}=\mathbf{R}_{KV}^{\top}\mathbf{W}^{DKV},
+\qquad
+\mathbf{W}^{\prime UKV}=\mathbf{W}^{UKV}\mathbf{R}_{KV}.
+\]</div>
+<p>这样，新的下投影把输入压到 <span class="arithmatex">\(r_{kv}\)</span> 维潜空间，新的上投影再从潜空间恢复出 key 与 value。由于 <span class="arithmatex">\(\mathbf{R}_{KV}\)</span> 在两侧分别以转置和原形式出现，整个变换在数学上与原模型等价（在忽略被丢弃主成分的前提下），但缓存中真正存储的向量从 <span class="arithmatex">\((2g-1)d\)</span> 维降到了 <span class="arithmatex">\(r_{kv}\)</span> 维。</p>
+<p>问题在于，<span class="arithmatex">\(K_{nope}\)</span> 的范数远大于 <span class="arithmatex">\(V\)</span>。即使已经去掉了范数最大的第一个头，剩余 key 的整体范数仍明显高于 value。直接做联合 PCA 时，主成分会被 key 的方向主导，value 子空间的变化被当成次要噪声丢掉，压缩后精度会明显下降。</p>
+<p>BKV 用一个标量缩放解决这个不平衡。定义</p>
+<div class="arithmatex">\[
+\alpha=
+\frac{\mathbb{E}_t\left[\left\|\mathbf{W}_{nope}^{DK}\mathbf{x}_t\right\|_2\right]}
+{\mathbb{E}_t\left[\left\|\mathbf{W}^{DV}\mathbf{x}_t\right\|_2\right]},
+\]</div>
+<p>把 <span class="arithmatex">\(\mathbf{W}_{nope}^{DK}\)</span> 除以 <span class="arithmatex">\(\alpha\)</span>，同时把 <span class="arithmatex">\(\mathbf{W}_{nope}^{UK}\)</span> 乘以 <span class="arithmatex">\(\alpha\)</span>。二者相乘不变，因此模型输出在数学上完全等价；但在做 PCA 时，key 与 value 的激活被拉到相近的尺度，主成分不再由 key 单方面支配。这个操作不改变模型本身，却显著改善了后续联合压缩的质量，是 TransMLA 在高压缩率下仍能保持精度的关键之一。</p>
+<h2 id="sec-6">5 实验<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>实验围绕三个问题展开：转换后不训练会损失多少性能；少量训练能否恢复；转换是否能在真实硬件上带来加速。作者还分析了 key 范数分布与 KV 范数差异，以解释各组件的作用。</p>
+<h3 id="sec-6-1">5.1 主实验<a class="headerlink" href="#sec-6-1" title="复制本节链接">§</a></h3>
+<p>实验沿用 MHA2MLA 的设置，把 SmolLM 1.7B 与 LLaMA-2 7B 转换为 MLA。评测覆盖六项常识推理基准：MMLU、ARC（easy 与 challenge）、PIQA、HellaSwag、OpenBookQA 与 Winogrande。每个模型在三个阶段评测：转换前、转换后不训练、转换后继续训练。训练数据来自 SmolLM 的预训练语料；MHA2MLA 的微调结果直接取自原论文。实验在 8 卡机器上进行，每卡 40GB 显存、312 TFLOPS FP16 算力，超参数见附录。</p>
+<figure class="paper-table"><figcaption id="tab-1">表 1：TransMLA 与 MHA2MLA 的常识推理性能对比。六项基准为 MMLU、ARC、PIQA、HellaSwag（HS）、OpenBookQA（OBQA）与 Winogrande（WG），“平均”为六项均值。“训练 token”是转换后继续训练所用的 token 数，0 表示转换后不做任何微调直接评测；“KV 缓存”是相对原模型的缩减比例。表中保留关键行，完整结果见 PDF 中的表 1。</figcaption><div class="table-scroll"><table aria-labelledby="tab-1">
+<thead>
+<tr>
+<th>模型</th>
+<th>方法</th>
+<th style="text-align: right;">训练 token</th>
+<th style="text-align: right;">KV 缓存</th>
+<th style="text-align: right;">平均</th>
+<th style="text-align: right;">MMLU</th>
+<th style="text-align: right;">ARC</th>
+<th style="text-align: right;">PIQA</th>
+<th style="text-align: right;">HS</th>
+<th style="text-align: right;">OBQA</th>
+<th style="text-align: right;">WG</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="7">SmolLM-1.7B</td>
+<td>原始</td>
+<td style="text-align: right;">1T</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">55.90</td>
+<td style="text-align: right;">39.27</td>
+<td style="text-align: right;">59.87</td>
+<td style="text-align: right;">75.73</td>
+<td style="text-align: right;">62.93</td>
+<td style="text-align: right;">42.80</td>
+<td style="text-align: right;">54.85</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">40.97</td>
+<td style="text-align: right;">27.73</td>
+<td style="text-align: right;">41.96</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">29.19</td>
+<td style="text-align: right;">34.40</td>
+<td style="text-align: right;">49.53</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">54.76</td>
+<td style="text-align: right;">38.11</td>
+<td style="text-align: right;">57.13</td>
+<td style="text-align: right;">76.12</td>
+<td style="text-align: right;">61.35</td>
+<td style="text-align: right;">42.00</td>
+<td style="text-align: right;">53.83</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">51.95</td>
+<td style="text-align: right;">35.70</td>
+<td style="text-align: right;">55.68</td>
+<td style="text-align: right;">73.94</td>
+<td style="text-align: right;">53.04</td>
+<td style="text-align: right;">39.80</td>
+<td style="text-align: right;">53.51</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">44.12</td>
+<td style="text-align: right;">29.97</td>
+<td style="text-align: right;">41.72</td>
+<td style="text-align: right;">66.87</td>
+<td style="text-align: right;">41.15</td>
+<td style="text-align: right;">34.80</td>
+<td style="text-align: right;">50.28</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">300M</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">55.24</td>
+<td style="text-align: right;">38.60</td>
+<td style="text-align: right;">58.95</td>
+<td style="text-align: right;">74.97</td>
+<td style="text-align: right;">61.52</td>
+<td style="text-align: right;">43.00</td>
+<td style="text-align: right;">54.38</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">1B</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">54.01</td>
+<td style="text-align: right;">37.24</td>
+<td style="text-align: right;">56.32</td>
+<td style="text-align: right;">74.81</td>
+<td style="text-align: right;">60.08</td>
+<td style="text-align: right;">42.40</td>
+<td style="text-align: right;">53.20</td>
+</tr>
+<tr>
+<td rowspan="10">LLaMA-2-7B</td>
+<td>原始</td>
+<td style="text-align: right;">2T</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">59.85</td>
+<td style="text-align: right;">41.43</td>
+<td style="text-align: right;">59.24</td>
+<td style="text-align: right;">78.40</td>
+<td style="text-align: right;">73.29</td>
+<td style="text-align: right;">41.80</td>
+<td style="text-align: right;">64.96</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">37.90</td>
+<td style="text-align: right;">25.74</td>
+<td style="text-align: right;">32.87</td>
+<td style="text-align: right;">59.41</td>
+<td style="text-align: right;">28.68</td>
+<td style="text-align: right;">28.60</td>
+<td style="text-align: right;">52.09</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">32.70</td>
+<td style="text-align: right;">25.41</td>
+<td style="text-align: right;">25.79</td>
+<td style="text-align: right;">50.60</td>
+<td style="text-align: right;">26.52</td>
+<td style="text-align: right;">19.40</td>
+<td style="text-align: right;">48.46</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">59.51</td>
+<td style="text-align: right;">41.36</td>
+<td style="text-align: right;">59.51</td>
+<td style="text-align: right;">77.37</td>
+<td style="text-align: right;">71.72</td>
+<td style="text-align: right;">44.20</td>
+<td style="text-align: right;">62.90</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">58.96</td>
+<td style="text-align: right;">40.39</td>
+<td style="text-align: right;">59.29</td>
+<td style="text-align: right;">77.75</td>
+<td style="text-align: right;">69.70</td>
+<td style="text-align: right;">43.40</td>
+<td style="text-align: right;">63.22</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">58.20</td>
+<td style="text-align: right;">39.90</td>
+<td style="text-align: right;">57.66</td>
+<td style="text-align: right;">77.48</td>
+<td style="text-align: right;">70.22</td>
+<td style="text-align: right;">41.00</td>
+<td style="text-align: right;">62.90</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-92.97%</td>
+<td style="text-align: right;">43.26</td>
+<td style="text-align: right;">28.93</td>
+<td style="text-align: right;">36.32</td>
+<td style="text-align: right;">63.38</td>
+<td style="text-align: right;">45.87</td>
+<td style="text-align: right;">31.60</td>
+<td style="text-align: right;">53.43</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">500M</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">59.82</td>
+<td style="text-align: right;">40.87</td>
+<td style="text-align: right;">59.18</td>
+<td style="text-align: right;">77.91</td>
+<td style="text-align: right;">71.82</td>
+<td style="text-align: right;">45.20</td>
+<td style="text-align: right;">63.93</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">3B</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">59.36</td>
+<td style="text-align: right;">40.77</td>
+<td style="text-align: right;">58.84</td>
+<td style="text-align: right;">78.18</td>
+<td style="text-align: right;">71.28</td>
+<td style="text-align: right;">43.60</td>
+<td style="text-align: right;">63.46</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-92.97%</td>
+<td style="text-align: right;">58.68</td>
+<td style="text-align: right;">40.82</td>
+<td style="text-align: right;">59.72</td>
+<td style="text-align: right;">76.55</td>
+<td style="text-align: right;">69.97</td>
+<td style="text-align: right;">43.60</td>
+<td style="text-align: right;">61.40</td>
+</tr>
+</tbody>
+</table>
+</div></figure><p>从表 1 可以看到，TransMLA 能在不同模型和不同压缩率上稳定完成架构迁移。最值得注意的是“不训练”的几行：转换后模型的性能下降很小，远小于 MHA2MLA 在同等压缩率下的下降。以 LLaMA-2 7B 为例，TransMLA 把缓存压到原来的 7.03% 时，平均分仍有 43.26；而 MHA2MLA 只压到 31.25% 时平均分已跌到 37.90。换言之，TransMLA 在更高的压缩率下反而取得了更好的结果，这说明 RoRoPE、FreqFold 与基于激活的平衡 KV 低秩分解确实在起作用。</p>
+<p>更低的转换损失也意味着更少的训练开销。LLaMA-2 7B 在 68.75% 压缩率下只需 500M token 就恢复到 59.82 分，与原模型的 59.85 几乎持平；87.50% 压缩率下用 3B token 达到 59.36 分；即使压到 92.97%，6B token 后也有 58.68 分。SmolLM 1.7B 在 68.75% 压缩率下用 300M token 达到 55.24 分，与原模型 55.90 相差不到 1 分；87.50% 压缩率下用 1B token 达到 54.01 分。作为对比，MHA2MLA 需要 6B token 才能达到相近水平；在 SmolLM 上，TransMLA 只用了 MHA2MLA 约 4.9% 的训练数据（约 300M token）和 2 小时训练，就超过了后者的微调结果。</p>
+<h3 id="sec-6-2">5.2 键范数分析<a class="headerlink" href="#sec-6-2" title="复制本节链接">§</a></h3>
+<p>为了解释 RoRoPE 与 FreqFold 的作用，作者分析了注意力模块中 key 激活的分布。原文图 3a 给出 LLaMA 3 8B 第一层每个 key 维度的平均 <span class="arithmatex">\(\ell_2\)</span> 范数，数据来自 WikiText-2 的一个子集。图中比较了原始模型、经 RoRoPE 等价变换的模型，以及进一步做 4 维 FreqFold 的模型；上下两半分别对应共享同一 RoPE 旋转角的实部与虚部维度。</p>
+<p>原始模型的 key 范数分布非常不均匀，存在大量离群维度。这意味着如果粗暴地删除某些头上的 RoPE，很可能直接破坏位置信息，导致性能明显下降。应用 RoRoPE 后，高范数维度几乎都集中到了最前面的 0–128 维；再叠加 4 维 FreqFold，尾部的维度被进一步压缩，高范数维度集中得更加尖锐。这种“能量集中”正是后续删除 RoPE 的前提。</p>
+<p>原文图 3b 展示了在逐步删除 RoPE 时，LLaMA 3 8B 在 WikiText-2 上的对数困惑度。RoRoPE 明显优于 MHA2MLA 的逐头维度选择策略，删除比例越高，差距越大。在 90% 的删除比例下，RoRoPE + 4 维 FreqFold 仍能保持约 2 的对数困惑度，而 MHA2MLA 已接近 6，基本无法生成有意义的文本。与此同时，FreqFold 并非越激进越好：使用 8 维 FreqFold 时，相邻频率近似带来的损失会超过主成分集中带来的收益，性能反而下降。对 LLaMA 3 8B 来说，RoRoPE 加 4 维 FreqFold 是较优的配置。</p>
+<h3 id="sec-6-3">5.3 KV 范数差异与 BKV<a class="headerlink" href="#sec-6-3" title="复制本节链接">§</a></h3>
+<p>原文图 4a 可视化了 LLaMA 3 8B 第一层在 BKV 前后的 key/value 激活范数。这里的 key 与 value 都已经过 RoRoPE 的主成分集中，且 key 中保留 RoPE 的第一个头已被排除；因此图中剩下的 key 分量与 value，正是后续要联合压缩到低维空间的对象。</p>
+<p>可以看到，即使去掉了范数最大的第一个头，key 的整体范数仍显著大于 value。这种范数差异会给联合压缩带来实质困难：PCA 会偏向与 key 对齐的方向，而不是 value 的方向，导致 value 的表示不充分。原文图 4a 下半部分展示了 BKV 之后的分布，key 与 value 的范数变得接近，联合 PCA 因此能在两个子空间之间更均衡地分配主成分。</p>
+<p>原文图 4b 进一步给出了不同压缩率下的困惑度。无论是在 75.0%、78.125% 还是 87.5% 的压缩率下，BKV 都能稳定降低 key/value 联合低秩近似的损失；而且基于激活（WX-based）的 PCA 明显优于基于权重（W-based）的 PCA。这解释了为什么 TransMLA 选择在校准激活上做平衡 PCA，而不是直接在权重矩阵上分解。</p>
+<h3 id="sec-6-4">5.4 推理加速<a class="headerlink" href="#sec-6-4" title="复制本节链接">§</a></h3>
+<p>把 MHA/GQA 模型转成与 DeepSeek 代码库完全兼容的 MLA 后，TransMLA 可以直接使用 DeepSeek 生态中的全部优化与工具。作者用 vLLM 在三种消费级 AI 加速器上做了实测：165.2 TFLOPS / 24GB、312 TFLOPS / 40GB、320 TFLOPS / 64GB。测试对象是 KV 缓存缩减 92.97% 的 MLA 模型，对比原始 MHA 模型；实验同时区分了 query 是否也做低秩压缩（Low-rank Q 与 Full-rank Q），横轴的上下文长度指输入长度与生成长度之和。</p>
+<p>结果显示，MLA 的加速比随上下文长度增长而提高。这与预期一致：MLA 的主要收益来自 KV 缓存压缩，上下文越长，节省的显存与带宽越多，加速越明显。在第一个平台、8K 上下文下，转换后的模型取得 10.6 倍加速；另外两个平台的峰值加速分别为 6.5 倍与 5.1 倍。作为对比，据作者所知，MHA2MLA 并未报告任何真实推理加速结果。</p>
+<p>这一结果的意义不只是“快”，还在于“可部署”：转换后的 checkpoint 可以直接加载进 DeepSeek 的推理栈，享受 FP8 量化、多 token 预测等后续优化，而不需要为每一种硬件重新发明一套 KV 压缩算子。</p>
+<h2 id="sec-7">6 结论、局限与未来工作<a class="headerlink" href="#sec-7" title="复制本节链接">§</a></h2>
+<p>本文证明了在相同 KV 缓存下，MLA 结构比 GQA 更有表达力；为了让已有 GQA 模型以最小代价迁移，作者提出了 TransMLA。RoRoPE 把多头 KV 的位置信息集中到第一个头，FreqFold 进一步增强这种集中效果；其余 query–key 头的位置信息被移除，再用 BKV 平衡 key 与 value 的范数，对 value 与剩余的 key 头做联合低秩压缩。TransMLA 可以把 LLaMA、Qwen 等模型转换为 MLA 模型，转换损失很小，且只需少量 token 的训练就能恢复性能；转换后的模型还能直接利用 DeepSeek 生态，在多种硬件上取得显著吞吐提升。</p>
+<p>作者也坦率地指出了局限。首先，BKV 技术本身相对简单，本质上只是一个范数配平；是否存在更强的数学工具，能在相同压缩率下更好地处理 key/value 范数差异，从而实现真正无需训练的转换，仍是一个开放问题。其次，TransMLA 目前只在有限模型上验证，还需要在更广泛的模型家族与规模上确认其普适性。最后，转换只是起点：若能把它与剪枝、量化、token 选择等技术结合，推理加速的上限还有进一步探索的空间。</p>
+<p>从更宏观的角度看，TransMLA 的价值在于把“是否要从零训练 MLA”变成了“如何低成本迁移到 MLA”。它不要求厂商放弃已有的 GQA 权重与工程积累，而是通过一次结构等价变换，把模型接入更成熟的 MLA 推理生态。这条路径是否能成为行业默认的迁移方案，取决于后续在更多模型、更多硬件以及量化等环节上的验证。</p>
+<h2 id="sec-8">延伸阅读<a class="headerlink" href="#sec-8" title="复制本节链接">§</a></h2>
+<ul>
+<li><a href="../deepseek-v2/index.html">DeepSeek-V2</a>：MLA 与解耦 RoPE 的原始提出，理解 TransMLA 的目标架构。</li>
+<li><a href="../roformer/index.html">RoFormer</a>：RoPE 的原始论文，理解旋转位置编码与相对位置性质。</li>
+<li><a href="../bidkv/index.html">BidKV</a>：从服务系统角度处理 KV 缓存压力，与本文的架构压缩路线形成互补。</li>
+</ul>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{meng2025transmla,
+  author = {Fanxu Meng and Pingzhi Tang and Xiaojuan Tang and Zengwei Yao and Xing Sun and Muhan Zhang},
+  title = {TransMLA: Multi-Head Latent Attention Is All You Need},
+  year = {2025},
+  howpublished = {arXiv:2502.07864},
+  url = {https://arxiv.org/abs/2502.07864},
+  note = {AI Infra Paper Library, transmla}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">TransMLA: Multi-Head Latent Attention Is All You Need</dd></div>
+        <div><dt>作者</dt><dd>Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang</dd></div>
+        <div><dt>发表</dt><dd>arXiv 预印本 arXiv:2502.07864 · 2025</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/fxmeng/TransMLA" target="_blank" rel="noopener noreferrer">https://github.com/fxmeng/TransMLA</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/2502.07864" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2502.07864</a></dd></div>        <div><dt>PDF</dt><dd><a href="assets/source.pdf" target="_blank" rel="noopener">本地存档（27 页）</a></dd></div>
+        <div><dt>译本</dt><dd>中文译文由 AI 辅助完成；如发现术语或公式问题，请以英文原文为准。</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../bidkv/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>BidKV：面向 KV 压力场景的效用引导抢占调度</strong>
+      </a>
+      <a class="pager-link pager-next" href="../deepseek-v2/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>DeepSeek-V2：强大、经济且高效的混合专家语言模型</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="assets/figures/fig1.png" alt="GQA、MLA、MQA 的单向等价转换，以及 TransMLA 的 RoRoPE、FreqFold、BKV-PCA 流程" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>TransMLA</h2>
+      <p class="rail-authors">Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2025</dd></div>
+        <div><dt>页数</dt><dd>27</dd></div>
+        <div><dt>阅读</dt><dd>29 分钟</dd></div>
+        <div><dt>版本</dt><dd>中文译文</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/fxmeng/TransMLA" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/2502.07864" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线 PDF</a>        <a href="original/index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>English Original</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../bidkv/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV：面向 KV 压力场景的效用引导抢占调度</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../deepseek-v2/index.html">
+          <span class="related-year">2024</span>
+          <strong>DeepSeek-V2：强大、经济且高效的混合专家语言模型</strong>
+          <span class="related-meta">约 10 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../assets/vendor/katex/katex.min.js"></script>  <script src="../assets/site/site.js?v=44efb5f68d"></script>
+</body>
+</html>

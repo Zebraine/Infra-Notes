@@ -84,7 +84,7 @@
         {% if lang == "zh" %}
         <strong>中文译文</strong><span>{{ translation_note }}</span>
         {% else %}
-        <strong>Original</strong><span>English text transcribed from the paper PDF. Figures are cropped from the original; equation and section numbers follow the PDF.</span>
+        <strong>Original</strong><span>{{ original_note }}</span>
         {% endif %}
       </p>
     </div>

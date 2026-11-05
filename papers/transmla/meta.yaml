@@ -1,0 +1,68 @@
+slug: transmla
+title: "TransMLA: Multi-Head Latent Attention Is All You Need"
+title_zh: "TransMLA：多头潜变量注意力足矣"
+short_title: "TransMLA"
+authors:
+  - "Fanxu Meng"
+  - "Pingzhi Tang"
+  - "Xiaojuan Tang"
+  - "Zengwei Yao"
+  - "Xing Sun"
+  - "Muhan Zhang"
+affiliation: "Peking University · BIGAI · Tencent Youtu Lab · Xiaomi Corp."
+year: 2025
+date: 2025-06-12
+venue: "arXiv:2502.07864"
+venue_zh: "arXiv 预印本"
+venue_full_zh: "arXiv 预印本 arXiv:2502.07864"
+code_url: "https://github.com/fxmeng/TransMLA"
+translation_note: "中文精读版：正文第 1–6 节完整对译；附录 A–G 见 PDF。"
+original_note: "English reading edition: abstract, method equations, and key experimental passages. The complete paper with appendices is in the PDF."
+type: "研究论文"
+tags:
+  - "MLA"
+  - "GQA"
+  - "KV Cache"
+  - "推理加速"
+  - "模型转换"
+abstract: >-
+  Modern large-language models often face communication bottlenecks on current hardware rather
+  than computational limitations. Multi-head latent attention (MLA) addresses this by compressing
+  the key-value cache using low-rank matrices, while the Absorb operation prevents the KV cache
+  from reverting to its original size, significantly boosting both training and inference speed.
+  Despite the success of DeepSeek V2/V3/R1, most model providers have heavily invested in
+  optimizing GQA-based models and, therefore, lack strong incentives to retrain MLA-based models
+  from scratch. This paper demonstrates that MLA provides superior expressive power compared to
+  GQA with the same KV cache overhead, thereby offering a rationale for transitioning from GQA to
+  MLA. In addition, we introduce TransMLA, a framework that seamlessly converts any GQA-based
+  pre-trained model (e.g., LLaMA, Qwen, Gemma, Mistral/Mixtral) into an MLA-based model. For the
+  first time, our method enables direct conversion of these models into a format compatible with
+  DeepSeek's codebase, allowing them to fully leverage DeepSeek-specific optimizations such as
+  vLLM and SGLang. By compressing 93% of the KV cache in LLaMA-2-7B, we achieve a 10.6x speedup
+  with an 8K context length while maintaining meaningful output. Moreover, the model requires only
+  6B tokens for fine-tuning to recover comparable performance across multiple benchmarks.
+  TransMLA provides a practical path for migrating GQA-based models to the MLA structure, and when
+  combined with DeepSeek's advanced optimizations—such as FP8 quantization and Multi-Token
+  Prediction—further inference acceleration can be achieved.
+abstract_zh: >-
+  现代大语言模型在当前硬件上面对的往往不是计算瓶颈，而是通信瓶颈。多头潜变量注意力（MLA）用低秩
+  矩阵压缩键值缓存，并通过 Absorb 操作避免 KV 缓存在推理时退回原始大小，从而同时提升训练与推理
+  速度。尽管 DeepSeek V2/V3/R1 取得了成功，多数模型厂商已在 GQA 模型上投入大量优化，缺乏从零
+  训练 MLA 模型的动力。本文证明：在相同 KV 缓存开销下，MLA 的表达能力优于 GQA，从而为从 GQA
+  迁移到 MLA 提供了理论依据。我们还提出 TransMLA，一个能把任意 GQA 预训练模型（如 LLaMA、
+  Qwen、Gemma、Mistral/Mixtral）无缝转换为 MLA 模型的框架。该方法首次让这些模型可以直接转换为
+  与 DeepSeek 代码库兼容的格式，从而充分利用 vLLM、SGLang 等 DeepSeek 特定优化。在 LLaMA-2-7B
+  上压缩 93% 的 KV 缓存后，我们在 8K 上下文下取得 10.6 倍加速，同时保持有意义的输出；只需 6B
+  token 的微调，就能在多个基准上恢复与原模型相当的性能。TransMLA 为 GQA 模型迁移到 MLA 结构
+  提供了一条实用路径，结合 FP8 量化、多 token 预测等 DeepSeek 高级优化还能进一步加速。
+summary: >-
+  把 GQA 模型的 KV 头合并、用 RoRoPE/FreqFold 解耦位置信息、再做平衡的低秩压缩，从而低成本
+  迁移到 MLA，兼容 DeepSeek 推理栈。
+cover: "assets/figures/fig1.png"
+cover_alt: "GQA、MLA、MQA 的单向等价转换，以及 TransMLA 的 RoRoPE、FreqFold、BKV-PCA 流程"
+pdf: "assets/source.pdf"
+source_url: "https://arxiv.org/abs/2502.07864"
+pages: 27
+featured: false
+order: 3
+citation_key: "meng2025transmla"

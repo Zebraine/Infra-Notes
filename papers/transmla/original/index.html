@@ -1,0 +1,798 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TransMLA: Multi-Head Latent Attention Is All You Need · AI Infra 论文库</title>
+  <meta name="description" content="Modern large-language models often face communication bottlenecks on current hardware rather than computational limitations. Multi-head latent attention (MLA) a">
+  <meta name="author" content="Fanxu Meng, Pingzhi Tang, Xiaojuan Tang, Zengwei Yao, Xing Sun, Muhan Zhang">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="TransMLA: Multi-Head Latent Attention Is All You Need · AI Infra 论文库">
+  <meta property="og:description" content="Modern large-language models often face communication bottlenecks on current hardware rather than computational limitations. Multi-head latent attention (MLA) a">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2025-06-12">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=44efb5f68d">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 02</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 02 · 2025 · arXiv 预印本</p>
+        <h1>TransMLA: Multi-Head Latent Attention Is All You Need</h1>
+        <p class="paper-alt-title" lang="zh-CN">TransMLA：多头潜变量注意力足矣</p>
+        <p class="paper-authors">Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang <span class="affiliation">· Peking University · BIGAI · Tencent Youtu Lab · Xiaomi Corp.</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>27 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 24 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>5 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=MLA">MLA</a><a class="chip chip-static" href="../../index.html?tag=GQA">GQA</a><a class="chip chip-static" href="../../index.html?tag=KV%20Cache">KV Cache</a><a class="chip chip-static" href="../../index.html?tag=%E6%8E%A8%E7%90%86%E5%8A%A0%E9%80%9F">推理加速</a><a class="chip chip-static" href="../../index.html?tag=%E6%A8%A1%E5%9E%8B%E8%BD%AC%E6%8D%A2">模型转换</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Introduction</a></li>
+<li><a href="#sec-3">2 Related Work</a></li>
+<li><a href="#sec-4">3 Preliminaries</a><ul>
+<li><a href="#sec-4-1">3.1 Rotary Position Embedding (RoPE)</a></li>
+<li><a href="#sec-4-2">3.2 Grouped-Query Attention (GQA)</a></li>
+<li><a href="#sec-4-3">3.3 Multi-Head Latent Attention (MLA)</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 TransMLA</a><ul>
+<li><a href="#sec-5-1">4.1 Merging All Key Heads as One</a></li>
+<li><a href="#sec-5-2">4.2 RoRoPE and FreqFold</a></li>
+<li><a href="#sec-5-3">4.3 Balanced Joint Low-Rank Approximation</a></li>
+</ul>
+</li>
+<li><a href="#sec-6">5 Experiments</a><ul>
+<li><a href="#sec-6-1">5.1 Main Experiment</a></li>
+<li><a href="#sec-6-2">5.2 Key Norm Analysis</a></li>
+<li><a href="#sec-6-3">5.3 KV Norm Disparity and BKV</a></li>
+<li><a href="#sec-6-4">5.4 Inference Speedup</a></li>
+</ul>
+</li>
+<li><a href="#sec-7">6 Conclusion, Limitation and Future Work</a></li>
+<li><a href="#sec-8">Further Reading</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English reading edition: abstract, method equations, and key experimental passages. The complete paper with appendices is in the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>Modern large-language models often face communication bottlenecks on current hardware rather than computational limitations. Multi-head latent attention (MLA) addresses this by compressing the key-value cache using low-rank matrices, while the Absorb operation prevents the KV cache from reverting to its original size, significantly boosting both training and inference speed. Despite the success of DeepSeek V2/V3/R1, most model providers have heavily invested in optimizing GQA-based models and, therefore, lack strong incentives to retrain MLA-based models from scratch. This paper demonstrates that MLA provides superior expressive power compared to GQA with the same KV cache overhead, thereby offering a rationale for transitioning from GQA to MLA. In addition, we introduce TransMLA, a framework that seamlessly converts any GQA-based pre-trained model (e.g., LLaMA, Qwen, Gemma, Mistral/Mixtral) into an MLA-based model. For the first time, our method enables direct conversion of these models into a format compatible with DeepSeek's codebase, allowing them to fully leverage DeepSeek-specific optimizations such as vLLM and SGLang. By compressing 93% of the KV cache in LLaMA-2-7B, we achieve a 10.6x speedup with an 8K context length while maintaining meaningful output. Moreover, the model requires only 6B tokens for fine-tuning to recover comparable performance across multiple benchmarks. TransMLA provides a practical path for migrating GQA-based models to the MLA structure, and when combined with DeepSeek's advanced optimizations—such as FP8 quantization and Multi-Token Prediction—further inference acceleration can be achieved.</p>
+<h2 id="sec-2">1 Introduction<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>Large language models generate tokens autoregressively and attend over all preceding tokens at every step. Implementations cache the intermediate key–value (KV) pairs to avoid recomputation, but as models and contexts grow, this cache becomes a primary inference bottleneck: it grows linearly with sequence length, consumes scarce device memory, and limits batch size and concurrency. The limiting resource is often communication and capacity rather than raw compute.</p>
+<p>Grouped-Query Attention (GQA) reduces the cache by letting a group of query heads share one key/value head. With one group it degenerates to Multi-Query Attention (MQA); with as many groups as heads it becomes standard Multi-Head Attention (MHA). Both GQA and MQA trade model quality for memory. Post-training compression methods—token pruning, quantization, cross-layer KV sharing—can shrink the cache further, but they usually require custom kernels or non-standard runtime support, which hinders adoption.</p>
+<p>Multi-Head Latent Attention (MLA), introduced with DeepSeek V2 and refined in V3 and R1, compresses the KV cache into a low-rank latent vector. During training it retains an MHA-like parallel form; during inference the Absorb operation switches it into an MQA-like form, so the cache never has to be materialized at full size. MLA models achieve state-of-the-art quality at low training and inference cost, and DeepSeek's open implementations make the optimization accessible.</p>
+<p>This paper first proves that, under the same KV cache budget, MLA is strictly more expressive than GQA. The practical obstacle to switching is sunk investment: most providers have already trained and optimized GQA models and will not retrain from scratch. The paper therefore asks whether a pretrained GQA model such as LLaMA or Qwen can be converted into MLA while inheriting its weights and pretraining work.</p>
+<p>The key obstacle is RoPE. In GQA every query–key head carries its own rotary position embedding, which blocks DeepSeek's Absorb operation: the key up-projection cannot be folded into the query projection while each head holds a separate rotation. Borrowing DeepSeek's decoupled-RoPE scheme, TransMLA concentrates positional signals into a small subset of key dimensions, <span class="arithmatex">\(K_{rope}\)</span>. The remaining dimensions, <span class="arithmatex">\(K_{nope}\)</span>, carry little positional information; their RoPE is dropped and they are merged with V for low-rank decomposition. Once RoPE is isolated, the RoPE-free key up-projection can be absorbed into the query projection exactly as in DeepSeek.</p>
+<p>To concentrate positional information efficiently, the paper introduces RoRoPE. It performs PCA on key outputs, applies a rotation to the real and imaginary components of RoPE, and consolidates the principal components of all attention heads into the dimensions of the first head. The rotation is output-invariant as long as (1) it acts only on the same dimension across heads and (2) the real and imaginary components of RoPE are rotated in the same way. FreqFold then exploits the similarity of adjacent RoPE frequencies to improve concentration.</p>
+<p>Finally, the <span class="arithmatex">\(\ell_2\)</span> norm of <span class="arithmatex">\(K_{nope}\)</span> is much larger than that of V. Running PCA on the concatenated matrix <span class="arithmatex">\([K_{nope};V]\)</span> without adjustment lets the key dominate the principal components, causing severe loss of value-subspace information and a sharp accuracy drop. Balanced Key–Value (BKV) rescales <span class="arithmatex">\(K_{nope}\)</span> and V so that their norms match before joint PCA; this simple normalization restores balance and markedly improves compression quality.</p>
+<p>The resulting method, TransMLA, compresses the LLaMA-2 7B KV cache by 68.75% with only a 1.65-point average drop across six benchmarks in a training-free conversion. At the same compression on the same model, the concurrent MHA2MLA method falls from 59.85 to 37.90. At 93% compression the converted model still produces meaningful responses, and 6B tokens of training largely restore performance. Tested with vLLM on three hardware platforms, TransMLA achieves up to a 10.6x speedup over the original GQA model. Converted checkpoints are fully compatible with DeepSeek's code and inference ecosystem.</p>
+<p>The contributions are:</p>
+<ul>
+<li><strong>Theory.</strong> Under an equal KV-cache budget, MLA is more expressive than GQA; any GQA layer can be written as an MLA layer, but not vice versa.</li>
+<li><strong>Method.</strong> Head merging, RoRoPE, FreqFold, and BKV joint low-rank approximation convert a GQA model to MLA with very small transformation loss.</li>
+<li><strong>Systems.</strong> Converted models run directly on the DeepSeek inference stack and deliver measured speedups that grow with context length.</li>
+</ul>
+<figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/fig1.png"><img alt="Figure 1: One-way equivalence among GQA, MLA, and MQA, and the overall TransMLA pipeline. (a) Given the same KV cache size, expressiveness increases in the order GQA, MLA, MQA; arrows denote one-way conversions. (b) TransMLA first concentrates positional information into Krope via RoRoPE and FreqFold, then jointly compresses Knope and V with BKV-PCA, so only Krope and Ckv need to be cached." decoding="async" loading="lazy" src="../assets/figures/fig1.png"></a><figcaption>Figure 1: One-way equivalence among GQA, MLA, and MQA, and the overall TransMLA pipeline. (a) Given the same KV cache size, expressiveness increases in the order GQA, MLA, MQA; arrows denote one-way conversions. (b) TransMLA first concentrates positional information into Krope via RoRoPE and FreqFold, then jointly compresses Knope and V with BKV-PCA, so only Krope and Ckv need to be cached.</figcaption></figure><h2 id="sec-3">2 Related Work<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>KV-cache compression research falls into three broad families: changing the attention structure, post-training pruning or cross-layer sharing of an existing cache, and converting a pretrained model to a more efficient attention form.</p>
+<p>MQA, GQA, and MLA change the attention structure. MQA and GQA save memory but usually sacrifice accuracy. MLA uses low-rank latents plus decoupled RoPE to obtain near-state-of-the-art quality at lower training and inference cost. GLA offers a more parallel-friendly latent-attention implementation, and TPA factorizes activations dynamically to cut the runtime cache by an order of magnitude—but TPA requires training from scratch. TransMLA is not another attention variant: it converts an existing GQA model into MLA with light fine-tuning, inheriting MLA's memory and speed advantages.</p>
+<p>Post-training methods operate on a pretrained model. LazyLLM, A2SF, and SnapKV prune less important tokens; YONO, MiniCache, and MLKV share KV representations across layers. These approaches can be effective, but they typically require custom kernels or runtime changes, complicating deployment. TransMLA instead loads converted checkpoints directly into the mature DeepSeek ecosystem and obtains MLA-level speedups on every supported platform.</p>
+<p>Two works are closest. Palu applies low-rank decomposition to both keys and values, but does not specifically handle RoPE, so it cannot use Absorb at inference and must project the compressed representation back to its original size; that projection adds substantial runtime overhead and limits acceleration. MHA2MLA is a concurrent conversion method that also decouples RoPE from the main path. TransMLA is not merely a GQA extension of MHA2MLA—both support MHA and GQA architectures. MHA2MLA selects RoPE dimensions to remove solely from query/key norms, which tends to lose more information at the same removal ratio; the important dimensions are unevenly distributed, requiring sparse indexing that complicates optimization and acceleration. MHA2MLA does not demonstrate actual inference speedup, and it applies joint SVD directly to K and V, incurring higher loss than the balanced key–value PCA used here.</p>
+<h2 id="sec-4">3 Preliminaries<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<p>Notation: <span class="arithmatex">\(\mathbf{x}_t\in\mathbb{R}^{D}\)</span> is the input at position <span class="arithmatex">\(t\)</span>; <span class="arithmatex">\(D\)</span> is the hidden size, <span class="arithmatex">\(h\)</span> the number of query heads, <span class="arithmatex">\(d=D/h\)</span> the head dimension, and <span class="arithmatex">\(g\)</span> the number of KV groups in GQA.</p>
+<h3 id="sec-4-1">3.1 Rotary Position Embedding (RoPE)<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>RoPE encodes absolute position with rotations at different frequencies and makes attention depend explicitly on relative position. It treats adjacent dimension pairs as the real and imaginary parts of a complex number and rotates each pair by an angle proportional to the token position:</p>
+<div class="arithmatex">\[
+\begin{pmatrix} x_{t,2k-1}^{R} \\[2pt] x_{t,2k}^{R} \end{pmatrix}
+=
+\begin{pmatrix}
+\cos t\theta_k &amp; -\sin t\theta_k \\[2pt]
+\sin t\theta_k &amp; \cos t\theta_k
+\end{pmatrix}
+\begin{pmatrix} x_{t,2k-1} \\[2pt] x_{t,2k} \end{pmatrix},
+\qquad
+\theta_k = 10000^{-2(k-1)/d},
+\]</div>
+<p>for <span class="arithmatex">\(k=1,\dots,d/2\)</span>. Equivalently,</p>
+<div class="arithmatex">\[
+\mathbf{x}_t^{R}=\mathrm{RoPE}(\mathbf{x}_t,t)
+=\mathbf{x}_t\odot\mathbf{c}_t+\mathbf{x}_t^{\perp}\odot\mathbf{s}_t,
+\]</div>
+<p>where <span class="arithmatex">\(\mathbf{c}_t\)</span> and <span class="arithmatex">\(\mathbf{s}_t\)</span> collect the per-frequency cosines and sines, and <span class="arithmatex">\(\mathbf{x}_t^{\perp}\)</span> maps each pair <span class="arithmatex">\((x_{2k-1},x_{2k})\)</span> to <span class="arithmatex">\((-x_{2k},x_{2k-1})\)</span>. Because the rotation depends only on position, the query–key inner product between positions <span class="arithmatex">\(t\)</span> and <span class="arithmatex">\(j\)</span> depends only on <span class="arithmatex">\(t-j\)</span>, giving RoPE its relative-position property.</p>
+<h3 id="sec-4-2">3.2 Grouped-Query Attention (GQA)<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>GQA uses projections <span class="arithmatex">\(\mathbf{W}^{Q}\in\mathbb{R}^{hd\times D}\)</span>, <span class="arithmatex">\(\mathbf{W}^{K},\mathbf{W}^{V}\in\mathbb{R}^{gd\times D}\)</span>, and <span class="arithmatex">\(\mathbf{W}^{O}\in\mathbb{R}^{D\times hd}\)</span>, then slices the results into heads or groups:</p>
+<div class="arithmatex">\[
+[\mathbf{q}_{t,1};\dots;\mathbf{q}_{t,h}]=\mathbf{q}_t=\mathbf{W}^{Q}\mathbf{x}_t,
+\]</div>
+<div class="arithmatex">\[
+[\mathbf{k}_{t,1};\dots;\mathbf{k}_{t,g}]=\mathbf{k}_t=\mathbf{W}^{K}\mathbf{x}_t,
+\qquad
+[\mathbf{v}_{t,1};\dots;\mathbf{v}_{t,g}]=\mathbf{v}_t=\mathbf{W}^{V}\mathbf{x}_t.
+\]</div>
+<p>Query head <span class="arithmatex">\(i\)</span> (<span class="arithmatex">\(i=1,\dots,h\)</span>) attends to group <span class="arithmatex">\(\lceil i/(h/g)\rceil\)</span>. After applying RoPE, the output for head <span class="arithmatex">\(i\)</span> at position <span class="arithmatex">\(t\)</span> is</p>
+<div class="arithmatex">\[
+\mathbf{o}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{(\mathbf{q}_{t,i}^{R})^{\top}\mathbf{k}_{j,\lceil i/(h/g)\rceil}^{R}}{\sqrt{d}}
+\right)
+\mathbf{v}_{j,\lceil i/(h/g)\rceil},
+\]</div>
+<div class="arithmatex">\[
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{o}_{t,1};\dots;\mathbf{o}_{t,h}].
+\]</div>
+<p>With <span class="arithmatex">\(g=h\)</span>, GQA becomes MHA; with <span class="arithmatex">\(g=1\)</span>, it becomes MQA. GQA caches <span class="arithmatex">\(2gd\)</span> elements per token per layer, the reference budget used throughout the paper.</p>
+<h3 id="sec-4-3">3.3 Multi-Head Latent Attention (MLA)<a class="headerlink" href="#sec-4-3" title="复制本节链接">§</a></h3>
+<p>MLA compresses keys and values into a low-rank latent vector before caching. It computes</p>
+<div class="arithmatex">\[
+\mathbf{c}_t^{KV}=\mathbf{W}^{DKV}\mathbf{x}_t,
+\]</div>
+<p>with <span class="arithmatex">\(\mathbf{W}^{DKV}\in\mathbb{R}^{r_{kv}\times D}\)</span>, and then up-projects with <span class="arithmatex">\(\mathbf{W}^{UK},\mathbf{W}^{UV}\in\mathbb{R}^{hd\times r_{kv}}\)</span>. On the query side, <span class="arithmatex">\(\mathbf{W}^{DQ}\in\mathbb{R}^{r_q\times D}\)</span> produces <span class="arithmatex">\(\mathbf{c}_t^{Q}\)</span> and <span class="arithmatex">\(\mathbf{W}^{UQ}\in\mathbb{R}^{hd\times r_q}\)</span> produces the per-head queries, reducing activation memory during training.</p>
+<p>Position is carried by a decoupled RoPE: additional multi-head queries <span class="arithmatex">\(\mathbf{q}_{t,i}^{R}\in\mathbb{R}^{d_R}\)</span> and a shared key <span class="arithmatex">\(\mathbf{k}_t^{R}\in\mathbb{R}^{d_R}\)</span> are generated by <span class="arithmatex">\(\mathbf{W}^{QR}\)</span> and <span class="arithmatex">\(\mathbf{W}^{KR}\)</span> and rotated:</p>
+<div class="arithmatex">\[
+\mathbf{k}_t^{R}=\mathrm{RoPE}(\mathbf{W}^{KR}\mathbf{x}_t,t),
+\qquad
+[\mathbf{q}_{t,1}^{R};\dots;\mathbf{q}_{t,h}^{R}]
+=\mathrm{RoPE}(\mathbf{W}^{QR}\mathbf{c}_t^{Q},t),
+\]</div>
+<div class="arithmatex">\[
+\mathbf{k}_{t,i}=[\mathbf{k}_{t,i}^{C};\mathbf{k}_t^{R}],
+\qquad
+\mathbf{q}_{t,i}=[\mathbf{q}_{t,i}^{C};\mathbf{q}_{t,i}^{R}].
+\]</div>
+<p>MLA supports two computational paradigms with the same parameters. Training resembles standard MHA:</p>
+<div class="arithmatex">\[
+\mathbf{o}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{\mathbf{q}_{t,i}^{\top}\mathbf{k}_{j,i}}{\sqrt{d+d_R}}
+\right)\mathbf{v}_{j,i}^{C},
+\qquad
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{o}_{t,1};\dots;\mathbf{o}_{t,h}].
+\]</div>
+<p>Inference switches to an MQA-like Absorb form. The key up-projection is folded into the query, and only the latent vector and the RoPE key are cached:</p>
+<div class="arithmatex">\[
+\hat{\mathbf{q}}_{t,i}
+=\left[(\mathbf{W}_i^{UK})^{\top}\mathbf{q}_{t,i}^{C};\ \mathbf{q}_{t,i}^{R}\right],
+\qquad
+\hat{\mathbf{k}}_t=\left[\mathbf{c}_t^{KV};\ \mathbf{k}_t^{R}\right],
+\]</div>
+<div class="arithmatex">\[
+\hat{\mathbf{o}}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{\hat{\mathbf{q}}_{t,i}^{\top}\hat{\mathbf{k}}_j}{\sqrt{d+d_R}}
+\right)\mathbf{c}_j^{KV},
+\qquad
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{W}_1^{UV}\hat{\mathbf{o}}_{t,1};\dots;\mathbf{W}_h^{UV}\hat{\mathbf{o}}_{t,h}].
+\]</div>
+<p>In this form, <span class="arithmatex">\(\mathbf{c}_t^{KV}\)</span> acts as one large KV head shared by all query heads, and the cache never has to be expanded to full key/value size. Any change that breaks absorbability—such as keeping a separate RoPE in every head—forces MLA back onto the expensive path.</p>
+<h2 id="sec-5">4 TransMLA<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>TransMLA rests on two observations.</p>
+<p>First, under a fixed KV-cache budget, MLA is strictly more expressive than GQA. Any GQA layer can be rewritten as an MLA layer by introducing one additional projection matrix; the reverse is not always possible, so MLA subsumes GQA. With RoPE present, the MLA equivalent must be expressed in absorbed form.</p>
+<p>Second, inference accelerates only if MLA actually uses a smaller cache. Constructing an MLA-equivalent representation of a GQA model is not enough; the number of stored KV vectors must genuinely decrease. TransMLA therefore converts a GQA network into a DeepSeek-like MLA architecture that runs directly on DeepSeek's optimized inference stack.</p>
+<p><strong>Expressiveness argument.</strong> Fix the KV-cache budget at <span class="arithmatex">\(2gd\)</span> per token per layer and the number of query heads at <span class="arithmatex">\(h\)</span>. The paper compares GQA, a factorized MLA core (denoted <span class="arithmatex">\(\mathrm{MLA}_{\mathrm{factorized}}\)</span>), and MQA, and proves</p>
+<div class="arithmatex">\[
+\mathrm{GQA} \;&lt;\; \mathrm{MLA}_{\mathrm{factorized}} \;&lt;\; \mathrm{MQA}.
+\]</div>
+<p>For <span class="arithmatex">\(\mathrm{GQA}\le\mathrm{MLA}_{\mathrm{factorized}}\)</span>, set</p>
+<div class="arithmatex">\[
+\mathbf{W}^{DKV}=\begin{pmatrix}\mathbf{W}^{K}\\[2pt]\mathbf{W}^{V}\end{pmatrix}\in\mathbb{R}^{2gd\times D},
+\qquad r_{kv}=2gd,
+\]</div>
+<p>and initialize each head's <span class="arithmatex">\(\mathbf{W}_i^{UK},\mathbf{W}_i^{UV}\in\mathbb{R}^{d\times 2gd}\)</span> as block selectors: an identity block for the head's group and zeros elsewhere. MLA then reproduces GQA's key/value generation exactly with a <span class="arithmatex">\(2gd\)</span>-dimensional latent <span class="arithmatex">\(\mathbf{c}_j^{KV}\)</span> and the same cache size.</p>
+<p>For <span class="arithmatex">\(\mathrm{MLA}_{\mathrm{factorized}}\le\mathrm{MQA}\)</span>, fold the up-projection into the query:</p>
+<div class="arithmatex">\[
+\mathbf{q}_{t,i}^{\top}\mathbf{k}_{j,i}
+=\left((\mathbf{W}_i^{UK})^{\top}\mathbf{W}_i^{Q}\mathbf{x}_t\right)^{\top}
+\left(\mathbf{W}^{DKV}\mathbf{x}_j\right)
+=\hat{\mathbf{q}}_{t,i}^{\top}\mathbf{c}_j^{KV}.
+\]</div>
+<p>Each head now uses a widened <span class="arithmatex">\(2gd\)</span>-dimensional query against one shared key/value, which is exactly MQA. Since <span class="arithmatex">\(2gd&gt;d\)</span>, MQA permits a higher interaction rank than the per-head effective rank of factorized MLA.</p>
+<p>Both inequalities are strict. When GQA is written as MLA, the up-projections must be sparse block selectors, whereas a general MLA learns dense up-projections that combine features from the shared latent into <span class="arithmatex">\(h\)</span> distinct key/value vectors instead of replicating <span class="arithmatex">\(g\)</span> groups <span class="arithmatex">\(h/g\)</span> times. For scoring, MLA's per-head bilinear matrix</p>
+<div class="arithmatex">\[
+\mathbf{x}_t^{\top}(\mathbf{W}_i^{Q})^{\top}\mathbf{W}_i^{UK}\mathbf{W}^{DKV}\mathbf{x}_j
+\]</div>
+<p>has rank at most <span class="arithmatex">\(d\)</span>, while the folded MQA form permits rank up to <span class="arithmatex">\(2gd\)</span>. Full MLA combines an <span class="arithmatex">\(\mathrm{MLA}_{\mathrm{factorized}}\)</span> core for content with an MQA-structured shared key for position, and is therefore more expressive than GQA. This is an architectural capacity statement, not a claim that raw expressiveness equals quality; the result justifies MLA over GQA rather than arguing that MQA should replace MLA.</p>
+<h3 id="sec-5-1">4.1 Merging All Key Heads as One<a class="headerlink" href="#sec-5-1" title="复制本节链接">§</a></h3>
+<p>Because MLA ties all KV heads to one latent space, the first conversion step is to merge every GQA key/value group into a single latent head before compressing the cache.</p>
+<p>For query head <span class="arithmatex">\(i\)</span>, let its group be <span class="arithmatex">\(j=\lceil i/(h/g)\rceil-1\)</span> (group indices are zero-based; matrix slices follow Python/PyTorch notation). Introduce <span class="arithmatex">\(\mathbf{W}_i^{UK}\in\mathbb{R}^{d\times gd}\)</span> and initialize only the <span class="arithmatex">\(j\)</span>-th block to the identity:</p>
+<div class="arithmatex">\[
+\mathbf{W}_i^{UK}[:,\,jd:(j+1)d]=\mathbf{I}_d,
+\]</div>
+<p>with all other entries zero. Projecting the merged key latent to head <span class="arithmatex">\(i\)</span> then selects only the key of its group, exactly matching GQA. Values are handled the same way: <span class="arithmatex">\(\mathbf{W}_i^{UV}\)</span> keeps only the identity mapping for the corresponding value group, so the output is unchanged.</p>
+<p>The per-head RoPE operations are then merged into one large RoPE, denoted <span class="arithmatex">\(\widehat{\mathrm{RoPE}}\)</span>, applied to the full merged key. Since every head uses the same RoPE in GQA, <span class="arithmatex">\(\widehat{\mathrm{RoPE}}\)</span> simply repeats the same rotation every <span class="arithmatex">\(d\)</span> dimensions. The converted computation is</p>
+<div class="arithmatex">\[
+[\mathbf{c}_t^{K};\mathbf{c}_t^{V}]=\mathbf{c}_t^{KV}=\mathbf{W}^{DKV}\mathbf{x}_t,
+\qquad
+\mathbf{W}^{DKV}=\begin{pmatrix}\mathbf{W}^{K}\\[2pt]\mathbf{W}^{V}\end{pmatrix}\in\mathbb{R}^{2gd\times D},
+\]</div>
+<div class="arithmatex">\[
+[\mathbf{q}_{t,1};\dots;\mathbf{q}_{t,h}]=\mathbf{q}_t=\mathbf{W}^{Q}\mathbf{x}_t,
+\]</div>
+<div class="arithmatex">\[
+\hat{\mathbf{q}}_{t,i}^{R}
+=\widehat{\mathrm{RoPE}}\!\left((\mathbf{W}_i^{UK})^{\top}\mathbf{q}_{t,i},t\right),
+\qquad
+\hat{\mathbf{k}}_t^{R}
+=\widehat{\mathrm{RoPE}}\!\left(\mathbf{c}_t^{K},t\right),
+\]</div>
+<div class="arithmatex">\[
+\hat{\mathbf{o}}_{t,i}=
+\sum_{j=1}^{t}
+\mathrm{softmax}_j\!\left(
+\frac{(\hat{\mathbf{q}}_{t,i}^{R})^{\top}\hat{\mathbf{k}}_j^{R}}{\sqrt{d}}
+\right)\mathbf{c}_j^{V},
+\qquad
+\mathbf{y}_t=\mathbf{W}^{O}[\mathbf{W}_1^{UV}\hat{\mathbf{o}}_{t,1};\dots;\mathbf{W}_h^{UV}\hat{\mathbf{o}}_{t,h}].
+\]</div>
+<p>The cache is still <span class="arithmatex">\(2gd\)</span> per token, so no memory has been saved; each merged key head's dimension has grown by a factor of <span class="arithmatex">\(g\)</span>, and the new <span class="arithmatex">\(\mathbf{W}_i^{UK}\)</span> and <span class="arithmatex">\(\mathbf{W}_i^{UV}\)</span> add computation. Merging is only the setup. Its value is that it places all KV heads in one space, making shared principal components easier to identify for low-rank compression, and it enables efficient RoPE decoupling in the next step.</p>
+<h3 id="sec-5-2">4.2 RoRoPE and FreqFold<a class="headerlink" href="#sec-5-2" title="复制本节链接">§</a></h3>
+<p>RoRoPE removes the bulk of the positional signal from K while preserving the model output. The RoPE inner product decomposes over 2D rotation subspaces; for each subspace, collect the real and imaginary parts across heads:</p>
+<div class="arithmatex">\[
+(\hat{\mathbf{q}}_{t,i}^{R})^{\top}\hat{\mathbf{k}}_j^{R}
+=
+\sum_{l=1}^{d/2}
+\left[
+\hat{\mathbf{q}}_{t,i}^{[2l-1::d]};
+\hat{\mathbf{q}}_{t,i}^{[2l::d]}
+\right]^{R\top}
+\left[
+\hat{\mathbf{k}}_j^{[2l-1::d]};
+\hat{\mathbf{k}}_j^{[2l::d]}
+\right]^{R}.
+\]</div>
+<p>The slice <span class="arithmatex">\([2l-1::d]\)</span> starts at dimension <span class="arithmatex">\(2l-1\)</span> and takes every <span class="arithmatex">\(d\)</span>-th element, collecting the real parts of frequency <span class="arithmatex">\(l\)</span> across heads; the imaginary parts are collected analogously. Each concatenated vector has dimension <span class="arithmatex">\(2g\)</span>.</p>
+<p>Because all heads share the same RoPE, the rotation angle for frequency <span class="arithmatex">\(l\)</span> is identical across heads. Let <span class="arithmatex">\(\mathbf{U}_l\in\mathbb{R}^{g\times g}\)</span> be orthogonal and apply it to both the real and imaginary parts of that frequency:</p>
+<div class="arithmatex">\[
+\sum_{l=1}^{d/2}
+\left(
+\mathbf{U}_l\hat{\mathbf{q}}^{[2l-1::d]};
+\mathbf{U}_l\hat{\mathbf{q}}^{[2l::d]}
+\right)^{R\top}
+\left(
+\mathbf{U}_l\hat{\mathbf{k}}^{[2l-1::d]};
+\mathbf{U}_l\hat{\mathbf{k}}^{[2l::d]}
+\right)^{R}
+=
+(\hat{\mathbf{q}}^{R})^{\top}\hat{\mathbf{k}}^{R}.
+\]</div>
+<p>The rotation preserves the inner product because <span class="arithmatex">\(\mathbf{U}_l^{\top}\mathbf{U}_l=\mathbf{I}\)</span> and the same angles <span class="arithmatex">\(\cos t\theta_l,\sin t\theta_l\)</span> apply to every head. A critical constraint follows: the real and imaginary parts must use the same <span class="arithmatex">\(\mathbf{U}_l\)</span>; separate PCA on the two parts would break the RoPE structure.</p>
+<p>The problem is now to find orthogonal matrices that concentrate key principal components into the first few heads. On a small calibration set, collect key activations at each layer, compute the real and imaginary covariances <span class="arithmatex">\(\boldsymbol{\Sigma}_{x,l}\)</span> and <span class="arithmatex">\(\boldsymbol{\Sigma}_{y,l}\)</span> for each frequency, and solve</p>
+<div class="arithmatex">\[
+\max_{\mathbf{U}_l}\ 
+\mathrm{Tr}\!\left[
+\left(\mathbf{U}_l^{\top}(\boldsymbol{\Sigma}_{x,l}+\boldsymbol{\Sigma}_{y,l})\mathbf{U}_l\right)_{:m,:m}
+\right]
+\quad
+\text{s.t.}\quad
+\mathbf{U}_l^{\top}\mathbf{U}_l=\mathbf{I}.
+\]</div>
+<p>Here <span class="arithmatex">\((\cdot)_{:m,:m}\)</span> denotes the top-left <span class="arithmatex">\(m\times m\)</span> submatrix. The optimum is obtained by eigendecomposing the summed covariance and sorting eigenvectors by decreasing eigenvalue. The resulting rotation aligns the principal components of both real and imaginary parts in the first <span class="arithmatex">\(m\)</span> heads, so RoPE can be removed from the remaining heads with minimal loss. Since <span class="arithmatex">\(\hat{\mathbf{q}}\)</span> and <span class="arithmatex">\(\hat{\mathbf{k}}\)</span> come from <span class="arithmatex">\(\mathbf{W}^{UK}\)</span> and <span class="arithmatex">\(\mathbf{W}^{K}\)</span>, the operation is implemented by rotating those two projection matrices.</p>
+<p>Conceptually, RoRoPE does not discard all non-principal components. It keeps the positional encoding of the principal components and removes RoPE from the rest, which is gentler than pruning RoPE dimensions by norm alone.</p>
+<p>Keeping a single principal component per frequency in the first head is still limiting. Adjacent RoPE frequencies are numerically close, so FreqFold groups <span class="arithmatex">\(M\)</span> adjacent frequencies, concatenates their <span class="arithmatex">\(M\)</span> segments of <span class="arithmatex">\(2g\)</span> dimensions, performs one joint PCA on <span class="arithmatex">\(M\cdot 2g\)</span> dimensions, and keeps <span class="arithmatex">\(M\)</span> principal components. The first head then uses <span class="arithmatex">\(2M\)</span> dimensions to carry the positional information of <span class="arithmatex">\(M\)</span> frequencies, preserving more variance than keeping one component per frequency. The paper proves that the joint PCA retains at least as much variance as separately reducing each group to one dimension, <span class="arithmatex">\(V_2\ge V_1\)</span>.</p>
+<p>The trade-off is approximation error: treating nearby frequencies as identical becomes lossier as <span class="arithmatex">\(M\)</span> grows. Experiments on LLaMA 3 8B identify RoRoPE with 4D FreqFold—four adjacent frequencies per group—as a good balance.</p>
+<figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/fig2.png"><img alt="Figure 2: The RoRoPE decoupling pipeline. Blue lines denote real-part dimensions and orange lines imaginary-part dimensions. After keys from multiple heads are concatenated, permuting dimensions does not change the computation, so the same dimension (i.e., the same rotational frequency) is gathered across heads and a joint PCA is applied, identically to the real and imaginary parts. One principal component is kept per frequency; it captures the dominant positional variation and can be represented by standard RoPE in a single attention head." decoding="async" loading="lazy" src="../assets/figures/fig2.png"></a><figcaption>Figure 2: The RoRoPE decoupling pipeline. Blue lines denote real-part dimensions and orange lines imaginary-part dimensions. After keys from multiple heads are concatenated, permuting dimensions does not change the computation, so the same dimension (i.e., the same rotational frequency) is gathered across heads and a joint PCA is applied, identically to the real and imaginary parts. One principal component is kept per frequency; it captures the dominant positional variation and can be represented by standard RoPE in a single attention head.</figcaption></figure><h3 id="sec-5-3">4.3 Balanced Joint Low-Rank Approximation<a class="headerlink" href="#sec-5-3" title="复制本节链接">§</a></h3>
+<p>After decoupling, the key splits into <span class="arithmatex">\(K_{rope}\)</span> (the first head, which keeps RoPE) and <span class="arithmatex">\(K_{nope}\)</span> (the remaining heads, which do not use RoPE). TransMLA then jointly compresses <span class="arithmatex">\(K_{nope}\)</span> and V.</p>
+<p>On a small calibration set such as WikiText-2, collect activations. To prevent the key norm from dominating the joint PCA, BKV first aligns the scales of <span class="arithmatex">\(K_{nope}\)</span> and V (details below); the balanced vectors are concatenated as</p>
+<div class="arithmatex">\[
+\mathbf{c}_{nope,t}
+=
+\begin{pmatrix}
+\mathbf{k}'_{nope,t}\\[2pt]
+\mathbf{v}_t
+\end{pmatrix}
+\in\mathbb{R}^{(2g-1)d}.
+\]</div>
+<p>PCA yields a projection matrix <span class="arithmatex">\(\mathbf{R}_{KV}\in\mathbb{R}^{((2g-1)d)\times r_{kv}}\)</span> whose columns are the top <span class="arithmatex">\(r_{kv}\)</span> eigenvectors. The two projection matrices are then updated as</p>
+<div class="arithmatex">\[
+\mathbf{W}^{\prime DKV}=\mathbf{R}_{KV}^{\top}\mathbf{W}^{DKV},
+\qquad
+\mathbf{W}^{\prime UKV}=\mathbf{W}^{UKV}\mathbf{R}_{KV}.
+\]</div>
+<p>The new down-projection maps inputs into an <span class="arithmatex">\(r_{kv}\)</span>-dimensional latent space, and the new up-projection reconstructs keys and values from it. The pair is mathematically equivalent to the original (up to discarded components), but the cached vector shrinks from <span class="arithmatex">\((2g-1)d\)</span> to <span class="arithmatex">\(r_{kv}\)</span> dimensions.</p>
+<p>The difficulty is that <span class="arithmatex">\(K_{nope}\)</span> has a much larger norm than V. Even after removing the largest first head, the remaining key norm still dominates. Unadjusted joint PCA is therefore biased toward key directions and discards value-subspace variation as noise, sharply reducing accuracy.</p>
+<p>BKV fixes this with a scalar rescaling. Define</p>
+<div class="arithmatex">\[
+\alpha=
+\frac{\mathbb{E}_t\left[\left\|\mathbf{W}_{nope}^{DK}\mathbf{x}_t\right\|_2\right]}
+{\mathbb{E}_t\left[\left\|\mathbf{W}^{DV}\mathbf{x}_t\right\|_2\right]},
+\]</div>
+<p>divide <span class="arithmatex">\(\mathbf{W}_{nope}^{DK}\)</span> by <span class="arithmatex">\(\alpha\)</span>, and multiply <span class="arithmatex">\(\mathbf{W}_{nope}^{UK}\)</span> by <span class="arithmatex">\(\alpha\)</span>. The product is unchanged, so model outputs are mathematically identical; but during PCA the key and value activations are brought to comparable scales, preventing the key from monopolizing the principal components. This equivalence-preserving normalization is a key reason TransMLA retains accuracy at high compression.</p>
+<h2 id="sec-6">5 Experiments<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>The experiments ask three questions: how much quality is lost by conversion without training, whether light training recovers it, and whether conversion produces real hardware speedups. Norm analyses explain the roles of the individual components.</p>
+<h3 id="sec-6-1">5.1 Main Experiment<a class="headerlink" href="#sec-6-1" title="复制本节链接">§</a></h3>
+<p>Following the MHA2MLA setup, the authors convert SmolLM 1.7B and LLaMA-2 7B to MLA and evaluate six commonsense-reasoning benchmarks: MMLU, ARC (easy and challenge), PIQA, HellaSwag, OpenBookQA, and Winogrande. Each model is tested before conversion, immediately after conversion without training, and after continued training. Training uses a subset of the SmolLM pretraining corpus; MHA2MLA's fine-tuned numbers are taken from its paper. Experiments run on eight GPUs with 40GB memory and 312 TFLOPS FP16 each; hyperparameters are in the appendix.</p>
+<figure class="paper-table"><figcaption id="tab-1">Table 1: Commonsense reasoning performance of TransMLA and MHA2MLA. The six benchmarks are MMLU, ARC, PIQA, HellaSwag (HS), OpenBookQA (OBQA), and Winogrande (WG); "Avg." is their mean. "Tokens" is the number of tokens used for continued training after conversion; 0 means evaluation immediately after conversion without fine-tuning. "KV cache" is the reduction relative to the original model. Key rows are retained; the complete table is in the PDF.</figcaption><div class="table-scroll"><table aria-labelledby="tab-1">
+<thead>
+<tr>
+<th>Model</th>
+<th>Method</th>
+<th style="text-align: right;">Tokens</th>
+<th style="text-align: right;">KV cache</th>
+<th style="text-align: right;">Avg.</th>
+<th style="text-align: right;">MMLU</th>
+<th style="text-align: right;">ARC</th>
+<th style="text-align: right;">PIQA</th>
+<th style="text-align: right;">HS</th>
+<th style="text-align: right;">OBQA</th>
+<th style="text-align: right;">WG</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="7">SmolLM-1.7B</td>
+<td>Original</td>
+<td style="text-align: right;">1T</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">55.90</td>
+<td style="text-align: right;">39.27</td>
+<td style="text-align: right;">59.87</td>
+<td style="text-align: right;">75.73</td>
+<td style="text-align: right;">62.93</td>
+<td style="text-align: right;">42.80</td>
+<td style="text-align: right;">54.85</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">40.97</td>
+<td style="text-align: right;">27.73</td>
+<td style="text-align: right;">41.96</td>
+<td style="text-align: right;">63.00</td>
+<td style="text-align: right;">29.19</td>
+<td style="text-align: right;">34.40</td>
+<td style="text-align: right;">49.53</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">54.76</td>
+<td style="text-align: right;">38.11</td>
+<td style="text-align: right;">57.13</td>
+<td style="text-align: right;">76.12</td>
+<td style="text-align: right;">61.35</td>
+<td style="text-align: right;">42.00</td>
+<td style="text-align: right;">53.83</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">51.95</td>
+<td style="text-align: right;">35.70</td>
+<td style="text-align: right;">55.68</td>
+<td style="text-align: right;">73.94</td>
+<td style="text-align: right;">53.04</td>
+<td style="text-align: right;">39.80</td>
+<td style="text-align: right;">53.51</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">44.12</td>
+<td style="text-align: right;">29.97</td>
+<td style="text-align: right;">41.72</td>
+<td style="text-align: right;">66.87</td>
+<td style="text-align: right;">41.15</td>
+<td style="text-align: right;">34.80</td>
+<td style="text-align: right;">50.28</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">300M</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">55.24</td>
+<td style="text-align: right;">38.60</td>
+<td style="text-align: right;">58.95</td>
+<td style="text-align: right;">74.97</td>
+<td style="text-align: right;">61.52</td>
+<td style="text-align: right;">43.00</td>
+<td style="text-align: right;">54.38</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">1B</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">54.01</td>
+<td style="text-align: right;">37.24</td>
+<td style="text-align: right;">56.32</td>
+<td style="text-align: right;">74.81</td>
+<td style="text-align: right;">60.08</td>
+<td style="text-align: right;">42.40</td>
+<td style="text-align: right;">53.20</td>
+</tr>
+<tr>
+<td rowspan="10">LLaMA-2-7B</td>
+<td>Original</td>
+<td style="text-align: right;">2T</td>
+<td style="text-align: right;">–</td>
+<td style="text-align: right;">59.85</td>
+<td style="text-align: right;">41.43</td>
+<td style="text-align: right;">59.24</td>
+<td style="text-align: right;">78.40</td>
+<td style="text-align: right;">73.29</td>
+<td style="text-align: right;">41.80</td>
+<td style="text-align: right;">64.96</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">37.90</td>
+<td style="text-align: right;">25.74</td>
+<td style="text-align: right;">32.87</td>
+<td style="text-align: right;">59.41</td>
+<td style="text-align: right;">28.68</td>
+<td style="text-align: right;">28.60</td>
+<td style="text-align: right;">52.09</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">32.70</td>
+<td style="text-align: right;">25.41</td>
+<td style="text-align: right;">25.79</td>
+<td style="text-align: right;">50.60</td>
+<td style="text-align: right;">26.52</td>
+<td style="text-align: right;">19.40</td>
+<td style="text-align: right;">48.46</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">59.51</td>
+<td style="text-align: right;">41.36</td>
+<td style="text-align: right;">59.51</td>
+<td style="text-align: right;">77.37</td>
+<td style="text-align: right;">71.72</td>
+<td style="text-align: right;">44.20</td>
+<td style="text-align: right;">62.90</td>
+</tr>
+<tr>
+<td>MHA2MLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">58.96</td>
+<td style="text-align: right;">40.39</td>
+<td style="text-align: right;">59.29</td>
+<td style="text-align: right;">77.75</td>
+<td style="text-align: right;">69.70</td>
+<td style="text-align: right;">43.40</td>
+<td style="text-align: right;">63.22</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">58.20</td>
+<td style="text-align: right;">39.90</td>
+<td style="text-align: right;">57.66</td>
+<td style="text-align: right;">77.48</td>
+<td style="text-align: right;">70.22</td>
+<td style="text-align: right;">41.00</td>
+<td style="text-align: right;">62.90</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-92.97%</td>
+<td style="text-align: right;">43.26</td>
+<td style="text-align: right;">28.93</td>
+<td style="text-align: right;">36.32</td>
+<td style="text-align: right;">63.38</td>
+<td style="text-align: right;">45.87</td>
+<td style="text-align: right;">31.60</td>
+<td style="text-align: right;">53.43</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">500M</td>
+<td style="text-align: right;">-68.75%</td>
+<td style="text-align: right;">59.82</td>
+<td style="text-align: right;">40.87</td>
+<td style="text-align: right;">59.18</td>
+<td style="text-align: right;">77.91</td>
+<td style="text-align: right;">71.82</td>
+<td style="text-align: right;">45.20</td>
+<td style="text-align: right;">63.93</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">3B</td>
+<td style="text-align: right;">-87.50%</td>
+<td style="text-align: right;">59.36</td>
+<td style="text-align: right;">40.77</td>
+<td style="text-align: right;">58.84</td>
+<td style="text-align: right;">78.18</td>
+<td style="text-align: right;">71.28</td>
+<td style="text-align: right;">43.60</td>
+<td style="text-align: right;">63.46</td>
+</tr>
+<tr>
+<td>TransMLA</td>
+<td style="text-align: right;">6B</td>
+<td style="text-align: right;">-92.97%</td>
+<td style="text-align: right;">58.68</td>
+<td style="text-align: right;">40.82</td>
+<td style="text-align: right;">59.72</td>
+<td style="text-align: right;">76.55</td>
+<td style="text-align: right;">69.97</td>
+<td style="text-align: right;">43.60</td>
+<td style="text-align: right;">61.40</td>
+</tr>
+</tbody>
+</table>
+</div></figure><p>TransMLA migrates both models across compression ratios with little loss. The training-free rows are the most informative: degradation is small and far below MHA2MLA at the same compression. On LLaMA-2 7B, TransMLA retains an average of 43.26 while shrinking the cache to 7.03% of its original size; MHA2MLA drops to 37.90 at the milder 31.25% setting. TransMLA thus delivers a better result at a substantially higher compression ratio, confirming the contribution of RoRoPE, FreqFold, and activation-based balanced KV factorization.</p>
+<p>Lower conversion loss also means less training. LLaMA-2 7B recovers to 59.82 with 500M tokens at 68.75% compression, essentially matching the original 59.85; 3B tokens reach 59.36 at 87.50%; even at 92.97%, 6B tokens recover 58.68. SmolLM 1.7B reaches 55.24 with 300M tokens at 68.75% (original 55.90) and 54.01 with 1B tokens at 87.50%. MHA2MLA needs 6B tokens to approach comparable quality; on SmolLM, TransMLA surpasses MHA2MLA's fine-tuned result with about 4.9% of its training data (roughly 300M tokens) and two hours of training.</p>
+<h3 id="sec-6-2">5.2 Key Norm Analysis<a class="headerlink" href="#sec-6-2" title="复制本节链接">§</a></h3>
+<p>The paper examines key-activation distributions to explain RoRoPE and FreqFold. For the first layer of LLaMA 3 8B on a WikiText-2 subset, it plots the average <span class="arithmatex">\(\ell_2\)</span> norm of each key dimension for the original model, the RoRoPE-transformed model, and a model with 4D FreqFold; the two halves correspond to real and imaginary dimensions sharing a RoPE rotation angle.</p>
+<p>The original model has a highly uneven distribution with many outlier dimensions, so naively removing RoPE from some heads would likely damage performance. After RoRoPE, high-norm dimensions are almost all concentrated in the first 0–128 dimensions; 4D FreqFold compresses the tail further and sharpens the concentration. This energy concentration is what makes RoPE removal safe.</p>
+<p>Removing RoPE progressively and measuring log-perplexity on WikiText-2 shows that RoRoPE substantially outperforms MHA2MLA's per-head dimension selection, especially at high removal ratios. At 90% removal, RoRoPE with 4D FreqFold keeps log-perplexity near 2, whereas MHA2MLA approaches 6 and no longer produces meaningful text. More aggressive FreqFold is not always better: at 8D, the error from approximating nearby frequencies outweighs the benefit of stronger concentration. For LLaMA 3 8B, RoRoPE with 4D FreqFold is the sweet spot.</p>
+<h3 id="sec-6-3">5.3 KV Norm Disparity and BKV<a class="headerlink" href="#sec-6-3" title="复制本节链接">§</a></h3>
+<p>The first-layer key and value activation norms of LLaMA 3 8B are visualized before and after BKV. Both have already passed through RoRoPE concentration, and the first key head—the one reserved for RoPE—is excluded. The remaining key components and values are exactly what will be jointly compressed.</p>
+<p>Even after removing the largest head, the key norm remains much larger than the value norm. This imbalance biases joint PCA toward key-aligned directions and under-represents values. After BKV, the two norm profiles become comparable, allowing joint PCA to allocate components more evenly. Across compression ratios of 75.0%, 78.125%, and 87.5%, BKV consistently reduces the perplexity loss of joint low-rank approximation. The results also show that activation-based PCA (WX-based) is clearly better than weight-based PCA (W-based), which is why TransMLA calibrates on activations rather than decomposing the weights directly.</p>
+<h3 id="sec-6-4">5.4 Inference Speedup<a class="headerlink" href="#sec-6-4" title="复制本节链接">§</a></h3>
+<p>Once an MHA/GQA model is converted into an MLA model compatible with the DeepSeek codebase, TransMLA can use the full DeepSeek optimization stack. The authors benchmark with vLLM on three consumer-grade accelerators: 165.2 TFLOPS with 24GB, 312 TFLOPS with 40GB, and 320 TFLOPS with 64GB. The tested model has a KV cache reduced by 92.97%; the comparison is against the original MHA model. Low-rank Q and Full-rank Q indicate whether the query projections were also compressed, and context length is the sum of input and generated tokens.</p>
+<p>Speedup grows with context length, as expected: the main benefit comes from KV-cache compression, so longer contexts save more memory and bandwidth. On the first platform at 8K context, the converted model achieves a 10.6x speedup; peak speedups on the other two platforms are 6.5x and 5.1x. To the authors' knowledge, MHA2MLA has not reported any inference speedup results.</p>
+<p>The result is not only about raw speed but about deployability. Converted checkpoints load directly into DeepSeek's inference stack and can benefit from FP8 quantization and multi-token prediction without requiring a new custom KV-compression kernel for every hardware target.</p>
+<h2 id="sec-7">6 Conclusion, Limitation and Future Work<a class="headerlink" href="#sec-7" title="复制本节链接">§</a></h2>
+<p>The paper shows that MLA is more expressive than GQA under the same KV cache. To help existing GQA models migrate at minimal cost, it proposes TransMLA: RoRoPE concentrates multi-head KV positional information into the first head, FreqFold strengthens that concentration, positional information is removed from the remaining query–key heads, and BKV balances key and value norms before jointly compressing values with the remaining key heads. TransMLA converts models such as LLaMA and Qwen into MLA with very little loss, recovers performance with few training tokens, and plugs into the DeepSeek ecosystem for substantial throughput gains on multiple hardware platforms.</p>
+<p>The authors also state the limitations. BKV itself is relatively simple—essentially a norm-balancing step—and it remains open whether stronger mathematical tools can better handle the key/value norm disparity and enable truly training-free conversion at the same compression. TransMLA also needs validation on a broader range of models and should be combined with pruning, quantization, token selection, and other optimizations to explore the upper bound of inference acceleration.</p>
+<p>More broadly, TransMLA reframes the choice from "retrain an MLA model from scratch" to "migrate to MLA at low cost." It does not ask providers to abandon existing GQA weights or engineering investment; instead, an equivalent structural transformation connects the model to a more mature MLA inference ecosystem. Whether this becomes the default migration path depends on further validation across models, hardware, and quantization.</p>
+<h2 id="sec-8">Further Reading<a class="headerlink" href="#sec-8" title="复制本节链接">§</a></h2>
+<ul>
+<li><a href="../../deepseek-v2/index.html">DeepSeek-V2</a>: the original introduction of MLA and decoupled RoPE, and the target architecture of TransMLA.</li>
+<li><a href="../../roformer/index.html">RoFormer</a>: the original RoPE paper, covering rotary position encoding and its relative-position property.</li>
+<li><a href="../../bidkv/index.html">BidKV</a>: a serving-system approach to KV-cache pressure, complementary to the architectural compression route taken here.</li>
+</ul>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{meng2025transmla,
+  author = {Fanxu Meng and Pingzhi Tang and Xiaojuan Tang and Zengwei Yao and Xing Sun and Muhan Zhang},
+  title = {TransMLA: Multi-Head Latent Attention Is All You Need},
+  year = {2025},
+  howpublished = {arXiv:2502.07864},
+  url = {https://arxiv.org/abs/2502.07864},
+  note = {AI Infra Paper Library, transmla}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">TransMLA: Multi-Head Latent Attention Is All You Need</dd></div>
+        <div><dt>作者</dt><dd>Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang</dd></div>
+        <div><dt>发表</dt><dd>arXiv 预印本 arXiv:2502.07864 · 2025</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/fxmeng/TransMLA" target="_blank" rel="noopener noreferrer">https://github.com/fxmeng/TransMLA</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/2502.07864" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2502.07864</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（27 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../../bidkv/original/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+      </a>
+      <a class="pager-link pager-next" href="../../deepseek-v2/original/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/figures/fig1.png" alt="GQA、MLA、MQA 的单向等价转换，以及 TransMLA 的 RoRoPE、FreqFold、BKV-PCA 流程" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>TransMLA</h2>
+      <p class="rail-authors">Fanxu Meng · Pingzhi Tang · Xiaojuan Tang · Zengwei Yao · Xing Sun · Muhan Zhang</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2025</dd></div>
+        <div><dt>页数</dt><dd>27</dd></div>
+        <div><dt>阅读</dt><dd>24 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/fxmeng/TransMLA" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/2502.07864" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线 PDF</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../../bidkv/original/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../../deepseek-v2/original/index.html">
+          <span class="related-year">2024</span>
+          <strong>DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</strong>
+          <span class="related-meta">约 10 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=44efb5f68d"></script>
+</body>
+</html>

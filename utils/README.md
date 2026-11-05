@@ -109,6 +109,8 @@ python3 utils/new_paper.py \
 | `conference_url` | | 会议官方页面 |
 | `code_url` | | 代码仓库 |
 | `provenance_note` / `provenance_note_en` | | 版本/来源说明，显示在作者行下方 |
+| `translation_note` | | 译文页顶部说明，用于“精读版/节选版” |
+| `original_note` | | 原文页顶部说明，用于说明英文页的完整度 |
 | `tags` | ✓ | 字符串列表，用于筛选 |
 | `abstract` / `abstract_zh` | ✓ | 摘要；用于卡片与 meta description |
 | `summary` | | 一句话概括 |

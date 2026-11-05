@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RoFormer: Enhanced Transformer with Rotary Position Embedding · AI Infra 论文库</title>
+  <meta name="description" content="Position encoding recently has shown effective in the transformer architecture. It enables valuable supervision for dependency modeling between elements at diff">
+  <meta name="author" content="Jianlin Su, Yu Lu, Shengfeng Pan, Ahmed Murtadha, Bo Wen, Yunfeng Liu">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="RoFormer: Enhanced Transformer with Rotary Position Embedding · AI Infra 论文库">
+  <meta property="og:description" content="Position encoding recently has shown effective in the transformer architecture. It enables valuable supervision for dependency modeling between elements at diff">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2021-04-20">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=44efb5f68d">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 04</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 04 · 2021 · arXiv 预印本</p>
+        <h1>RoFormer: Enhanced Transformer with Rotary Position Embedding</h1>
+        <p class="paper-alt-title" lang="zh-CN">RoFormer：使用旋转位置嵌入增强的 Transformer</p>
+        <p class="paper-authors">Jianlin Su · Yu Lu · Shengfeng Pan · Ahmed Murtadha · Bo Wen · Yunfeng Liu <span class="affiliation">· Zhuiyi Technology Co., Ltd., Shenzhen</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>14 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 25 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=RoPE">RoPE</a><a class="chip chip-static" href="../../index.html?tag=%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81">位置编码</a><a class="chip chip-static" href="../../index.html?tag=Transformer">Transformer</a><a class="chip chip-static" href="../../index.html?tag=%E9%95%BF%E6%96%87%E6%9C%AC">长文本</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Introduction</a></li>
+<li><a href="#sec-3">2 Background and Related Work</a><ul>
+<li><a href="#sec-3-1">2.1 Preliminary</a></li>
+<li><a href="#sec-3-2">2.2 Absolute Position Embedding</a></li>
+<li><a href="#sec-3-3">2.3 Relative Position Embedding</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">3 Proposed Approach</a><ul>
+<li><a href="#sec-4-1">3.1 Formulation</a></li>
+<li><a href="#sec-4-2">3.2 Rotary Position Embedding</a></li>
+<li><a href="#sec-4-3">3.3 Properties of RoPE</a></li>
+<li><a href="#sec-4-4">3.4 Theoretical Explanation</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 Experiments and Evaluation</a><ul>
+<li><a href="#sec-5-1">4.1 Machine Translation</a></li>
+<li><a href="#sec-5-2">4.2 Pre-training Language Modeling</a></li>
+<li><a href="#sec-5-3">4.3 Fine-tuning on GLUE</a></li>
+<li><a href="#sec-5-4">4.4 Performer with RoPE</a></li>
+<li><a href="#sec-5-5">4.5 Evaluation on Chinese Data</a></li>
+</ul>
+</li>
+<li><a href="#sec-6">5 Conclusions</a></li>
+<li><a href="#sec-7">Further Reading</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English reading edition: abstract, RoPE derivation, and key experiment passages. The complete paper is in the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>Position encoding recently has shown effective in the transformer architecture. It enables valuable supervision for dependency modeling between elements at different positions of the sequence. In this paper, we first investigate various methods to integrate positional information into the learning process of transformer-based language models. Then, we propose a novel method named Rotary Position Embedding (RoPE) to effectively leverage the positional information. Specifically, the proposed RoPE encodes the absolute position with a rotation matrix and meanwhile incorporates the explicit relative position dependency in self-attention formulation. Notably, RoPE enables valuable properties, including the flexibility of sequence length, decaying inter-token dependency with increasing relative distances, and the capability of equipping the linear self-attention with relative position encoding. Finally, we evaluate the enhanced transformer with rotary position embedding, also called RoFormer, on various long text classification benchmark datasets. Our experiments show that it consistently overcomes its alternatives. Furthermore, we provide a theoretical analysis to explain some experimental results. RoFormer is already integrated into Huggingface: <a href="https://huggingface.co/docs/transformers/model_doc/roformer" target="_blank" rel="noopener noreferrer" class="external">https://huggingface.co/docs/transformers/model_doc/roformer</a>.</p>
+<h2 id="sec-2">1 Introduction<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>The sequential order of words is of great value to natural language understanding. Recurrent neural networks encode token order by recursively computing a hidden state along the time dimension. Convolutional models are typically regarded as position-agnostic, yet recent work shows that the commonly used padding operation can implicitly learn position information. Pre-trained language models (PLMs) built on the Transformer have achieved state-of-the-art results on context representation learning, machine translation, and language modeling. Unlike RNNs and CNNs, PLMs use self-attention to capture contextual representations; this gives them a significant advantage in parallelization and lets them model longer-range relations than a single convolutional layer.</p>
+<p>The self-attention architecture of current PLMs is nevertheless position-agnostic: attention is permutation-equivariant, so without an explicit position signal the model cannot distinguish word orders. A large body of work therefore injects position information into learning. On one side, absolute position encoding either adds a pre-defined function of position to the contextual representation (sinusoidal encoding) or learns a position vector per index (BERT, ALBERT, ELECTRA, GPT). On the other side, relative position encoding typically enters the attention mechanism itself (Shaw et al., Transformer-XL, XLNet, T5, DeBERTa). Other proposals model positional dependency through Neural ODEs or in complex space. Despite their differences, these methods commonly add position information to the contextual representation, which makes them unsuitable for linear self-attention. Linear attention reduces the quadratic attention cost to <span class="arithmatex">\(O(N)\)</span> through a kernel factorization, which matters for long texts; the incompatibility of existing position encodings with it is a direct motivation for this work.</p>
+<p>We introduce Rotary Position Embedding (RoPE). RoPE encodes the absolute position with a rotation matrix while incorporating an explicit relative position dependency in the self-attention formulation. Compared with existing methods, it offers sequence-length flexibility, decaying inter-token dependency with increasing relative distance, and compatibility with linear self-attention. Experiments on long-text benchmarks show that the enhanced Transformer, RoFormer, outperforms its alternatives.</p>
+<p>Our contributions are three-fold:</p>
+<ol>
+<li><strong>A new relative-position formulation.</strong> Existing relative position encodings are mostly built on an additive decomposition of position added to the contextual representation. RoPE instead multiplies the representation by a rotation matrix, encoding relative position with a clear theoretical interpretation.</li>
+<li><strong>Property analysis.</strong> We show that RoPE decays with increasing relative distance—a desirable property for natural language—and argue that previous relative position encodings are not compatible with linear self-attention.</li>
+<li><strong>Systematic evaluation.</strong> On multiple long-text benchmarks, RoFormer consistently outperforms its alternatives. Some pre-trained models are released on GitHub.</li>
+</ol>
+<p>The rest of the paper formalizes position encoding in self-attention and revisits prior work (Section 2), describes RoPE and its properties (Section 3), reports experiments (Section 4), and concludes (Section 5).</p>
+<h2 id="sec-3">2 Background and Related Work<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<h3 id="sec-3-1">2.1 Preliminary<a class="headerlink" href="#sec-3-1" title="复制本节链接">§</a></h3>
+<p>Let <span class="arithmatex">\(S_N=\{w_i\}_{i=1}^{N}\)</span> be a sequence of <span class="arithmatex">\(N\)</span> input tokens, and let <span class="arithmatex">\(E_N=\{\mathbf{x}_i\}_{i=1}^{N}\)</span> be the corresponding word embeddings, where <span class="arithmatex">\(\mathbf{x}_i\in\mathbb{R}^{d}\)</span> is the <span class="arithmatex">\(d\)</span>-dimensional embedding of <span class="arithmatex">\(w_i\)</span> without position information. Self-attention first incorporates position information into the embeddings and transforms them into queries, keys, and values:</p>
+<div class="arithmatex">\[
+\mathbf{q}_m = f_q(\mathbf{x}_m, m),\qquad
+\mathbf{k}_n = f_k(\mathbf{x}_n, n),\qquad
+\mathbf{v}_n = f_v(\mathbf{x}_n, n),
+\tag{1}
+\]</div>
+<p>where <span class="arithmatex">\(\mathbf{q}_m\)</span>, <span class="arithmatex">\(\mathbf{k}_n\)</span>, and <span class="arithmatex">\(\mathbf{v}_n\)</span> incorporate the <span class="arithmatex">\(m\)</span>-th and <span class="arithmatex">\(n\)</span>-th positions through <span class="arithmatex">\(f_q\)</span>, <span class="arithmatex">\(f_k\)</span>, and <span class="arithmatex">\(f_v\)</span>. Queries and keys then produce attention weights, and the output is a weighted sum of values:</p>
+<div class="arithmatex">\[
+a_{m,n}=\frac{\exp\left(\mathbf{q}_m^\top\mathbf{k}_n/\sqrt{d}\right)}
+{\sum_{j=1}^{N}\exp\left(\mathbf{q}_m^\top\mathbf{k}_j/\sqrt{d}\right)},
+\qquad
+\mathbf{o}_m=\sum_{n=1}^{N}a_{m,n}\mathbf{v}_n .
+\tag{2}
+\]</div>
+<p>Existing Transformer position-encoding methods differ mainly in the choice of the functions <span class="arithmatex">\(f\)</span> in Equation (1).</p>
+<h3 id="sec-3-2">2.2 Absolute Position Embedding<a class="headerlink" href="#sec-3-2" title="复制本节链接">§</a></h3>
+<p>A typical choice is</p>
+<div class="arithmatex">\[
+f_{t}(x_i,i):=W_{t}\left(x_i+\mathbf{p}_i\right),\qquad t\in\{q,k,v\},
+\tag{3}
+\]</div>
+<p>where <span class="arithmatex">\(\mathbf{p}_i\in\mathbb{R}^{d}\)</span> depends only on the position of token <span class="arithmatex">\(x_i\)</span>. Prior work learns a set of vectors <span class="arithmatex">\(\mathbf{p}_i\in\{\mathbf{p}_t\}_{t=1}^{L}\)</span>, with <span class="arithmatex">\(L\)</span> the maximum sequence length. Vaswani et al. instead generate <span class="arithmatex">\(\mathbf{p}_i\)</span> with sinusoids:</p>
+<div class="arithmatex">\[
+p_{i,2t}=\sin\left(i/10000^{2t/d}\right),\qquad
+p_{i,2t+1}=\cos\left(i/10000^{2t/d}\right),
+\tag{4}
+\]</div>
+<p>where <span class="arithmatex">\(p_{i,2t}\)</span> is the <span class="arithmatex">\(2t\)</span>-th element of the <span class="arithmatex">\(d\)</span>-dimensional vector <span class="arithmatex">\(\mathbf{p}_i\)</span>. RoPE is related to this sinusoidal intuition, but instead of adding position to the contextual representation it multiplies by sinusoidal functions to inject relative position information.</p>
+<p>Absolute encodings are simple and decoupled from the rest of the model, but the position vectors are tied to the maximum length; with trainable vectors each position is also learned independently, which limits generalization beyond the training length. This limitation motivates relative encodings and the method proposed here.</p>
+<h3 id="sec-3-3">2.3 Relative Position Embedding<a class="headerlink" href="#sec-3-3" title="复制本节链接">§</a></h3>
+<p>Shaw et al. instantiate Equation (1) as</p>
+<div class="arithmatex">\[
+f_q(x_m):=W_q x_m,\quad
+f_k(x_n,n):=W_k\left(x_n+\tilde{\mathbf{p}}_k^{r}\right),\quad
+f_v(x_n,n):=W_v\left(x_n+\tilde{\mathbf{p}}_v^{r}\right),
+\tag{5}
+\]</div>
+<p>where <span class="arithmatex">\(\tilde{\mathbf{p}}_k^{r},\tilde{\mathbf{p}}_v^{r}\in\mathbb{R}^{d}\)</span> are trainable relative position embeddings and <span class="arithmatex">\(r=\operatorname{clip}(m-n,r_{\min},r_{\max})\)</span> is the clipped relative distance; the clipping assumes that precise relative position is no longer useful beyond a certain distance.</p>
+<p>Transformer-XL keeps the form of Equation (3) and decomposes <span class="arithmatex">\(\mathbf{q}_m^\top\mathbf{k}_n\)</span> in Equation (2) as</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=
+\mathbf{x}_m^\top W_q^\top W_k\mathbf{x}_n
++\mathbf{x}_m^\top W_q^\top W_k\mathbf{p}_n
++\mathbf{p}_m^\top W_q^\top W_k\mathbf{x}_n
++\mathbf{p}_m^\top W_q^\top W_k\mathbf{p}_n .
+\tag{6}
+\]</div>
+<p>The idea is to replace the absolute <span class="arithmatex">\(\mathbf{p}_n\)</span> with its sinusoid-encoded relative counterpart <span class="arithmatex">\(\tilde{\mathbf{p}}_{m-n}\)</span>, replace the absolute <span class="arithmatex">\(\mathbf{p}_m\)</span> in the third and fourth terms with trainable vectors <span class="arithmatex">\(\mathbf{u}\)</span> and <span class="arithmatex">\(\mathbf{v}\)</span> that are independent of the query position, and use separate projections <span class="arithmatex">\(W_k\)</span> and <span class="arithmatex">\(W_{f_k}\)</span> for content-based and location-based keys:</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=
+\mathbf{x}_m^\top W_q^\top W_k\mathbf{x}_n
++\mathbf{x}_m^\top W_q^\top W_{f_k}\tilde{\mathbf{p}}_{m-n}
++\mathbf{u}^\top W_q^\top W_k\mathbf{x}_n
++\mathbf{v}^\top W_q^\top W_{f_k}\tilde{\mathbf{p}}_{m-n}.
+\tag{7}
+\]</div>
+<p>Setting <span class="arithmatex">\(f_v(x_j):=W_v x_j\)</span> removes position information from the value term. Later work (T5, DeBERTa) keeps position only in the attention weights. T5 rewrites Equation (6) as</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=\mathbf{x}_m^\top W_q^\top W_k\mathbf{x}_n+b_{m,n},
+\tag{8}
+\]</div>
+<p>with a trainable bias <span class="arithmatex">\(b_{m,n}\)</span>; another variant models word pairs and position pairs with different projections,</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=
+\mathbf{x}_m^\top W_q^\top W_k\mathbf{x}_n
++\mathbf{p}_m^\top U_q^\top U_k\mathbf{p}_n+b_{m,n}.
+\tag{9}
+\]</div>
+<p>DeBERTa argues that the relative positions of two tokens are fully modeled only by the middle two terms of Equation (6) and directly replaces <span class="arithmatex">\(\mathbf{p}_m,\mathbf{p}_n\)</span> with <span class="arithmatex">\(\tilde{\mathbf{p}}_{m-n}\)</span>:</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=
+\mathbf{x}_m^\top W_q^\top W_k\mathbf{x}_n
++\mathbf{x}_m^\top W_q^\top W_k\tilde{\mathbf{p}}_{m-n}
++\tilde{\mathbf{p}}_{m-n}^\top W_q^\top W_k\mathbf{x}_n .
+\tag{10}
+\]</div>
+<p>A comparison of four relative-position variants finds the one closest to Equation (10) most efficient. All of these methods modify Equation (6) under the self-attention setting of Equation (2), and Equation (6) comes from the additive decomposition of Equation (3): position is added to the contextual representation. We instead derive the relative encoding from Equation (1) under constraints and inject it by rotating the representation, which yields a clearer interpretation.</p>
+<p>The shared structure deserves emphasis. Position enters <span class="arithmatex">\(\mathbf{x}_i\)</span> additively and is then projected by <span class="arithmatex">\(W_q\)</span> and <span class="arithmatex">\(W_k\)</span>, so the attention score is a bilinear function of <span class="arithmatex">\((\mathbf{x}_m+\mathbf{p}_m)\)</span> and <span class="arithmatex">\((\mathbf{x}_n+\mathbf{p}_n)\)</span>; expanding it produces content–content, content–position, position–content, and position–position terms, exactly the four terms of Equation (6). Relative encodings trade off or reparameterize these terms. Linear attention, however, requires <span class="arithmatex">\(\operatorname{sim}(\mathbf{q}_m,\mathbf{k}_n)\)</span> to factor into a term depending only on <span class="arithmatex">\(m\)</span> and a term depending only on <span class="arithmatex">\(n\)</span> before the associative trick can reduce cost to <span class="arithmatex">\(O(N)\)</span>. Additive position terms break that factorization; the multiplicative form of RoPE preserves it.</p>
+<h2 id="sec-4">3 Proposed Approach<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<p>This section formalizes the relative position problem (3.1), derives RoPE (3.2), studies its properties (3.3), and gives the theoretical explanation (3.4).</p>
+<h3 id="sec-4-1">3.1 Formulation<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>As Equation (2) shows, <span class="arithmatex">\(\mathbf{q}_m^\top\mathbf{k}_n\)</span> conveys information between tokens at different positions. To incorporate relative position information, we require the inner product of query <span class="arithmatex">\(\mathbf{q}_m\)</span> and key <span class="arithmatex">\(\mathbf{k}_n\)</span> to be a function <span class="arithmatex">\(g\)</span> that takes only the word embeddings <span class="arithmatex">\(\mathbf{x}_m,\mathbf{x}_n\)</span> and their relative position <span class="arithmatex">\(m-n\)</span> as inputs. In other words, the inner product should encode position only in relative form:</p>
+<div class="arithmatex">\[
+\left\langle f_q(\mathbf{x}_m,m),\,f_k(\mathbf{x}_n,n)\right\rangle
+= g(\mathbf{x}_m,\mathbf{x}_n,m-n).
+\tag{11}
+\]</div>
+<p>The goal is to find an equivalent encoding mechanism that solves for <span class="arithmatex">\(f_q(\mathbf{x}_m,m)\)</span> and <span class="arithmatex">\(f_k(\mathbf{x}_n,n)\)</span> satisfying this relation. The sign convention for relative position does not affect the result: <span class="arithmatex">\(g\)</span> is real-valued below, and swapping <span class="arithmatex">\(m-n\)</span> for <span class="arithmatex">\(n-m\)</span> only conjugates the relevant complex exponential, leaving the real part unchanged.</p>
+<h3 id="sec-4-2">3.2 Rotary Position Embedding<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<h4 id="sec-4-2-1">3.2.1 A 2D Case<a class="headerlink" href="#sec-4-2-1" title="复制本节链接">§</a></h4>
+<p>Start with <span class="arithmatex">\(d=2\)</span>. Using the geometric properties of vectors in the plane and their complex form, one solution to Equation (11) is</p>
+<div class="arithmatex">\[
+\begin{aligned}
+f_q(\mathbf{x}_m,m)&amp;=(W_q\mathbf{x}_m)\,e^{\mathrm{i}m\theta},\\
+f_k(\mathbf{x}_n,n)&amp;=(W_k\mathbf{x}_n)\,e^{\mathrm{i}n\theta},\\
+g(\mathbf{x}_m,\mathbf{x}_n,m-n)&amp;=\operatorname{Re}\left[(W_q\mathbf{x}_m)(W_k\mathbf{x}_n)^{*}e^{\mathrm{i}(m-n)\theta}\right],
+\end{aligned}
+\tag{12}
+\]</div>
+<p>where <span class="arithmatex">\(\operatorname{Re}[\cdot]\)</span> takes the real part, <span class="arithmatex">\((W_k\mathbf{x}_n)^{*}\)</span> is the complex conjugate, and <span class="arithmatex">\(\theta\in\mathbb{R}\)</span> is a preset non-zero constant. Equivalently, <span class="arithmatex">\(f_{\{q,k\}}\)</span> can be written as a matrix product:</p>
+<div class="arithmatex">\[
+f_{\{q,k\}}(\mathbf{x}_m,m)=
+\begin{pmatrix}
+\cos m\theta &amp; -\sin m\theta\\
+\sin m\theta &amp; \cos m\theta
+\end{pmatrix}
+W_{\{q,k\}}\mathbf{x}_m .
+\tag{13}
+\]</div>
+<p>Incorporating relative position is therefore straightforward: rotate the affine-transformed word embedding by an angle proportional to its position index. This is the intuition behind the name Rotary Position Embedding.</p>
+<h4 id="sec-4-2-2">3.2.2 General Form<a class="headerlink" href="#sec-4-2-2" title="复制本节链接">§</a></h4>
+<p>To generalize to any even dimension <span class="arithmatex">\(\mathbf{x}_i\in\mathbb{R}^{d}\)</span>, divide the <span class="arithmatex">\(d\)</span>-dimensional space into <span class="arithmatex">\(d/2\)</span> subspaces and combine them using the linearity of the inner product:</p>
+<div class="arithmatex">\[
+f_{\{q,k\}}(\mathbf{x}_m,m)=R^{d}_{\Theta,m}W_{\{q,k\}}\mathbf{x}_m,
+\tag{14}
+\]</div>
+<p>where</p>
+<div class="arithmatex">\[
+R^{d}_{\Theta,m}=
+\begin{pmatrix}
+\cos m\theta_1 &amp; -\sin m\theta_1 &amp; 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0\\
+\sin m\theta_1 &amp; \cos m\theta_1 &amp; 0 &amp; 0 &amp; \cdots &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; \cos m\theta_2 &amp; -\sin m\theta_2 &amp; \cdots &amp; 0 &amp; 0\\
+0 &amp; 0 &amp; \sin m\theta_2 &amp; \cos m\theta_2 &amp; \cdots &amp; 0 &amp; 0\\
+\vdots &amp; \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots &amp; \vdots\\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; \cdots &amp; \cos m\theta_{d/2} &amp; -\sin m\theta_{d/2}\\
+0 &amp; 0 &amp; 0 &amp; 0 &amp; \cdots &amp; \sin m\theta_{d/2} &amp; \cos m\theta_{d/2}
+\end{pmatrix}
+\tag{15}
+\]</div>
+<p>is the rotary matrix with pre-defined parameters <span class="arithmatex">\(\Theta=\{\theta_i=10000^{-2(i-1)/d},\ i=1,\dots,d/2\}\)</span>. Figure 1 illustrates the construction. Applying RoPE to self-attention gives</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=
+\left(R^{d}_{\Theta,m}W_q\mathbf{x}_m\right)^\top
+\left(R^{d}_{\Theta,n}W_k\mathbf{x}_n\right)
+=\mathbf{x}_m^\top W_q^\top R^{d}_{\Theta,n-m}W_k\mathbf{x}_n,
+\tag{16}
+\]</div>
+<p>where <span class="arithmatex">\(R^{d}_{\Theta,n-m}=\left(R^{d}_{\Theta,m}\right)^\top R^{d}_{\Theta,n}\)</span>. Because <span class="arithmatex">\(R^{d}_{\Theta}\)</span> is orthogonal, position encoding is numerically stable. The matrix is also highly sparse, so the direct multiplication in Equation (16) is not efficient; Section 3.4.2 gives a better realization.</p>
+<figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/fig1.png"><img alt="Figure 1: Illustration of Rotary Position Embedding (RoPE). Top: the 2D case (d = 2), where the query/key vector (x1, x2) at position m is rotated by mθ₁ to produce the position-encoded (x1′, x2′). Bottom: the general form, where a d-dimensional query/key is split into d/2 two-dimensional blocks, each rotated by an angle proportional to its position m at its own frequency θi, and the rotated blocks are reassembled into the position-encoded query/key." decoding="async" loading="lazy" src="../assets/figures/fig1.png"></a><figcaption>Figure 1: Illustration of Rotary Position Embedding (RoPE). Top: the 2D case (d = 2), where the query/key vector (x1, x2) at position m is rotated by mθ₁ to produce the position-encoded (x1′, x2′). Bottom: the general form, where a d-dimensional query/key is split into d/2 two-dimensional blocks, each rotated by an angle proportional to its position m at its own frequency θi, and the rotated blocks are reassembled into the position-encoded query/key.</figcaption></figure><p>Unlike the additive position embeddings of Equations (3)–(10), this approach is multiplicative. RoPE incorporates relative position through a product of rotation matrices rather than by altering a term in the expanded additive formulation.</p>
+<h3 id="sec-4-3">3.3 Properties of RoPE<a class="headerlink" href="#sec-4-3" title="复制本节链接">§</a></h3>
+<p>RoPE has four notable properties.</p>
+<ul>
+<li><strong>Relative position dependency.</strong> By Equation (16), <span class="arithmatex">\(\mathbf{q}_m^\top\mathbf{k}_n\)</span> depends on position only through <span class="arithmatex">\(n-m\)</span>; the absolute positions are absorbed by the rotation matrices, so attention scores are naturally relative.</li>
+<li><strong>Sequence-length flexibility.</strong> Rotation angles depend only on position indices and preset frequencies, with no trainable parameters tied to a maximum length. The same parameters can process longer sequences than those seen in training. This is structural flexibility: it provides a basis for length extrapolation but does not by itself guarantee performance at arbitrary lengths.</li>
+<li><strong>Long-term decay.</strong> With <span class="arithmatex">\(\theta_i=10000^{-2i/d}\)</span> as in Vaswani et al., the inner product decays as the relative distance grows (Section 3.4.3), matching the intuition that distant token pairs should be less connected.</li>
+<li><strong>Compatibility with linear attention.</strong> Rotation preserves the norm of hidden representations, so RoPE can be multiplied onto the outputs of non-negative feature maps and used in linear self-attention.</li>
+</ul>
+<p><strong>RoPE with linear attention.</strong> Self-attention can be written in a more general form:</p>
+<div class="arithmatex">\[
+\operatorname{Attention}(Q,K,V)_m=
+\frac{\sum_{n=1}^{N}\operatorname{sim}(\mathbf{q}_m,\mathbf{k}_n)\mathbf{v}_n}
+{\sum_{n=1}^{N}\operatorname{sim}(\mathbf{q}_m,\mathbf{k}_n)}.
+\tag{17}
+\]</div>
+<p>The original self-attention uses <span class="arithmatex">\(\operatorname{sim}(\mathbf{q}_m,\mathbf{k}_n)=\exp(\mathbf{q}_m^\top\mathbf{k}_n/\sqrt{d})\)</span> and computes an inner product for every token pair, at <span class="arithmatex">\(O(N^2)\)</span> cost. Linear attention reformulates Equation (17) as</p>
+<div class="arithmatex">\[
+\operatorname{Attention}(Q,K,V)_m=
+\frac{\sum_{n=1}^{N}\phi(\mathbf{q}_m)^\top\varphi(\mathbf{k}_n)\mathbf{v}_n}
+{\sum_{n=1}^{N}\phi(\mathbf{q}_m)^\top\varphi(\mathbf{k}_n)},
+\tag{18}
+\]</div>
+<p>where <span class="arithmatex">\(\phi(\cdot)\)</span> and <span class="arithmatex">\(\varphi(\cdot)\)</span> are usually non-negative. Katharopoulos et al. use <span class="arithmatex">\(\phi(x)=\varphi(x)=\mathrm{elu}(x)+1\)</span> and exploit associativity to multiply keys and values first; Shen et al. normalize queries and keys separately with softmax before the inner product, equivalent to <span class="arithmatex">\(\phi(\mathbf{q}_i)=\mathrm{softmax}(\mathbf{q}_i)\)</span> and <span class="arithmatex">\(\varphi(\mathbf{k}_j)=\exp(\mathbf{k}_j)\)</span>.</p>
+<p>Since RoPE injects position by rotation and leaves the norm unchanged, the rotation matrix can be applied to the outputs of the non-negative functions:</p>
+<div class="arithmatex">\[
+\operatorname{Attention}(Q,K,V)_m=
+\frac{\sum_{n=1}^{N}\left(R^{d}_{\Theta,m}\phi(\mathbf{q}_m)\right)^\top
+\left(R^{d}_{\Theta,n}\varphi(\mathbf{k}_n)\right)\mathbf{v}_n}
+{\sum_{n=1}^{N}\phi(\mathbf{q}_m)^\top\varphi(\mathbf{k}_n)}.
+\tag{19}
+\]</div>
+<p>The denominator is left unchanged to avoid division by zero, and the numerator may contain negative terms. The weights on the values are therefore not strictly normalized probabilities, but the computation can still model the importance of values.</p>
+<h3 id="sec-4-4">3.4 Theoretical Explanation<a class="headerlink" href="#sec-4-4" title="复制本节链接">§</a></h3>
+<h4 id="sec-4-4-1">3.4.1 Derivation of RoPE under 2D<a class="headerlink" href="#sec-4-4-1" title="复制本节链接">§</a></h4>
+<p>For <span class="arithmatex">\(d=2\)</span>, consider word embeddings <span class="arithmatex">\(\mathbf{x}_q\)</span> and <span class="arithmatex">\(\mathbf{x}_k\)</span> corresponding to a query and a key at positions <span class="arithmatex">\(m\)</span> and <span class="arithmatex">\(n\)</span>. By Equation (1), their position-encoded counterparts are</p>
+<div class="arithmatex">\[
+\mathbf{q}_m=f_q(\mathbf{x}_q,m),\qquad
+\mathbf{k}_n=f_k(\mathbf{x}_k,n).
+\tag{20}
+\]</div>
+<p>Assume a function <span class="arithmatex">\(g\)</span> defines the inner product between the outputs of <span class="arithmatex">\(f_{\{q,k\}}\)</span>:</p>
+<div class="arithmatex">\[
+\mathbf{q}_m^\top\mathbf{k}_n=
+\left\langle f_q(\mathbf{x}_q,m),f_k(\mathbf{x}_k,n)\right\rangle
+=g(\mathbf{x}_q,\mathbf{x}_k,n-m),
+\tag{21}
+\]</div>
+<p>with the initial condition</p>
+<div class="arithmatex">\[
+\mathbf{q}=f_q(\mathbf{x}_q,0),\qquad
+\mathbf{k}=f_k(\mathbf{x}_k,0),
+\tag{22}
+\]</div>
+<p>i.e., the vectors with empty position information. Using the complex form of 2D vectors, decompose Equations (20) and (21) into radial and angular parts:</p>
+<div class="arithmatex">\[
+\begin{aligned}
+f_q(\mathbf{x}_q,m)&amp;=R_q(\mathbf{x}_q,m)e^{\mathrm{i}\Theta_q(\mathbf{x}_q,m)},\\
+f_k(\mathbf{x}_k,n)&amp;=R_k(\mathbf{x}_k,n)e^{\mathrm{i}\Theta_k(\mathbf{x}_k,n)},\\
+g(\mathbf{x}_q,\mathbf{x}_k,n-m)&amp;=R_g(\mathbf{x}_q,\mathbf{x}_k,n-m)e^{\mathrm{i}\Theta_g(\mathbf{x}_q,\mathbf{x}_k,n-m)}.
+\end{aligned}
+\tag{23}
+\]</div>
+<p>Substituting into Equation (21) gives</p>
+<div class="arithmatex">\[
+R_q(\mathbf{x}_q,m)R_k(\mathbf{x}_k,n)=R_g(\mathbf{x}_q,\mathbf{x}_k,n-m),\qquad
+\Theta_k(\mathbf{x}_k,n)-\Theta_q(\mathbf{x}_q,m)=\Theta_g(\mathbf{x}_q,\mathbf{x}_k,n-m).
+\tag{24}
+\]</div>
+<p>The key step is to read a 2D vector as a complex number: the modulus is its length and the argument is its direction. If position encoding changes only the direction and not the length, the modulus of the inner product is position-independent and all position information is carried by the argument difference. This observation leads directly to the rotation interpretation.</p>
+<p>Setting <span class="arithmatex">\(m=n\)</span> in Equation (24) and using the initial condition yields</p>
+<div class="arithmatex">\[
+R_q(\mathbf{x}_q,m)R_k(\mathbf{x}_k,m)=\lVert\mathbf{q}\rVert\lVert\mathbf{k}\rVert,\qquad
+\Theta_k(\mathbf{x}_k,m)-\Theta_q(\mathbf{x}_q,m)=\theta_k-\theta_q .
+\tag{25}
+\]</div>
+<p>The modulus functions are thus position-independent and can be taken as <span class="arithmatex">\(R_q=\lVert\mathbf{q}\rVert\)</span> and <span class="arithmatex">\(R_k=\lVert\mathbf{k}\rVert\)</span>. Moreover, <span class="arithmatex">\(\Theta_q(\mathbf{x}_q,m)-\theta_q=\Theta_k(\mathbf{x}_k,m)-\theta_k\)</span> shows that the angular function does not depend on the content of the query or key. Denoting this difference, which depends only on <span class="arithmatex">\(m\)</span>, by <span class="arithmatex">\(\varphi(m)\)</span>:</p>
+<div class="arithmatex">\[
+\Theta_f(\mathbf{x}_{\{q,k\}},m)=\varphi(m)+\theta_{\{q,k\}}.
+\tag{26}
+\]</div>
+<p>Substituting <span class="arithmatex">\(n=m+1\)</span> into Equation (24) gives <span class="arithmatex">\(\varphi(m+1)-\varphi(m)=\Theta_g(\mathbf{x}_q,\mathbf{x}_k,1)+\theta_q-\theta_k\)</span>. The right-hand side does not depend on <span class="arithmatex">\(m\)</span>, so over consecutive integer inputs <span class="arithmatex">\(\varphi(m)\)</span> is an arithmetic progression:</p>
+<div class="arithmatex">\[
+\varphi(m)=m\theta+\gamma,
+\tag{27}
+\]</div>
+<p>with constants <span class="arithmatex">\(\theta\neq 0\)</span> and <span class="arithmatex">\(\gamma\)</span>. Hence</p>
+<div class="arithmatex">\[
+f_q(\mathbf{x}_q,m)=\lVert\mathbf{q}\rVert e^{\mathrm{i}(\theta_q+m\theta+\gamma)}=\mathbf{q}\,e^{\mathrm{i}(m\theta+\gamma)},\qquad
+f_k(\mathbf{x}_k,n)=\mathbf{k}\,e^{\mathrm{i}(n\theta+\gamma)}.
+\tag{28}
+\]</div>
+<p>Equation (22) places no further constraint on <span class="arithmatex">\(f_q\)</span> and <span class="arithmatex">\(f_k\)</span>, so <span class="arithmatex">\(f_q(\mathbf{x}_m,0)\)</span> and <span class="arithmatex">\(f_k(\mathbf{x}_n,0)\)</span> are free. To match Equation (3), set <span class="arithmatex">\(\mathbf{q}=f_q(\mathbf{x}_m,0)=W_q\mathbf{x}_m\)</span>, <span class="arithmatex">\(\mathbf{k}=f_k(\mathbf{x}_n,0)=W_k\mathbf{x}_n\)</span>, and <span class="arithmatex">\(\gamma=0\)</span>:</p>
+<div class="arithmatex">\[
+f_q(\mathbf{x}_m,m)=(W_q\mathbf{x}_m)e^{\mathrm{i}m\theta},\qquad
+f_k(\mathbf{x}_n,n)=(W_k\mathbf{x}_n)e^{\mathrm{i}n\theta}.
+\tag{29}
+\]</div>
+<p>This is exactly the 2D solution of Section 3.2.1.</p>
+<h4 id="sec-4-4-2">3.4.2 Efficient Realization<a class="headerlink" href="#sec-4-4-2" title="复制本节链接">§</a></h4>
+<p>Exploiting the sparsity of <span class="arithmatex">\(R^{d}_{\Theta,m}\)</span> in Equation (15), the product of <span class="arithmatex">\(R^{d}_{\Theta}\)</span> with <span class="arithmatex">\(\mathbf{x}\in\mathbb{R}^{d}\)</span> can be computed as</p>
+<div class="arithmatex">\[
+R^{d}_{\Theta,m}\mathbf{x}=
+\begin{pmatrix}x_1\\x_2\\x_3\\x_4\\\vdots\\x_{d-1}\\x_d\end{pmatrix}
+\odot
+\begin{pmatrix}\cos m\theta_1\\ \cos m\theta_1\\ \cos m\theta_2\\ \cos m\theta_2\\ \vdots\\ \cos m\theta_{d/2}\\ \cos m\theta_{d/2}\end{pmatrix}
++
+\begin{pmatrix}-x_2\\x_1\\-x_4\\x_3\\\vdots\\-x_d\\x_{d-1}\end{pmatrix}
+\odot
+\begin{pmatrix}\sin m\theta_1\\ \sin m\theta_1\\ \sin m\theta_2\\ \sin m\theta_2\\ \vdots\\ \sin m\theta_{d/2}\\ \sin m\theta_{d/2}\end{pmatrix},
+\tag{30}
+\]</div>
+<p>where <span class="arithmatex">\(\odot\)</span> is element-wise multiplication. Each rotation then costs two element-wise multiplications and one element-wise addition, for <span class="arithmatex">\(O(d)\)</span> overall, without materializing a <span class="arithmatex">\(d\times d\)</span> matrix. In practice the adjacent dimension pairs are interleaved, and the per-position <span class="arithmatex">\(\cos m\theta_i\)</span> and <span class="arithmatex">\(\sin m\theta_i\)</span> are cached and applied element-wise—one reason RoPE is easy to deploy in large models.</p>
+<h4 id="sec-4-4-3">3.4.3 Long-term Decay<a class="headerlink" href="#sec-4-4-3" title="复制本节链接">§</a></h4>
+<p>Group the components of <span class="arithmatex">\(\mathbf{q}=W_q\mathbf{x}_m\)</span> and <span class="arithmatex">\(\mathbf{k}=W_k\mathbf{x}_n\)</span> in pairs; the inner product in Equation (16) becomes a complex multiplication:</p>
+<div class="arithmatex">\[
+\left(R^{d}_{\Theta,m}W_q\mathbf{x}_m\right)^\top
+\left(R^{d}_{\Theta,n}W_k\mathbf{x}_n\right)
+=\operatorname{Re}\left[\sum_{i=0}^{d/2-1}
+\mathbf{q}^{[2i:2i+1]}\left(\mathbf{k}^{[2i:2i+1]}\right)^{*}
+e^{\mathrm{i}(m-n)\theta_i}\right],
+\tag{31}
+\]</div>
+<p>where <span class="arithmatex">\(\mathbf{q}^{[2i:2i+1]}\)</span> denotes entries <span class="arithmatex">\(2i\)</span> through <span class="arithmatex">\(2i+1\)</span> of <span class="arithmatex">\(\mathbf{q}\)</span>. Let <span class="arithmatex">\(h_i=\mathbf{q}^{[2i:2i+1]}(\mathbf{k}^{[2i:2i+1]})^{*}\)</span> and <span class="arithmatex">\(S_j=\sum_{i=0}^{j-1}e^{\mathrm{i}(m-n)\theta_i}\)</span>, with <span class="arithmatex">\(h_{d/2}=0\)</span> and <span class="arithmatex">\(S_0=0\)</span>. Abel summation gives</p>
+<div class="arithmatex">\[
+\sum_{i=0}^{d/2-1}h_i e^{\mathrm{i}(m-n)\theta_i}
+=-\sum_{i=0}^{d/2-1}S_{i+1}\left(h_{i+1}-h_i\right).
+\tag{32}
+\]</div>
+<p>Taking absolute values yields the bound</p>
+<div class="arithmatex">\[
+\left|\sum_{i=0}^{d/2-1}h_i e^{\mathrm{i}(m-n)\theta_i}\right|
+\le \max_i\left|h_{i+1}-h_i\right|\sum_{i=0}^{d/2-1}\left|S_{i+1}\right|.
+\tag{33}
+\]</div>
+<p>With <span class="arithmatex">\(\theta_i=10000^{-2i/d}\)</span> (a one-index shift from Equation (15)), the average <span class="arithmatex">\(\frac{1}{d/2}\sum_{i=1}^{d/2}|S_i|\)</span> decays as the relative distance <span class="arithmatex">\(|m-n|\)</span> grows (Figure 2 of the paper). The upper bound on the inner product therefore decreases with distance, consistent with the intuition that distant tokens are less related.</p>
+<p>Abel summation turns a sum of oscillating terms into a weighted sum of partial sums, attributing decay to the cancellation among <span class="arithmatex">\(S_j\)</span> as distance grows. With frequencies in geometric progression, the phase differences spread out with <span class="arithmatex">\(|m-n|\)</span> and the cancellation becomes more complete, producing a distance-dependent bound.</p>
+<h2 id="sec-5">4 Experiments and Evaluation<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>We evaluate RoFormer on several NLP tasks: machine translation (4.1), pre-training compared with BERT (4.2), GLUE fine-tuning (4.3), Performer with linear attention (4.4), and Chinese data (4.5). All experiments ran on two cloud servers with 4× V100 GPUs each.</p>
+<h3 id="sec-5-1">4.1 Machine Translation<a class="headerlink" href="#sec-5-1" title="复制本节链接">§</a></h3>
+<p>We first test RoFormer on sequence-to-sequence translation using the standard WMT 2014 English–German dataset (about 4.5 million sentence pairs), against the Transformer baseline of Vaswani et al.</p>
+<p><strong>Implementation.</strong> We modify the self-attention layer of the baseline to use RoPE, keep the English–German setup, and share a 37k-word BPE vocabulary between source and target. At evaluation, a single model is obtained by averaging the last 5 checkpoints; decoding uses beam search with beam size 4 and length penalty 0.6. The experiment is implemented in PyTorch with fairseq. We use Adam (<span class="arithmatex">\(\beta_1=0.9\)</span>, <span class="arithmatex">\(\beta_2=0.98\)</span>), a learning rate increased linearly from <span class="arithmatex">\(1\times10^{-7}\)</span> to <span class="arithmatex">\(5\times10^{-4}\)</span> and then decayed as the inverse square root of the step, and label smoothing 0.1. The metric is test-set BLEU.</p>
+<p><strong>Results.</strong> Training the baseline and RoFormer under identical settings gives Table 1.</p>
+<figure class="paper-table"><figcaption id="tab-1">Table 1: BLEU on WMT 2014 English–German translation for RoFormer and the Transformer baseline.</figcaption><div class="table-scroll"><table aria-labelledby="tab-1">
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: center;">BLEU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transformer-base (Vaswani et al.)</td>
+<td style="text-align: center;">27.3</td>
+</tr>
+<tr>
+<td>RoFormer</td>
+<td style="text-align: center;"><strong>27.5</strong></td>
+</tr>
+</tbody>
+</table>
+</div></figure><p>RoFormer obtains a slightly higher BLEU. The gain is small but consistent: with the same parameter count and training budget, replacing sinusoidal position encoding with RoPE already helps. Translation is sensitive to word order but involves relatively limited sequence lengths, where sinusoidal encoding already supplies a strong position signal; RoPE's advantages show up more clearly on longer sequences and with linear attention.</p>
+<h3 id="sec-5-2">4.2 Pre-training Language Modeling<a class="headerlink" href="#sec-5-2" title="复制本节链接">§</a></h3>
+<p>The second experiment tests RoPE on contextual representation learning by replacing BERT's sinusoidal position encoding during pre-training.</p>
+<p><strong>Setup.</strong> We pre-train on BookCorpus and Wikipedia (from Hugging Face Datasets, Apache License 2.0), split 8:2 into training and validation. The masked language modeling (MLM) loss during training is the evaluation metric, and bert-base-uncased is the baseline.</p>
+<p><strong>Implementation.</strong> We replace the sinusoidal encoding in the baseline's self-attention block with RoPE and implement attention as in Equation (16). Both BERT and RoFormer use batch size 64, maximum sequence length 512, and 100k training steps with AdamW at learning rate <span class="arithmatex">\(1\times10^{-5}\)</span>.</p>
+<p><strong>Results.</strong> The MLM loss curves (Figure 3, left, of the paper) show that RoFormer converges faster than vanilla BERT: at the same number of steps its loss is lower. RoPE thus does more than supply a position signal; it also helps optimization reach a good region earlier.</p>
+<h3 id="sec-5-3">4.3 Fine-tuning on GLUE<a class="headerlink" href="#sec-5-3" title="复制本节链接">§</a></h3>
+<p>We fine-tune the pre-trained RoFormer on several GLUE tasks to assess generalization.</p>
+<p><strong>Setup.</strong> We use MRPC, SST-2, QNLI, STS-B, QQP, and MNLI. F1 is reported for MRPC and QQP, Spearman correlation for STS-B, and accuracy for the rest.</p>
+<p><strong>Implementation.</strong> Each task is fine-tuned for 3 epochs with Hugging Face Transformers, maximum sequence length 512, batch size 32, and learning rates of 2, 3, 4, or <span class="arithmatex">\(5\times10^{-5}\)</span>; following BERT, we report the best averaged validation result.</p>
+<p><strong>Results.</strong> See Table 2.</p>
+<figure class="paper-table"><figcaption id="tab-2">Table 2: Fine-tuning results on GLUE. F1 for MRPC/QQP, Spearman correlation for STS-B, accuracy otherwise.</figcaption><div class="table-scroll"><table aria-labelledby="tab-2">
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: center;">MRPC</th>
+<th style="text-align: center;">SST-2</th>
+<th style="text-align: center;">QNLI</th>
+<th style="text-align: center;">STS-B</th>
+<th style="text-align: center;">QQP</th>
+<th style="text-align: center;">MNLI(m/mm)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BERT</td>
+<td style="text-align: center;">88.9</td>
+<td style="text-align: center;">93.5</td>
+<td style="text-align: center;">90.5</td>
+<td style="text-align: center;">85.8</td>
+<td style="text-align: center;">71.2</td>
+<td style="text-align: center;">84.6/83.4</td>
+</tr>
+<tr>
+<td>RoFormer</td>
+<td style="text-align: center;"><strong>89.5</strong></td>
+<td style="text-align: center;">90.7</td>
+<td style="text-align: center;">88.0</td>
+<td style="text-align: center;"><strong>87.0</strong></td>
+<td style="text-align: center;"><strong>86.4</strong></td>
+<td style="text-align: center;">80.2/79.8</td>
+</tr>
+</tbody>
+</table>
+</div></figure><p>RoFormer beats BERT on three of the six datasets: MRPC by 0.6, STS-B by 1.2, and QQP by 15.2, while trailing on SST-2, QNLI, and MNLI. The pre-training budget here (100k steps, sequence length 512) is far smaller than BERT's, and hyperparameters were only lightly searched, so Table 2 is better read as evidence that RoPE is competitive on several tasks than as a comprehensive verdict. The paper's own summary is that RoFormer significantly outperforms BERT on three of the six datasets, with considerable improvements.</p>
+<p>The coexistence of three gains and three losses indicates that RoPE does not dominate every downstream task. A plausible reading is that tasks differ in how much they rely on position: sentence-pair matching and semantic similarity depend more on word order and relative structure, whereas natural language inference may lean more on lexical and syntactic cues. This explanation would need more systematic ablations.</p>
+<h3 id="sec-5-4">4.4 Performer with RoPE<a class="headerlink" href="#sec-5-4" title="复制本节链接">§</a></h3>
+<p>Performer introduces linear attention to avoid the quadratic cost of attention with sequence length. As discussed in Section 3.3, RoPE can be plugged into Performer to provide relative position encoding while preserving linear complexity. We demonstrate this on language-modeling pre-training.</p>
+<p><strong>Implementation.</strong> Experiments use Enwik8, derived from English Wikipedia and containing markup, special characters, and text in other languages besides English. RoPE is added to a 12-layer, 768-dimensional, 12-head character-level Performer. To isolate the effect of RoPE, we compare pre-training loss with and without it under identical settings (learning rate <span class="arithmatex">\(1\times10^{-4}\)</span>, batch size 128, fixed maximum sequence length 1024).</p>
+<p><strong>Results.</strong> Figure 3 (right) of the paper shows that, at the same number of training steps, adding RoPE to Performer yields faster convergence and lower loss. Combined with linear complexity, this makes Performer more attractive.</p>
+<h3 id="sec-5-5">4.5 Evaluation on Chinese Data<a class="headerlink" href="#sec-5-5" title="复制本节链接">§</a></h3>
+<p>We also report results on Chinese data. To test RoFormer on long texts, the documents used here exceed 512 characters.</p>
+<p>The key question for long documents is whether position encoding retains discrimination beyond the pre-training length. The legal-domain CAIL2019-SCM dataset provides such a test: its case descriptions mostly exceed 512 characters. Chinese also lacks natural spaces, so word-level tokenization introduces an additional granularity choice.</p>
+<p><strong>Implementation.</strong> We modify WoBERT by replacing its absolute position embedding with RoPE. For comparison, Table 3 lists the tokenization level and position encoding of several Chinese pre-trained Transformers: BERT is character-level with absolute position, WoBERT word-level with absolute position, NEZHA character-level with relative position, and RoFormer word-level with RoPE.</p>
+<figure class="paper-table"><figcaption id="tab-3">Table 3: Tokenization level and position embedding of Chinese pre-trained models. “abs.” and “rel.” denote absolute and relative position embeddings.</figcaption><div class="table-scroll"><table aria-labelledby="tab-3">
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: center;">BERT</th>
+<th style="text-align: center;">WoBERT</th>
+<th style="text-align: center;">NEZHA</th>
+<th style="text-align: center;">RoFormer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tokenization level</td>
+<td style="text-align: center;">char</td>
+<td style="text-align: center;">word</td>
+<td style="text-align: center;">char</td>
+<td style="text-align: center;">word</td>
+</tr>
+<tr>
+<td>Position embedding</td>
+<td style="text-align: center;">abs.</td>
+<td style="text-align: center;">abs.</td>
+<td style="text-align: center;">rel.</td>
+<td style="text-align: center;">RoPE</td>
+</tr>
+</tbody>
+</table>
+</div></figure><p><strong>Pre-training.</strong> RoFormer is pre-trained on about 34 GB of data from Chinese Wikipedia, news, and forums. Training proceeds in multiple stages with different batch sizes and maximum input lengths so that the model adapts to various scenarios. As Table 4 shows, accuracy rises with the upper bound on sequence length, demonstrating RoFormer's ability to handle long texts; we attribute this to the generalization of RoPE.</p>
+<figure class="paper-table"><figcaption id="tab-4">Table 4: Multi-stage pre-training schedule of RoFormer on Chinese data. Each stage uses a specific combination of maximum sequence length and batch size.</figcaption><div class="table-scroll"><table aria-labelledby="tab-4">
+<thead>
+<tr>
+<th style="text-align: center;">Stage</th>
+<th style="text-align: center;">Max seq length</th>
+<th style="text-align: center;">Batch size</th>
+<th style="text-align: center;">Training steps</th>
+<th style="text-align: center;">Loss</th>
+<th style="text-align: center;">Accuracy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">200k</td>
+<td style="text-align: center;">1.73</td>
+<td style="text-align: center;">65.0%</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">1536</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">12.5k</td>
+<td style="text-align: center;">1.61</td>
+<td style="text-align: center;">66.8%</td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">120k</td>
+<td style="text-align: center;">1.75</td>
+<td style="text-align: center;">64.6%</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">128</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">80k</td>
+<td style="text-align: center;">1.83</td>
+<td style="text-align: center;">63.4%</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">1536</td>
+<td style="text-align: center;">256</td>
+<td style="text-align: center;">10k</td>
+<td style="text-align: center;">1.58</td>
+<td style="text-align: center;">67.4%</td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">30k</td>
+<td style="text-align: center;">1.66</td>
+<td style="text-align: center;">66.2%</td>
+</tr>
+</tbody>
+</table>
+</div></figure><p><strong>Downstream task and dataset.</strong> We use the Chinese AI and Law 2019 Similar Case Matching dataset (CAIL2019-SCM) to test long-text semantic matching. It contains 8,964 triplets of cases published by the Supreme People's Court of China. The input <span class="arithmatex">\((A,B,C)\)</span> consists of fact descriptions of three cases, and the task is to predict whether <span class="arithmatex">\((A,B)\)</span> is closer than <span class="arithmatex">\((A,C)\)</span> under a predefined similarity measure. Because the documents are long (mostly over 512 characters), existing methods struggle to perform significantly on this dataset. We split the data into training, validation, and test sets at 6:2:2.</p>
+<p><strong>Results.</strong> We apply the pre-trained RoFormer to CAIL2019-SCM with different input lengths and compare it with BERT and WoBERT trained on the same pre-training data (Table 5). With a 512 cut-off, RoFormer is comparable to WoBERT and slightly better than BERT; raising the maximum input length to 1024 gives RoFormer a clear gain over WoBERT (69.79% vs. 68.10% on the test set, about 1.7 points).</p>
+<figure class="paper-table"><figcaption id="tab-5">Table 5: Results on CAIL2019-SCM. The first column gives the maximum cut-off sequence length; numbers are accuracy.</figcaption><div class="table-scroll"><table aria-labelledby="tab-5">
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: center;">Validation</th>
+<th style="text-align: center;">Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BERT-512</td>
+<td style="text-align: center;">64.13%</td>
+<td style="text-align: center;">67.77%</td>
+</tr>
+<tr>
+<td>WoBERT-512</td>
+<td style="text-align: center;">64.07%</td>
+<td style="text-align: center;">68.10%</td>
+</tr>
+<tr>
+<td>RoFormer-512</td>
+<td style="text-align: center;">64.13%</td>
+<td style="text-align: center;">68.29%</td>
+</tr>
+<tr>
+<td>RoFormer-1024</td>
+<td style="text-align: center;"><strong>66.07%</strong></td>
+<td style="text-align: center;"><strong>69.79%</strong></td>
+</tr>
+</tbody>
+</table>
+</div></figure><p><strong>Limitations.</strong> Despite the theoretical grounding and promising experiments, the method has limitations. First, although relative position relations are formulated mathematically as rotations in 2D subspaces, there is no thorough explanation of why the model converges faster than baselines with other position encodings. Second, although the long-term decay property for token inner products is proved (Section 3.3) and the model outperforms peers on long texts, we do not yet have a faithful explanation for that advantage. Finally, RoFormer builds on Transformer infrastructure and requires hardware resources for pre-training.</p>
+<h2 id="sec-6">5 Conclusions<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>We proposed a new position embedding method that incorporates explicit relative position dependency into self-attention to enhance Transformer architectures. Our theoretical analysis shows that relative position can be naturally formulated through vector products in self-attention, with absolute position encoded by a rotation matrix. We also illustrated mathematically several advantageous properties of the method when applied to Transformers. Experiments on English and Chinese benchmarks show that it encourages faster convergence in pre-training and achieves better performance on long-text tasks.</p>
+<p>The significance of RoPE goes beyond the metrics reported here: it turns position from a bias added to representations into a rotation applied to them, so attention scores depend only on relative distance while no extra parameters are introduced and the structure of linear attention is preserved. This design later became the mainstream choice for position encoding in large language models and motivated a line of work on frequency scaling and length extrapolation.</p>
+<p>From today's perspective, RoPE offers a set of composable primitives: the frequency base can be rescaled, rotation can be applied blockwise or to a subset of dimensions, and positions can be interpolated or extrapolated. Most later variants keep the basic form of Equations (14)–(16) and differ mainly in the choice of <span class="arithmatex">\(\Theta\)</span> and where it is applied—which is why RoPE has carried across model scales and architectural changes as the default position encoding.</p>
+<h2 id="sec-7">Further Reading<a class="headerlink" href="#sec-7" title="复制本节链接">§</a></h2>
+<ul>
+<li><a href="../../deepseek-v2/index.html">DeepSeek-V2</a>: the DeepSeek-V2 technical report, whose multi-head latent attention (MLA) compresses the KV cache at inference time.</li>
+<li><a href="../../transmla/index.html">TransMLA</a>: converting pre-trained GQA models into MLA to reduce inference-time KV-cache cost.</li>
+<li><a href="../../bidkv/index.html">BidKV</a>: a utility-ranked KV-cache reclamation policy for online LLM serving, another infrastructure problem for long-context inference.</li>
+</ul>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{su2021roformer,
+  author = {Jianlin Su and Yu Lu and Shengfeng Pan and Ahmed Murtadha and Bo Wen and Yunfeng Liu},
+  title = {RoFormer: Enhanced Transformer with Rotary Position Embedding},
+  year = {2021},
+  howpublished = {arXiv:2104.09864},
+  url = {https://arxiv.org/abs/2104.09864},
+  note = {AI Infra Paper Library, roformer}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">RoFormer: Enhanced Transformer with Rotary Position Embedding</dd></div>
+        <div><dt>作者</dt><dd>Jianlin Su · Yu Lu · Shengfeng Pan · Ahmed Murtadha · Bo Wen · Yunfeng Liu</dd></div>
+        <div><dt>发表</dt><dd>arXiv 预印本 arXiv:2104.09864 · 2021</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/ZhuiyiTechnology/roformer" target="_blank" rel="noopener noreferrer">https://github.com/ZhuiyiTechnology/roformer</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2104.09864</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（14 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../../deepseek-v2/original/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/figures/fig1.png" alt="RoPE 的二维旋转与多头维度成对旋转示意" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>RoFormer</h2>
+      <p class="rail-authors">Jianlin Su · Yu Lu · Shengfeng Pan · Ahmed Murtadha · Bo Wen · Yunfeng Liu</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2021</dd></div>
+        <div><dt>页数</dt><dd>14</dd></div>
+        <div><dt>阅读</dt><dd>25 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/ZhuiyiTechnology/roformer" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/2104.09864" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线 PDF</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../../bidkv/original/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../../transmla/original/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA: Multi-Head Latent Attention Is All You Need</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=44efb5f68d"></script>
+</body>
+</html>

@@ -231,7 +231,10 @@ class SiteRenderer:
             "related": self._related(paper),
             "prev_paper": prev_paper,
             "next_paper": next_paper,
-            "translation_note": "译文由 AI 辅助完成，术语保留英文缩写；技术细节请以原文为准。",
+            "translation_note": paper.meta.get("translation_note")
+            or "译文由 AI 辅助完成，术语保留英文缩写；技术细节请以原文为准。",
+            "original_note": paper.meta.get("original_note")
+            or "English text transcribed from the paper PDF. Figures are cropped from the original.",
             "source_pdf": f"{paper.slug}/{paper.pdf}",
         }
 
