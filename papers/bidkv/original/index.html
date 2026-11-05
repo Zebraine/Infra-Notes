@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving · AI Infra 论文库</title>
+  <meta name="description" content="When KV-cache demand exceeds GPU memory capacity during online LLM serving, serving engines reclaim cache from active requests to admit waiting ones. Poor victi">
+  <meta name="author" content="Yanbo Chen, Mingqi Wang, Shuhao Zhang, Xiaofei Liao, Hai Jin">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving · AI Infra 论文库">
+  <meta property="og:description" content="When KV-cache demand exceeds GPU memory capacity during online LLM serving, serving engines reclaim cache from active requests to admit waiting ones. Poor victi">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2026-11-18">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=8001617773">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 01</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 01 · 2026 · SC26</p>
+        <h1>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</h1>
+        <p class="paper-alt-title" lang="zh-CN">BidKV：面向 KV 压力场景的效用引导抢占调度</p>
+        <p class="paper-authors">Yanbo Chen · Mingqi Wang · Shuhao Zhang · Xiaofei Liao · Hai Jin <span class="affiliation">· Huazhong University of Science and Technology (HUST)</span></p>
+        <p class="paper-status">Accepted at SC26. The local PDF is the anonymous review version; authors and affiliations follow the official SC26 program, and body results follow the local PDF.</p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>10 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 34 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>6 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=LLM%20Serving">LLM Serving</a><a class="chip chip-static" href="../../index.html?tag=KV%20Cache">KV Cache</a><a class="chip chip-static" href="../../index.html?tag=%E8%B0%83%E5%BA%A6">调度</a><a class="chip chip-static" href="../../index.html?tag=%E6%8A%A2%E5%8D%A0">抢占</a><a class="chip chip-static" href="../../index.html?tag=vLLM">vLLM</a><a class="chip chip-static" href="../../index.html?tag=SGLang">SGLang</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Introduction</a></li>
+<li><a href="#sec-3">2 Background and Motivation</a><ul>
+<li><a href="#sec-3-1">2.1 KV Cache Memory Model</a></li>
+<li><a href="#sec-3-2">2.2 The Victim-Selection Problem</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">3 Related Work</a></li>
+<li><a href="#sec-5">4 Design</a><ul>
+<li><a href="#sec-5-1">4.1 Bid Signal Layer</a></li>
+<li><a href="#sec-5-2">4.2 Bid Generation Layer</a></li>
+<li><a href="#sec-5-3">4.3 Online Utility-Ranked Victim Selection</a></li>
+<li><a href="#sec-5-4">4.4 Runtime Adapter Layer</a></li>
+</ul>
+</li>
+<li><a href="#sec-6">5 Implementation</a><ul>
+<li><a href="#sec-6-1">5.1 vLLM Integration</a></li>
+<li><a href="#sec-6-2">5.2 SGLang Integration</a></li>
+</ul>
+</li>
+<li><a href="#sec-7">6 Evaluation</a><ul>
+<li><a href="#sec-7-1">6.1 Experimental Setup</a></li>
+<li><a href="#sec-7-2">6.2 Main Comparison</a></li>
+<li><a href="#sec-7-3">6.3 Rate Sensitivity</a></li>
+<li><a href="#sec-7-4">6.4 Long-Context Workload</a></li>
+<li><a href="#sec-7-5">6.5 Reclamation Event Analysis</a></li>
+<li><a href="#sec-7-6">6.6 Framework Portability</a></li>
+</ul>
+</li>
+<li><a href="#sec-8">7 Discussion and Limitations</a><ul>
+<li><a href="#sec-8-1">7.1 Surrogate Disruption Estimate</a></li>
+<li><a href="#sec-8-2">7.2 Limitations</a></li>
+<li><a href="#sec-8-3">7.3 Broader Impact</a></li>
+</ul>
+</li>
+<li><a href="#sec-9">8 Conclusion</a></li>
+<li><a href="#sec-10">References</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English text transcribed from the paper PDF. Figures are cropped from the original; equation and section numbers follow the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>When KV-cache demand exceeds GPU memory capacity during online LLM serving, serving engines reclaim cache from active requests to admit waiting ones. Poor victim selection wastes recomputation, delays admission of queued requests, and degrades first-token latency—a metric directly visible to users. Existing policies rely on coarse request-order heuristics (LIFO, FCFS) or independent per-request scoring rules, lacking both explicit reclamation-cost signals and cross-request coordination. We present BidKV, a utility-guided reclamation policy that improves admission responsiveness under KV pressure. Each active request produces a bid encoding recoverable capacity and estimated disruption cost; at each pressure event, an online utility-ranked selection policy identifies the intended highest-utility victim and preempts it via the framework's native mechanism. The current prototype instantiates disruption cost from request-lifecycle proxies (completion progress, prompt length, preemption history) under recompute-fallback semantics. BidKV integrates non-invasively with vLLM and SGLang via a portable adapter layer. Evaluated with Llama-3.1-8B-Instruct on an NVIDIA RTX A6000 under ShareGPT traces, BidKV reduces P95 TTFT by 89% and improves 300 ms SLO attainment by 14.9 pp over vLLM's native policy, at a modest throughput cost.</p>
+<h2 id="sec-2">1 Introduction<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>Online large language model (LLM) serving must sustain a continuously changing population of concurrent requests on limited GPU memory. In production workloads, requests are highly heterogeneous in prompt length, generation budget, and arrival pattern; they also progress asynchronously as some requests are still in prefill while others are already deep into decoding [11, 22, 24]. Under such mixed-length, bursty workloads, the key-value (KV) cache becomes a dominant runtime resource [16, 19]: new arrivals allocate KV state, ongoing requests expand it token by token, and completed or preempted requests release it at different points in their lifecycle. Aggregate KV demand therefore fluctuates on short timescales and routinely approaches hardware capacity limits; modern serving engines reclaim KV state from active requests—triggered at a high-watermark threshold before saturation—to preserve scheduling flexibility and ensure that low-cost victim choices remain available as new requests arrive.</p>
+<p>The central question in this setting is not whether KV capacity must be reclaimed, but which active request should be chosen as the victim. Two requests may occupy comparable amounts of KV memory while imposing very different costs when interrupted. Under the recompute-fallback execution model used by current serving engines [11], reclaiming an active request releases its KV state but forces the request to restart through the framework's native recovery path when it is rescheduled. The cost of reclamation therefore depends not only on how much memory is freed, but also on how much useful computation is discarded and must later be redone. Reclaiming a request that is near completion can waste substantial prior work and incur expensive recomputation, whereas reclaiming a request that has only recently entered decoding may free similar capacity at much lower system disruption. Poor victim choices can also cascade: recomputation re-inflates KV demand, which in turn triggers further reclamation—a cycle that keeps KV capacity occupied by recomputing victims rather than available for waiting requests. The direct consequence is admission-latency degradation: queued requests wait longer to receive their first token, driving up time-to-first-token (TTFT) and eroding service-level objective (SLO) attainment. Active-KV reclamation is therefore a cross-request victim-selection problem whose quality directly governs admission responsiveness under sustained KV pressure.</p>
+<p>Because reclamation costs are heterogeneous, the scheduler needs explicit per-request cost signals to distinguish cheap victims from expensive ones; because selection is cross-request, these signals must feed into coordinated cross-request selection rather than independent per-request rules. No existing system provides both. Current scheduling heuristics—LIFO preemption [11], FCFS admission [22], EDF-style waiting policies [8]—determine victim order without any per-request cost signal; broader serving innovations such as chunked prefills [1] and prefill–decode disaggregation [15, 26] advance throughput and resource placement but inherit the same order-based victim selection, leaving the signal gap intact. Token-level scoring methods such as H2O [23] and StreamingLLM [21] do produce request-specific importance signals, yet each applies a fixed scoring rule independently—without coordination across the batch, a locally reasonable per-request choice can be globally costly. What is missing is a signal pathway: a structured interface through which per-request reclamation sensitivity can be surfaced to the scheduler and used for coordinated cross-request victim selection.</p>
+<p>In this study we present BidKV, a bid-based scheduling abstraction for active-KV reclamation. The key idea is to make reclamation sensitivity an explicit, structured signal rather than an implicit consequence of scheduling order. Each active request produces a bid that summarizes the KV capacity recoverable upon reclamation and a surrogate disruption estimate reflecting the relative penalty of reclaiming that request. Given bids from all active requests, the scheduler performs an online utility-ranked cross-request victim selection: at each pressure event, the request offering the most recoverable KV capacity per unit of estimated disruption is selected as the intended victim and preempted via the framework's native mechanism. In this way, BidKV turns victim selection from an opaque runtime behavior into an explicit interface between a scoring layer—which estimates per-request reclamation sensitivity—and a coordinated selection layer—which ranks candidates by cross-request reclamation utility.</p>
+<p>In the current prototype, the disruption estimate is instantiated from request-lifecycle features (completion progress, prompt length, preemption history) under recompute-fallback semantics [11]. BidKV integrates non-invasively with both vLLM [11] and SGLang [25] via a portable adapter layer that fully reuses each framework's native reclamation and recovery paths—the fact that both integrations require no source-code modification confirms that the bid interface is cleanly separated from framework-specific scheduling internals. BidKV controls which request is reclaimed, not how. Under recompute-fallback execution, the policy does not alter final outputs; the differentiation lies entirely in victim selection. The primary benefit is improved admission responsiveness: by selecting victims whose reclamation frees adequate capacity at low reclamation cost, BidKV reduces the time waiting requests spend queued for KV allocation, yielding lower TTFT and higher SLO attainment. This comes at a modest cost in throughput and per-token decode latency, a tradeoff that favors latency-sensitive deployments. The benefit is operating-regime dependent: under sustained mixed-length KV pressure, utility-guided selection provides substantial gains; under low pressure, victim selection remains governed by the framework's native ordering, with BidKV's reorder activating only under sustained high-pressure conditions.</p>
+<p>In summary, this paper makes the following contributions:</p>
+<ol>
+<li><strong>Bid-based reclamation interface.</strong> We introduce a structured bid abstraction that allows per-request reclamation sensitivity to be surfaced to the runtime scheduler, replacing implicit victim ordering rules with an explicit decision interface.</li>
+<li><strong>Decoupled scoring-to-selection architecture.</strong> We separate request-level disruption estimation from coordinated cross-request victim selection through a structured bid interface, so that selection operates on uniform cost–capacity pairs regardless of how disruption estimates are produced.</li>
+<li><strong>Portable runtime integration.</strong> We realize BidKV as a non-invasive scheduling layer with a <code>FrameworkAdapter</code> abstraction, demonstrating integration with vLLM and SGLang that reuses each framework's native reclamation and recovery mechanisms without source-code modification.</li>
+<li><strong>Structured evaluation under controlled conditions.</strong> We evaluate five strategies that vary across scheduling dimensions (admission ordering, running-queue reordering, victim selection logic, and proactive reclamation) under frozen request traces and calibrated arrival rates, supporting structured attribution across these co-varying dimensions.</li>
+</ol>
+<h2 id="sec-3">2 Background and Motivation<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<h3 id="sec-3-1">2.1 KV Cache Memory Model<a class="headerlink" href="#sec-3-1" title="复制本节链接">§</a></h3>
+<p>Each autoregressive decoding step caches key and value projections [19] for all previously generated tokens. For a model with <span class="arithmatex">\(L\)</span> layers, <span class="arithmatex">\(H\)</span> KV heads (via grouped-query attention [2]), and head dimension <span class="arithmatex">\(d_h\)</span>, a single request of length <span class="arithmatex">\(n\)</span> stores <span class="arithmatex">\(2LHd_h n\)</span> elements. With bf16 precision, Llama-3.1-8B-Instruct (<span class="arithmatex">\(L=32\)</span>, <span class="arithmatex">\(H=8_{kv}\)</span>, <span class="arithmatex">\(d_h=128\)</span>) allocates 128 KiB per token [7]. vLLM [11] manages this state through PagedAttention: physical GPU memory is partitioned into fixed-size blocks that are mapped to logical positions via a block table.</p>
+<p>At this per-token cost, a single 4,096-token request already consumes <span class="arithmatex">\(\sim\)</span>512 MiB of KV state. Total KV demand scales as <span class="arithmatex">\(O(B \cdot \bar{n})\)</span>, where <span class="arithmatex">\(B\)</span> is the batch size and <span class="arithmatex">\(\bar{n}\)</span> the mean sequence length, while the device memory available for KV allocation is fixed after model weights, activation buffers, and runtime overhead are subtracted. Concurrency and sequence length therefore compete for the same finite pool, and production-level serving loads routinely drive KV utilization to near-saturation, forcing the engine to reclaim KV state from active requests. The quality of this reclamation decision—which requests to evict—directly affects tail latency and throughput, as we formalize next.</p>
+<h3 id="sec-3-2">2.2 The Victim-Selection Problem<a class="headerlink" href="#sec-3-2" title="复制本节链接">§</a></h3>
+<p>Under recompute-fallback semantics [11], each reclamation event releases the victim's KV blocks and re-queues the request; when rescheduled, its prompt is recomputed from scratch. The scheduler's task at each such event is to choose a victim set <span class="arithmatex">\(V \subseteq R\)</span> from the set of active requests <span class="arithmatex">\(R\)</span> such that the total freed capacity meets the shortfall while minimizing aggregate reclamation cost:</p>
+<div class="arithmatex">\[
+\min_{V \subseteq R}\ \sum_{i \in V} c_i
+\quad \text{s.t.}\quad
+\sum_{i \in V} r_i \ge N ,
+\tag{1}
+\]</div>
+<p>where <span class="arithmatex">\(r_i\)</span> is the KV capacity freed by reclaiming request <span class="arithmatex">\(i\)</span>, <span class="arithmatex">\(c_i\)</span> is the reclamation cost—encompassing discarded computation, re-queuing delay, and any cascading pressure from recomputed requests re-entering the running queue—and <span class="arithmatex">\(N\)</span> is the capacity shortfall. Under recompute-fallback execution, the dominant component of <span class="arithmatex">\(c_i\)</span> is the work already invested in the victim; Section 4.2 instantiates <span class="arithmatex">\(c_i\)</span> with a surrogate derived from request-level lifecycle features. Minimizing aggregate reclamation cost is monotonically connected to admission responsiveness: cheaper victims keep less KV capacity occupied by non-productive re-prefill recomputation, accelerating queue drainage and shortening the wait before queued requests are admitted.</p>
+<p>This formulation is an instance of the minimum-cost covering problem [10]. With heterogeneous requests, the choice of <span class="arithmatex">\(V\)</span> matters: two requests may free comparable capacity yet differ by an order of magnitude in reclamation cost. Existing engines do not solve this selection problem explicitly. vLLM selects the most recently scheduled request (LIFO) [11]; other systems apply FCFS [22] or EDF ordering [8], none of which accounts for per-request reclamation cost. This analysis motivates two requirements. First, the scheduler should accept explicit per-request reclamation-cost signals that capture heterogeneity across candidates, rather than relying solely on arrival or scheduling order. Second, victim selection should perform cross-request coordination—considering the batch-level trade-off between capacity freed and cost incurred—rather than scoring each request in isolation.</p>
+<p><strong>Execution model.</strong> Throughout this paper we adopt the standard recompute-fallback execution model used by current serving engines [11]: reclaiming a request releases its KV blocks and re-queues it for full prompt recomputation when rescheduled; the reclamation policy does not alter final output tokens.</p>
+<p><strong>Empirical evidence.</strong> Figure 1 illustrates the victim-selection gap at a KV-pressure snapshot from a long-context ShareGPT trace (rate=0.5 req/s; the same effect arises under mixed-length workloads at smaller absolute scale, Section 6). Panel (a) shows 10 concurrent requests at peak KV utilization, sorted by tokens held. LIFO targets R1 and R2—the requests with the largest KV footprints—yet these requests are 47% and 34% complete, with estimated reclamation costs of <span class="arithmatex">\(\sim\)</span>1,800 and <span class="arithmatex">\(\sim\)</span>1,050 tokens of discarded work respectively (red hatched bars). A utility-guided policy instead selects R4, which is only 3% complete: it frees 1,825 tokens while incurring a reclamation cost of just 62 tokens—a 29× improvement in cost efficiency for this single victim choice.</p>
+<p>Panel (b) aggregates the comparison over a target of freeing 20% of total KV capacity. LIFO recovers 1.4× more tokens per event (by preferring larger requests), but at a 5.0× higher average reclamation cost. Coarse victim selection trades marginal extra KV recovery for a disproportionate cost burden, compounding tail-latency degradation at every subsequent scheduling step.</p>
+<figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/fig1.png"><img alt="Figure 1: Empirical motivation (long-context trace, ShareGPT, rate=0.5 req/s). (a) Per-request KV footprint (blue) and estimated reclamation cost (red hatched) at a KV-pressure snapshot; 10 concurrent requests sorted by KV tokens held, high→low. LIFO targets R1–R2 (34–47% complete); utility-guided selects R4 (3% complete, 29× lower reclamation cost). (b) Aggregate comparison freeing 20% of total KV capacity: LIFO imposes 5.0× higher average reclamation cost per event relative to utility-guided selection." decoding="async" loading="lazy" src="../assets/figures/fig1.png"></a><figcaption>Figure 1: Empirical motivation (long-context trace, ShareGPT, rate=0.5 req/s). (a) Per-request KV footprint (blue) and estimated reclamation cost (red hatched) at a KV-pressure snapshot; 10 concurrent requests sorted by KV tokens held, high→low. LIFO targets R1–R2 (34–47% complete); utility-guided selects R4 (3% complete, 29× lower reclamation cost). (b) Aggregate comparison freeing 20% of total KV capacity: LIFO imposes 5.0× higher average reclamation cost per event relative to utility-guided selection.</figcaption></figure><h2 id="sec-4">3 Related Work<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<p><em>LLM serving systems.</em> vLLM [11] introduced PagedAttention and handles KV pressure through request-level preemption (swap or recompute). Orca [22] pioneered iteration-level scheduling for continuous batching; DistServe [26] and Splitwise [15] disaggregate prefill and decode phases; Sarathi-Serve [1] introduces chunked prefills to reduce pipeline bubbles. FlexGen [17] offloads KV state to CPU/disk to extend effective capacity, while LoongServe [20] applies elastic sequence parallelism for long contexts. Prompt Cache [5] and Hydragen [9] exploit prefix sharing to avoid redundant KV computation. These systems advance batching, placement, and memory management along complementary dimensions, yet none treats victim selection as a first-class optimization target: systems that implement preemption still default to order-based heuristics (LIFO or FCFS) that do not incorporate per-request reclamation-cost signals.</p>
+<p><em>Token-level KV cache compression.</em> H2O [23] identifies "heavy-hitter" tokens via cumulative attention scores. StreamingLLM [21] preserves attention-sink tokens for infinite streaming. Scissorhands [13] exploits persistence-of-importance. SnapKV [12] clusters attention features to compress prefix cache. KIVI [27] applies asymmetric 2-bit KV quantization. PyramidKV [3] assigns layer-adaptive budgets via pyramid allocation. These methods effectively reduce per-request KV footprint, but each operates within a single request: the retention rule is applied independently of the rest of the batch. In their standard formulations, they do not coordinate across requests to decide which request should yield capacity, nor do they expose reclamation-cost information to the scheduler.</p>
+<p><em>Scheduling theory and multi-resource allocation.</em> Dominant Resource Fairness [4] and multi-resource packing [6] formalize allocation for heterogeneous cluster resources. The knapsack literature [10, 14] provides algorithmic foundations for constrained subset selection—the same combinatorial structure that underlies the idealized victim-selection formulation (Eq. 1). These frameworks assume that item costs are given inputs and that an offline solver is available. In LLM serving, per-request reclamation costs must be estimated at runtime from serving state, and selection must complete within the engine's scheduling loop under strict latency constraints. Rather than solving the combinatorial problem exactly, BidKV uses an online utility-ranked approximation: requests are sorted by reclamation utility at each scheduling step, and the top-ranked entry is consumed at each pressure event (Section 4.3).</p>
+<p><em>Positioning.</em> Existing serving systems implement the preemption mechanism but select victims by scheduling order; token-level compression methods produce per-request importance signals but apply them independently within each request. To our knowledge, no prior system combines explicit per-request reclamation-cost signals with coordinated cross-request victim selection—the two requirements identified in Section 2.2. BidKV fills this gap with a scorer-agnostic, framework-portable interface: per-request signals—whether derived from token-level scorers or request-lifecycle features—are structured as bids, and a utility-ranked online selection pass coordinates the choice across the batch (Section 4).</p>
+<h2 id="sec-5">4 Design<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>The victim-selection problem identified in Section 2 imposes two requirements: explicit reclamation-sensitivity signals and cross-request coordination. Two additional design goals guide our architecture: <em>scorer-agnostic interface</em>—because the best importance signal may vary across workloads and models, the scoring strategy should be interchangeable without modifying the selection algorithm or the runtime integration; and <em>framework portability</em>—the mechanism should integrate with heterogeneous serving engines (e.g., vLLM, SGLang) by reusing their native reclamation and recovery paths, without requiring source-code modifications.</p>
+<p>These goals separate naturally into a general architecture—the bid-based data path and layered decomposition that are execution-model agnostic—and a current instantiated path—the specific disruption estimator (<span class="arithmatex">\(\delta\)</span>, Eq. 3) that uses request-lifecycle features under recompute-fallback semantics. The architecture prescribes how scoring signals flow to the selection layer; the instantiation determines which features populate <span class="arithmatex">\(\delta\)</span> in this paper.</p>
+<p>BidKV organizes its logic into four layers (Figure 2): the <em>Runtime Adapter Layer</em> detects KV pressure and executes reclamations via the framework's native mechanism; the <em>Bid Generation Layer</em> computes disruption cost from request-lifecycle features and produces structured bids; the <em>Utility-Ranked Selection Layer</em> produces a cached reclamation-priority ordering; and the <em>Bid Signal Layer</em> defines the shared data structures used across all layers.</p>
+<figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/fig2.png"><img alt="Figure 2: BidKV scheduling overview. When KV usage exceeds the pressure threshold (①), the scheduling layer activates (②): the pressure detector triggers bid generation, which computes disruption cost δ for each running request and ranks candidates by utility U = r/(δ+ε) (③). The selection layer identifies the top-ranked victim (④); the framework adapter preempts the chosen request, freeing its KV blocks (⑤). The preempted request re-enters the waiting queue for later recomputation (⑥)." decoding="async" loading="lazy" src="../assets/figures/fig2.png"></a><figcaption>Figure 2: BidKV scheduling overview. When KV usage exceeds the pressure threshold (①), the scheduling layer activates (②): the pressure detector triggers bid generation, which computes disruption cost δ for each running request and ranks candidates by utility U = r/(δ+ε) (③). The selection layer identifies the top-ranked victim (④); the framework adapter preempts the chosen request, freeing its KV blocks (⑤). The preempted request re-enters the waiting queue for later recomputation (⑥).</figcaption></figure><h3 id="sec-5-1">4.1 Bid Signal Layer<a class="headerlink" href="#sec-5-1" title="复制本节链接">§</a></h3>
+<p>The atomic unit of communication is the <em>scheduling bid</em>, a frozen (immutable) data class with the following fields:</p>
+<ul>
+<li><code>bid_id</code> — unique identifier.</li>
+<li><code>request_id</code> — the inference request this bid applies to.</li>
+<li><span class="arithmatex">\(r\)</span> (<code>tokens_freed</code>) — the number of KV tokens freed if this request is preempted.</li>
+<li><span class="arithmatex">\(\delta\)</span> (<code>disruption estimate</code>) — a surrogate scheduling cost (<span class="arithmatex">\(\ge 0\)</span>) estimating the system-level disruption of reclaiming this request. Lower values indicate requests whose preemption incurs less scheduling disruption. Under recompute fallback (this work), <span class="arithmatex">\(\delta\)</span> is derived from request-level features (completion progress, prompt length, and preemption history; Eq. 3); other request-level scorers can populate <span class="arithmatex">\(\delta\)</span> without architectural change.</li>
+<li><code>confidence</code> <span class="arithmatex">\(\in [0,1]\)</span> — the scorer's confidence in <span class="arithmatex">\(\delta\)</span>.</li>
+<li><code>metadata</code> — strategy-specific information.</li>
+</ul>
+<p>Each bid carries a derived utility property:</p>
+<div class="arithmatex">\[
+U(b) = \frac{b.r}{b.\delta + \varepsilon},
+\qquad \varepsilon = 10^{-3}.
+\tag{2}
+\]</div>
+<p>A high utility ratio means preempting this request frees many tokens at low reclamation cost. By preferring high-utility victims, the selection policy reduces aggregate reclamation cost, keeping KV capacity available for queued requests and thereby improving admission responsiveness (TTFT and SLO attainment).</p>
+<p>Bids are collected in a <code>BidPool</code>—an immutable snapshot of all active bids at a given instant. The selection output is a utility-ranked ordering of active bids; the runtime adapter consumes the current top-ranked entry at each pressure event.</p>
+<h3 id="sec-5-2">4.2 Bid Generation Layer<a class="headerlink" href="#sec-5-2" title="复制本节链接">§</a></h3>
+<p>The bid generation layer translates per-request state into a structured bid. The choice of features that populate <span class="arithmatex">\(\delta\)</span> is an instantiation decision; this paper uses request-lifecycle proxies under recompute-fallback semantics, as detailed below. Each running request contributes one bid with <span class="arithmatex">\(r\)</span> equal to its current KV footprint and <span class="arithmatex">\(\delta\)</span> computed as follows. Let <span class="arithmatex">\(\hat{r} = \max(\beta, n_{\text{prompt}}/n_0)\)</span> be the prompt-normalized recompute cost (floored at <span class="arithmatex">\(\beta\)</span> to prevent very short prompts from appearing free to evict). The disruption estimate sums three additive terms:</p>
+<div class="arithmatex">\[
+\delta = \max\left(\delta_{\min},\;
+\underbrace{\hat{r}}_{\text{recompute}} +
+\underbrace{w_c c^2}_{\text{completion}} +
+\underbrace{w_s P}_{\text{starvation}}\right),
+\tag{3}
+\]</div>
+<p>where <span class="arithmatex">\(c = \min(1, n_{\text{output}}/n_{\max})\)</span> is the completion ratio and <span class="arithmatex">\(P\)</span> counts prior preemptions.</p>
+<p>All three terms share the same unit: recompute cost of an <span class="arithmatex">\(n_0=256\)</span>-token prompt (i.e., <span class="arithmatex">\(\hat{r}=1\)</span> at baseline). Under this unit, <span class="arithmatex">\(w_c=2.0\)</span> encodes that a fully completed request is as disruptive to evict as re-prefilling a 512-token prompt; <span class="arithmatex">\(w_s=0.5\)</span> adds half a baseline recompute cost per prior preemption. The floor <span class="arithmatex">\(\beta=0.5\)</span> ensures even trivially short prompts carry non-trivial reclamation cost. The completion term is quadratic: evicting a request at 90% completion wastes four times more accumulated decode work than one at 45%, reflecting the sharply increasing value of near-complete requests. Because <span class="arithmatex">\(\delta\)</span> functions purely as a ranking signal, the ranking procedure requires only that the relative ordering be preserved; exact magnitudes need not be calibrated to absolute costs (Section 7).</p>
+<h3 id="sec-5-3">4.3 Online Utility-Ranked Victim Selection<a class="headerlink" href="#sec-5-3" title="复制本节链接">§</a></h3>
+<p>Equation 1 states the idealized batch reclamation objective; practical serving requires an online approximation that fits within the engine's tick-based scheduling loop. At each scheduling step, the <code>GreedyBidSolver</code> computes a reclamation utility score for every active bid and produces a utility-ranked ordering of all candidates (Algorithm 1). This ordering is cached and refreshed periodically; at each pressure event, the runtime adapter consumes the current top-ranked entry and executes one native preemption.</p>
+<p>The utility score is drawn directly from Eq. 2: <span class="arithmatex">\(U = r/(\delta+\varepsilon)\)</span>. Higher utility means the request frees more KV capacity per unit of estimated reclamation disruption; the top-ranked request is the intended highest-utility victim. Because <span class="arithmatex">\(\delta\)</span> serves as an ordinal ranking signal, the selection requires only that relative ordering be preserved across bids—exact magnitude calibration is not needed.</p>
+<p>The ranking procedure runs in <span class="arithmatex">\(O(B \log B)\)</span> time. In practice <span class="arithmatex">\(B &lt; 100\)</span>, so ranking takes microseconds—negligible compared with a decode step.</p>
+<figure class="algorithm"><div class="algo-head"><span class="algo-label">ALGORITHM 1</span><span class="algo-title">Utility-Ranked Victim Ordering</span></div><div class="algo-body"><div class="algo-line"><span class="algo-ln"></span><code class="algo-code">Require: Bid pool P = {b1, b2, ..., bB}</code></div><div class="algo-line"><span class="algo-ln"></span><code class="algo-code">Ensure: Utility-ranked ordering O</code></div><div class="algo-line"><span class="algo-ln">1</span><code class="algo-code">for all b in P do</code></div><div class="algo-line"><span class="algo-ln">2</span><code class="algo-code">  U(b) &lt;- b.r / (b.delta + eps)        <span class="algo-comment">⊲ reclamation utility, eps = 1e-3</span></code></div><div class="algo-line"><span class="algo-ln">3</span><code class="algo-code">end for</code></div><div class="algo-line"><span class="algo-ln">4</span><code class="algo-code">Sort P by U(b) in decreasing order -&gt; O</code></div><div class="algo-line"><span class="algo-ln">5</span><code class="algo-code">return O                               <span class="algo-comment">⊲ cached; adapter pops top entry at each pressure event</span></code></div></div></figure>
+<h3 id="sec-5-4">4.4 Runtime Adapter Layer<a class="headerlink" href="#sec-5-4" title="复制本节链接">§</a></h3>
+<p>To achieve framework portability, BidKV defines a <code>FrameworkAdapter</code> ABC with five responsibilities:</p>
+<ol>
+<li><strong>KV stats visibility:</strong> returns current and maximum token counts for pressure detection.</li>
+<li><strong>Pressure-event interception:</strong> intercepts the framework's native preemption path and invokes BidKV's solver first.</li>
+<li><strong>Reclamation execution:</strong> delegates to the framework's native preemption mechanism.</li>
+<li><strong>Scoring callback:</strong> provides decode-step signals (e.g., newly generated tokens) to the scoring strategy for priority updates.</li>
+<li><strong>Lifecycle management:</strong> cleans up bids and state when a request completes.</li>
+</ol>
+<p>This contract is intentionally minimal: any serving framework exposing KV statistics and a reclamation hook can implement the adapter.</p>
+<h2 id="sec-6">5 Implementation<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>BidKV is implemented as a standalone Python package with zero external dependencies (Python <span class="arithmatex">\(\ge\)</span> 3.10 standard library only), totaling <span class="arithmatex">\(\sim\)</span>12,000 lines of code. The system defaults to disabled and includes a global kill switch for instant bypass in production. Strategies are managed through a pluggable registry; adding a new strategy requires implementing a single interface and one registration call.</p>
+<h3 id="sec-6-1">5.1 vLLM Integration<a class="headerlink" href="#sec-6-1" title="复制本节链接">§</a></h3>
+<p>We integrate with vLLM 0.17.1 (v1 architecture) using its plugin system. BidKV's fundamental integration point is victim selection: the adapter ranks running requests by reclamation utility and delegates execution entirely to vLLM's native preemption mechanism—releasing all KV blocks and requeueing the request for full recomputation. BidKV does not modify vLLM's KV cache coordinator or block pool; it only controls which request is reclaimed. Under recompute-fallback semantics, the victim-selection policy does not alter final outputs.</p>
+<p>The adapter intercepts scheduling at three points:</p>
+<ol>
+<li><strong>Pre-schedule.</strong> Before each native scheduling call, the hook performs five sub-steps:<ul>
+<li>(a) <em>Admission reorder:</em> strategies order the waiting queue by SJF (prompt length) or FCFS (see Table 1).</li>
+<li>(b) <em>Victim-priority refresh</em> (every 3 s): each strategy's <code>select_victims()</code> is invoked on the running set to produce a cached priority ordering. BidKV uses the full bid pipeline (Eq. 2–3), ranking candidates by utility <span class="arithmatex">\(U = r/(\delta+\varepsilon)\)</span>; other strategies use simpler heuristics.</li>
+<li>(c) <em>Proactive preemption</em> (KV &gt; 90%, waiting queue non-empty, <span class="arithmatex">\(\ge\)</span>3 running, 5 s cooldown): the lowest-priority running request from the cached ordering is preempted via vLLM's native mechanism. PE and PE-SJF skip this step (no-intervention baselines).</li>
+<li>(d) <em>SRPT preemption</em> (Static-Random, Largest-First only, KV &gt; 80%, 1.5 s cooldown): a running request whose estimated remaining work exceeds 1.2× the total cost of the cheapest waiting request is preempted. BidKV disables SRPT: under recompute-fallback semantics, the re-prefill cost of a long-prompt victim typically outweighs the scheduling gain.</li>
+<li>(e) <em>Running-queue reorder:</em> strategies with this enabled sort the running list by cached priority so that vLLM's native LIFO eviction removes the lowest-priority request. BidKV gates this reorder to KV utilization &gt; 95% and mean prompt length <span class="arithmatex">\(\le\)</span> 500 tokens; the adapter maps high reclamation utility to low keep-priority, so the lowest-priority request removed by the native LIFO back-end corresponds to the intended highest-utility victim from the ranking.</li>
+</ul>
+</li>
+<li><strong>Post-decode tracking.</strong> After each decode step, newly sampled tokens are appended to per-request state for scoring.</li>
+<li><strong>Lifecycle cleanup.</strong> On request completion, bids and state are cleared.</li>
+</ol>
+<p><strong>Strategy differentiation.</strong> Table 1 summarizes how the five experimental strategies differ across scheduling dimensions. All share the same reclamation execution path (vLLM native preemption). BidKV's core differentiator is step (b): the bid-based utility ranking that determines reclamation priority. Steps (a), (c), and (e) configure admission ordering, proactive preemption triggers, and queue management that are shared across multiple evaluated strategies; step (d) is used only by heuristic baselines. Because these dimensions co-vary across strategies, Section 6 attributes performance differences to the combined scheduling configuration rather than to isolated mechanisms.</p>
+<figure class="paper-table"><figcaption id="tab-1">Table 1: Strategy differentiation across scheduling dimensions. All share the same execution mechanism (vLLM native preemption). “prio” = completion-aware keep score; “gated” = reorder enabled only when KV utilization &gt;95% and mean prompt length ≤500. SRPT = shortest-remaining-processing-time preemption (KV&gt;80%). LIFO* = no managed victim-selection; vLLM’s native last-in-first-out eviction determines which request is reclaimed.</figcaption><div class="table-scroll"><table aria-labelledby="tab-1">
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Wait</th>
+<th>Run</th>
+<th>Victims</th>
+<th style="text-align: center;">Proactive</th>
+<th style="text-align: center;">SRPT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PE (default)</td>
+<td>FCFS</td>
+<td>LIFO</td>
+<td>LIFO*</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+</tr>
+<tr>
+<td>PE-SJF</td>
+<td>SJF</td>
+<td>LIFO</td>
+<td>LIFO*</td>
+<td style="text-align: center;">✗</td>
+<td style="text-align: center;">✗</td>
+</tr>
+<tr>
+<td>Static-Random</td>
+<td>SJF</td>
+<td>prio</td>
+<td>random</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td>Largest-First</td>
+<td>SJF</td>
+<td>prio</td>
+<td>capacity</td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✓</td>
+</tr>
+<tr>
+<td>BidKV</td>
+<td>SJF</td>
+<td>gated</td>
+<td><span class="arithmatex">\(U=\frac{r}{\delta+\varepsilon}\)</span></td>
+<td style="text-align: center;">✓</td>
+<td style="text-align: center;">✗</td>
+</tr>
+</tbody>
+</table>
+</div></figure><h3 id="sec-6-2">5.2 SGLang Integration<a class="headerlink" href="#sec-6-2" title="复制本节链接">§</a></h3>
+<p>The <code>SGLangAdapter</code> integrates with SGLang's RadixAttention engine [25] by hooking the scheduling entry point. To test portability, we deploy BidKV's complete scheduling policy (SJF admission ordering, pressure-gated running-queue reorder, and utility-ranked victim selection) on SGLang without modifying SGLang's internals, and compare against Vanilla SGLang (SGLang's native LRU-based eviction with no managed scheduling) and Random-Evict (BidKV's adapter with random victim selection replacing the utility-ranked ordering).</p>
+<h2 id="sec-7">6 Evaluation<a class="headerlink" href="#sec-7" title="复制本节链接">§</a></h2>
+<p>We evaluate BidKV along five dimensions: (1) overall serving performance (Section 6.2), (2) sensitivity to arrival rate (Section 6.3), (3) long-context workload (Section 6.4), (4) reclamation event analysis (Section 6.5), and (5) framework portability on SGLang (Section 6.6).</p>
+<h3 id="sec-7-1">6.1 Experimental Setup<a class="headerlink" href="#sec-7-1" title="复制本节链接">§</a></h3>
+<p><strong>Hardware and model.</strong> All experiments run on a single NVIDIA RTX A6000 GPU (48 GiB) with CUDA 12.5. We serve Llama-3.1-8B-Instruct [7] in bf16 precision (<span class="arithmatex">\(\sim\)</span>16 GiB model weight).</p>
+<p><strong>Inference engine.</strong> vLLM 0.17.1 (v1 architecture) with PagedAttention [11] serves as the primary quantitative platform. We limit GPU memory utilization to 0.5 and fix KV cache capacity at 600 blocks (9,600 tokens) to create sustained KV pressure across all request rates.</p>
+<p><strong>Workload and traces.</strong> The primary evaluation uses a mixed-length workload: 1,000 requests sampled from the ShareGPT Vicuna unfiltered dataset [18], whose length distribution is representative of real-world LLM conversations [24]. Prompt lengths range from tens to thousands of tokens, creating heterogeneous KV footprints that exercise the victim-selection problem formalized in Section 2.2: when the engine reclaims memory, requests differ substantially in both the KV capacity they free and the reclamation cost they impose. Requests arrive according to a Poisson process (open-loop) at three rates: {2.0, 3.8, 5.7} req/s. A supplementary long-context workload (500 requests, rates 0.35/0.5/0.7 req/s) tests behavior under extreme KV pressure, where individual requests regularly consume 2,000–4,000 tokens. All traces are generated with seed 42 and verified via SHA-256 checksums; the same traces are shared across all strategies.</p>
+<p><strong>SLO definition.</strong> We define SLO attainment as the fraction of requests whose TTFT falls below a given threshold. We report SLO at 300 ms for the mixed workload—the strictest threshold that produces measurable strategy differentiation (3–15 pp gaps)—and at 2,000 ms for the long-context workload.</p>
+<p><strong>Metrics.</strong> Four primary metrics capture serving quality across complementary dimensions: Throughput (req/s)—total completed requests per second, the standard capacity metric in LLM serving [11, 22, 25]; SLO attainment—the fraction of requests whose TTFT falls within the threshold above; TTFT P95—tail first-token latency, the most direct measure of admission responsiveness; and TPOT P95 [1]—95th-percentile per-token output time, capturing decode-phase latency. Together these four metrics cover prefill (TTFT), decode (TPOT), throughput, and SLO attainment. All tail-latency metrics use P95 rather than P99: at our sample size (1,000 requests × 3 runs), P99 is determined by <span class="arithmatex">\(\sim\)</span>10 extreme values per run, introducing high run-to-run variance compared with the <span class="arithmatex">\(\sim\)</span>50 values that determine P95.</p>
+<p><strong>Baselines.</strong> Five strategies form a layered comparison that varies waiting-queue ordering, running-queue reordering, proactive reclamation, and victim selection logic (Table 1):</p>
+<ol>
+<li><strong>PE (vLLM default):</strong> FCFS admission, LIFO preemption, no proactive reclamation.</li>
+<li><strong>PE-SJF:</strong> PE plus SJF waiting-queue ordering; isolates the contribution of admission-queue reordering.</li>
+<li><strong>Static-Random:</strong> SJF admission, proactive reclamation (KV &gt; 90%), random victim selection, SRPT preemption (KV &gt; 80%).</li>
+<li><strong>Largest-First:</strong> SJF admission, proactive reclamation, capacity-greedy victim—evicts the request occupying the most KV blocks; SRPT enabled.</li>
+<li><strong>BidKV:</strong> SJF admission, pressure-gated running reorder (KV &gt; 95%), completion-aware cost estimation (<span class="arithmatex">\(\delta\)</span>, Eq. 3) → bids → utility-ranked victim ordering; proactive reclamation enabled (KV &gt; 90%), SRPT explicitly disabled.</li>
+</ol>
+<p>The comparison spans a range of reclamation philosophies: PE applies no active scheduling; PE-SJF isolates the contribution of admission ordering; Static-Random and Largest-First add proactive reclamation with simple heuristics; BidKV replaces all per-request heuristics with utility-ranked cross-request victim selection. Each step in this progression changes multiple dimensions simultaneously (Table 1); we attribute performance differences to groups of co-varying features rather than claim strict single-variable isolation. Each configuration is repeated three times; we report the mean across runs.</p>
+<h3 id="sec-7-2">6.2 Main Comparison<a class="headerlink" href="#sec-7-2" title="复制本节链接">§</a></h3>
+<p>We begin with the medium arrival rate (3.8 req/s) from Table 2, where KV pressure is sustained but the system is not saturated.</p>
+<p><strong>Key findings.</strong></p>
+<ul>
+<li><strong>BidKV achieves the best TTFT P95 at rate = 3.8.</strong> TTFT P95 is 631 ms, 7% below Largest-First (677 ms) and 48% below Static-Random (1,216 ms). SLO(300ms) reaches 83.2%, 0.9 pp below Static-Random (84.1%) but 3.3 pp above Largest-First (79.9%) and 14.8 pp above PE (68.4%).</li>
+<li><strong>SRPT-enabled strategies lead on throughput and TPOT.</strong> Static-Random achieves the highest throughput (3.57 req/s vs. BidKV 3.42) and lowest TPOT P95 (90.9 ms vs. BidKV 107.2 ms), enabled by aggressive SRPT preemption (KV &gt; 80%). However, its TTFT P95 is <span class="arithmatex">\(\sim\)</span>2× higher (1,216 ms vs. 631 ms), indicating that aggressive throughput reclamation comes at the expense of admission latency.</li>
+<li><strong>SJF admission is the single largest factor.</strong> PE-SJF—PE plus SJF waiting-queue ordering, with no proactive reclamation or SRPT—improves SLO from 68.4% to 79.6% (+11.2 pp) and cuts TTFT P95 by 90% (6,769→666 ms). However, throughput drops 12% (3.48→3.06 req/s) and TPOT P95 degrades (97.0→153.5 ms), showing that admission reordering alone introduces a latency–throughput tradeoff.</li>
+<li><strong>BidKV disables SRPT by design.</strong> SRPT aggressively preempts longer-running requests when KV usage exceeds 80%, freeing capacity for waiting requests but increasing recomputation for evicted victims. BidKV explicitly disables SRPT: BidKV's scoring criterion already accounts for estimated reclamation cost via <span class="arithmatex">\(\delta\)</span>, avoiding the cascading preemptions that aggressive reclamation can trigger.</li>
+</ul>
+<p><strong>Attribution chain.</strong> The layered comparison separates four groups of co-varying features: (1) PE → PE-SJF (+11.2 pp SLO, TTFT 6,769→666 ms): SJF admission alone produces the largest latency reduction in the comparison—TTFT drops by an order of magnitude because short-prompt requests no longer queue behind long ones. (2) PE-SJF → Static-Random (+4.5 pp SLO, throughput 3.06→3.57 req/s, TTFT 666→1,216 ms): adding proactive reclamation, running-queue reorder, SRPT, and random victim selection recovers throughput (+17%) and further improves SLO, though tail TTFT nearly doubles. (3) Static-Random → Largest-First (−4.2 pp SLO, TTFT 1,216→677 ms): replacing random with capacity-greedy victim selection cuts tail latency nearly in half, though SLO decreases because the more conservative selection frees less total capacity per event. (4) Largest-First → BidKV (+3.3 pp SLO, TTFT 677→631 ms): replacing capacity heuristics with utility-ranked cross-request victim selection and disabling SRPT, confirming that reclamation-cost-aware victim coordination provides incremental value beyond simple size-based heuristics.</p>
+<h3 id="sec-7-3">6.3 Rate Sensitivity<a class="headerlink" href="#sec-7-3" title="复制本节链接">§</a></h3>
+<p>Table 2 shows how performance scales across three arrival rates.</p>
+<p><strong>Three operating regimes.</strong> Low load (rate = 2.0): KV pressure is largely absorbed by rapid request turnover. BidKV leads on all four metrics (SLO 97.0%, TTFT 258 ms, TPOT 72.4 ms), though the absolute margins are small: the throughput spread is <span class="arithmatex">\(\le\)</span>0.01 req/s and all strategies achieve <span class="arithmatex">\(\ge\)</span>92% SLO.</p>
+<p>Medium load (rate = 3.8): Sustained KV pressure forces proactive reclamation; this is the primary differentiating regime (Table 2, rate = 3.8). Static-Random leads on throughput (3.57 req/s) and TPOT (90.9 ms), enabled by SRPT. However, its TTFT P95 (1,216 ms) is nearly 2× that of BidKV (631 ms). BidKV achieves the best TTFT P95 and second-best SLO (83.2%), 0.9 pp below Static-Random but 3.3 pp above Largest-First and 14.8 pp above PE. PE-SJF achieves 79.6% SLO without proactive reclamation—above PE (68.4%) but below strategies that actively preempt, confirming that admission ordering alone is insufficient for maximum SLO.</p>
+<p>High load (rate = 5.7): All strategies degrade under intense pressure. BidKV leads on SLO (81.0%); PE-SJF achieves the lowest TTFT P95 (727 ms) through conservative scheduling (no proactive preemption), but at lower throughput (3.28 vs. BidKV 3.60 req/s) and lower SLO (74.6%). Static-Random achieves the highest throughput (4.09 req/s, +13.6% over BidKV) but its TTFT P95 is 2.2× higher (1,792 ms).</p>
+<p><strong>Cross-rate summary.</strong> Averaging across all three rates, BidKV achieves the best SLO (87.1%) and TTFT P95 (562 ms, 48% below Static-Random's 1,091 ms) at a throughput of 2.99 req/s—6.8% below Static-Random's 3.21 req/s. This tradeoff reflects BidKV's design point: <span class="arithmatex">\(\sim\)</span>7% throughput cost in exchange for substantially better admission responsiveness under sustained KV pressure.</p>
+<figure class="paper-table"><figcaption id="tab-2">Table 2: Rate sensitivity (mixed workload, vLLM). Four primary metrics across three arrival rates. Best per rate in bold; second-best underlined. Mean of 3 runs.</figcaption><div class="table-scroll"><table aria-labelledby="tab-2">
+<thead>
+<tr>
+<th>Strategy</th>
+<th style="text-align: right;">Rate (req/s)</th>
+<th style="text-align: right;">SLO (300ms, %)</th>
+<th style="text-align: right;">TTFT P95 (ms)</th>
+<th style="text-align: right;">Throughput (req/s)</th>
+<th style="text-align: right;">TPOT P95 (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="3">PE (default)</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;"><strong>92.0</strong></td>
+<td style="text-align: right;">683</td>
+<td style="text-align: right;"><strong>1.96</strong></td>
+<td style="text-align: right;">78.1</td>
+</tr>
+<tr>
+<td style="text-align: right;">3.8</td>
+<td style="text-align: right;">68.4</td>
+<td style="text-align: right;">6769</td>
+<td style="text-align: right;"><u>3.48</u></td>
+<td style="text-align: right;"><u>97.0</u></td>
+</tr>
+<tr>
+<td style="text-align: right;">5.7</td>
+<td style="text-align: right;">56.2</td>
+<td style="text-align: right;">8699</td>
+<td style="text-align: right;">3.49</td>
+<td style="text-align: right;">119.9</td>
+</tr>
+<tr>
+<td rowspan="3">PE-SJF</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;">94.2</td>
+<td style="text-align: right;">330</td>
+<td style="text-align: right;"><strong>1.96</strong></td>
+<td style="text-align: right;">84.6</td>
+</tr>
+<tr>
+<td style="text-align: right;">3.8</td>
+<td style="text-align: right;">79.6</td>
+<td style="text-align: right;"><u>666</u></td>
+<td style="text-align: right;">3.06</td>
+<td style="text-align: right;">153.5</td>
+</tr>
+<tr>
+<td style="text-align: right;">5.7</td>
+<td style="text-align: right;">74.6</td>
+<td style="text-align: right;"><strong>727</strong></td>
+<td style="text-align: right;">3.28</td>
+<td style="text-align: right;">150.6</td>
+</tr>
+<tr>
+<td rowspan="3">Static-Random</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;"><u>96.5</u></td>
+<td style="text-align: right;"><u>266</u></td>
+<td style="text-align: right;"><strong>1.96</strong></td>
+<td style="text-align: right;"><u>72.8</u></td>
+</tr>
+<tr>
+<td style="text-align: right;">3.8</td>
+<td style="text-align: right;"><strong>84.1</strong></td>
+<td style="text-align: right;">1216</td>
+<td style="text-align: right;"><strong>3.57</strong></td>
+<td style="text-align: right;"><strong>90.9</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;">5.7</td>
+<td style="text-align: right;"><u>80.4</u></td>
+<td style="text-align: right;">1792</td>
+<td style="text-align: right;"><strong>4.09</strong></td>
+<td style="text-align: right;"><strong>94.4</strong></td>
+</tr>
+<tr>
+<td rowspan="3">Largest-First</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;">95.5</td>
+<td style="text-align: right;">291</td>
+<td style="text-align: right;"><strong>1.96</strong></td>
+<td style="text-align: right;">74.5</td>
+</tr>
+<tr>
+<td style="text-align: right;">3.8</td>
+<td style="text-align: right;">79.9</td>
+<td style="text-align: right;">677</td>
+<td style="text-align: right;">3.28</td>
+<td style="text-align: right;">112.9</td>
+</tr>
+<tr>
+<td style="text-align: right;">5.7</td>
+<td style="text-align: right;">77.7</td>
+<td style="text-align: right;"><u>793</u></td>
+<td style="text-align: right;">3.53</td>
+<td style="text-align: right;">113.2</td>
+</tr>
+<tr>
+<td rowspan="3">BidKV</td>
+<td style="text-align: right;">2.0</td>
+<td style="text-align: right;"><strong>97.0</strong></td>
+<td style="text-align: right;"><strong>258</strong></td>
+<td style="text-align: right;"><strong>1.96</strong></td>
+<td style="text-align: right;"><strong>72.4</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;">3.8</td>
+<td style="text-align: right;"><u>83.2</u></td>
+<td style="text-align: right;"><strong>631</strong></td>
+<td style="text-align: right;">3.42</td>
+<td style="text-align: right;">107.2</td>
+</tr>
+<tr>
+<td style="text-align: right;">5.7</td>
+<td style="text-align: right;"><strong>81.0</strong></td>
+<td style="text-align: right;">797</td>
+<td style="text-align: right;"><u>3.60</u></td>
+<td style="text-align: right;"><u>110.0</u></td>
+</tr>
+</tbody>
+</table>
+</div></figure><h3 id="sec-7-4">6.4 Long-Context Workload<a class="headerlink" href="#sec-7-4" title="复制本节链接">§</a></h3>
+<p>Table 3 extends the evaluation to a long-context workload (500 requests, rate = 0.70 req/s, SLO threshold 2,000 ms). KV pressure is more severe: typical requests consume 2,000–4,000 tokens, saturating the 9,600-token KV budget with just two to four concurrent requests. PE collapses (SLO 5.0%, TTFT <span class="arithmatex">\(\sim\)</span>95 s), confirming that unmanaged LIFO reclamation is untenable for long-context traffic. Among the four active strategies, Largest-First leads on SLO (64.4%)—when all requests are long, evicting the largest frees the most capacity, a regime where capacity-greedy selection excels. BidKV achieves the best TTFT P95 (30,143 ms, 5% better than Static-Random, 25% better than PE-SJF), with competitive SLO (62.3%, 2.1 pp below Largest-First). PE-SJF obtains the best TPOT P95 (145.2 ms) but the worst TTFT (37,551 ms), confirming that admission ordering alone is insufficient when KV pressure is extreme. The TTFT advantage of BidKV reflects the same mechanism as in the mixed workload: utility-ranked selection avoids wasteful recomputation, keeping prefill bandwidth available for queued requests.</p>
+<figure class="paper-table"><figcaption id="tab-3">Table 3: Long-context workload at peak request rate (vLLM, Llama-3.1-8B-Instruct, A6000, 500 req/run, rate = 0.70 req/s, SLO threshold 2,000 ms, mean of 3 independent runs). At lower rates (0.35 and 0.50 req/s) all proactive strategies attain SLO &gt; 70%; relative ordering is qualitatively consistent. Best in bold; second-best underlined.</figcaption><div class="table-scroll"><table aria-labelledby="tab-3">
+<thead>
+<tr>
+<th>Strategy</th>
+<th style="text-align: right;">SLO (2000 ms, %)</th>
+<th style="text-align: right;">TTFT P95 (ms)</th>
+<th style="text-align: right;">Throughput (req/s)</th>
+<th style="text-align: right;">TPOT P95 (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PE (default)</td>
+<td style="text-align: right;">5.0</td>
+<td style="text-align: right;">94696</td>
+<td style="text-align: right;">0.413</td>
+<td style="text-align: right;"><u>184.1</u></td>
+</tr>
+<tr>
+<td>PE-SJF</td>
+<td style="text-align: right;"><u>63.6</u></td>
+<td style="text-align: right;">37551</td>
+<td style="text-align: right;"><u>0.563</u></td>
+<td style="text-align: right;"><strong>145.2</strong></td>
+</tr>
+<tr>
+<td>Static-Random</td>
+<td style="text-align: right;">57.4</td>
+<td style="text-align: right;"><u>31693</u></td>
+<td style="text-align: right;"><strong>0.568</strong></td>
+<td style="text-align: right;">208.3</td>
+</tr>
+<tr>
+<td>Largest-First</td>
+<td style="text-align: right;"><strong>64.4</strong></td>
+<td style="text-align: right;">33345</td>
+<td style="text-align: right;">0.542</td>
+<td style="text-align: right;">239.6</td>
+</tr>
+<tr>
+<td>BidKV</td>
+<td style="text-align: right;">62.3</td>
+<td style="text-align: right;"><strong>30143</strong></td>
+<td style="text-align: right;">0.560</td>
+<td style="text-align: right;">207.0</td>
+</tr>
+</tbody>
+</table>
+</div></figure><h3 id="sec-7-5">6.5 Reclamation Event Analysis<a class="headerlink" href="#sec-7-5" title="复制本节链接">§</a></h3>
+<p>Figure 3 reveals the mechanism behind the rate = 3.8 performance differences:</p>
+<ul>
+<li>PE triggers zero proactive evictions, relying entirely on vLLM's reactive LIFO mechanism. This avoids reclamation cost but forfeits the opportunity to free memory for waiting requests, resulting in high TTFT and low SLO.</li>
+<li>PE-SJF triggers zero proactive evictions, relying entirely on vLLM's reactive LIFO mechanism—identical to PE in reclamation behavior. Yet SJF admission alone lifts SLO from 68.4% to 79.6%, demonstrating that admission ordering contributes more to scheduling quality than the passive reclamation policy.</li>
+<li>Largest-First selects victims by KV occupancy, targeting the request holding the most cache blocks. Without considering cross-request reclamation cost, this occasionally targets near-complete requests whose recompute is expensive, causing cascading pressure.</li>
+<li>BidKV maintains a cached utility-ranked ordering of victim candidates using <span class="arithmatex">\(U = r/(\delta+\varepsilon)\)</span>; the top-ranked entry is consumed at each pressure event. The disruption term <span class="arithmatex">\(\delta\)</span> grows with completion progress and prior preemption count, steering selection toward requests whose eviction frees adequate capacity at low reclamation cost. This produces the best TTFT P95 at rate = 3.8 while maintaining competitive SLO.</li>
+</ul>
+<figure class="paper-figure"><a aria-label="View larger image" class="figure-media" href="../assets/figures/fig3.png"><img alt="Figure 3: Reclamation event analysis (mixed workload, rate = 3.8). Left bars: proactive eviction count. Right bars: total tokens freed (×1000). BidKV balances eviction frequency and tokens freed per event, avoiding the extremes of too-aggressive or too-passive policies." decoding="async" loading="lazy" src="../assets/figures/fig3.png"></a><figcaption>Figure 3: Reclamation event analysis (mixed workload, rate = 3.8). Left bars: proactive eviction count. Right bars: total tokens freed (×1000). BidKV balances eviction frequency and tokens freed per event, avoiding the extremes of too-aggressive or too-passive policies.</figcaption></figure><h3 id="sec-7-6">6.6 Framework Portability<a class="headerlink" href="#sec-7-6" title="复制本节链接">§</a></h3>
+<p>Table 4 reports results on SGLang's RadixAttention engine [25] at the most stressed rate (5.7 req/s, mixed workload). The SGLang adapter applies BidKV's complete scheduling policy—SJF admission ordering, pressure-gated running-queue reorder, and utility-ranked victim selection—mirroring the vLLM configuration without any modification to SGLang's internals.</p>
+<p><strong>Managed scheduling vs. native eviction.</strong> Vanilla SGLang's native LRU eviction yields 55.2% SLO and TTFT P95 of 6,246 ms—reasonable throughput (3.04 req/s) but severe admission latency. Deploying BidKV's full policy on SGLang raises SLO to 86.9% (+31.7 pp) and cuts TTFT P95 to 598 ms (10.4× reduction), demonstrating that the policy is functional and effective on an architecturally distinct serving engine.</p>
+<p><strong>Portability across frameworks.</strong> BidKV also outperforms Random-Evict (SLO 86.9% vs. 85.7%, TTFT P95 598 vs. 878 ms), with notably lower run-to-run variance: Random-Evict's TTFT P95 spans 460–1,700 ms across three runs, while BidKV's range is 475–667 ms. Throughput is within 0.7% (5.53 vs. 5.57 req/s). The key portability result is the pattern: on both vLLM and SGLang, BidKV's scheduling policy achieves the best SLO and TTFT P95 at negligible throughput cost, confirming that the complete policy, including its integration hooks, transfers across serving frameworks without framework-specific tuning.</p>
+<figure class="paper-table"><figcaption id="tab-4">Table 4: Framework portability: SGLang (mixed workload, rate = 5.7 req/s, Llama-3.1-8B-Instruct, A6000, 1,000 req/run, SLO threshold 300 ms, mean of 3 runs). Vanilla SGLang applies no managed victim selection; Random-Evict and BidKV deploy BidKV’s adapter with random and utility-ranked victim selection respectively. Best among active strategies in bold; second-best underlined. † Vanilla SGLang’s low TPOT reflects unobstructed decode throughput, not admission efficiency; its TTFT P95 of 6,246 ms indicates severe admission-latency degradation.</figcaption><div class="table-scroll"><table aria-labelledby="tab-4">
+<thead>
+<tr>
+<th>Strategy</th>
+<th style="text-align: right;">SLO (300 ms, %)</th>
+<th style="text-align: right;">TTFT P95 (ms)</th>
+<th style="text-align: right;">Throughput (req/s)</th>
+<th style="text-align: right;">TPOT P95 (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Vanilla SGLang</td>
+<td style="text-align: right;">55.2</td>
+<td style="text-align: right;">6246</td>
+<td style="text-align: right;">3.04</td>
+<td style="text-align: right;">58.7†</td>
+</tr>
+<tr>
+<td>Random-Evict</td>
+<td style="text-align: right;"><u>85.7</u></td>
+<td style="text-align: right;"><u>878</u></td>
+<td style="text-align: right;"><strong>5.57</strong></td>
+<td style="text-align: right;"><u>88.9</u></td>
+</tr>
+<tr>
+<td>BidKV</td>
+<td style="text-align: right;"><strong>86.9</strong></td>
+<td style="text-align: right;"><strong>598</strong></td>
+<td style="text-align: right;"><u>5.53</u></td>
+<td style="text-align: right;"><strong>85.4</strong></td>
+</tr>
+</tbody>
+</table>
+</div></figure><h2 id="sec-8">7 Discussion and Limitations<a class="headerlink" href="#sec-8" title="复制本节链接">§</a></h2>
+<h3 id="sec-8-1">7.1 Surrogate Disruption Estimate<a class="headerlink" href="#sec-8-1" title="复制本节链接">§</a></h3>
+<p>The disruption estimate <span class="arithmatex">\(\delta\)</span> (Eq. 3) is a ranking signal derived from request-lifecycle features, not a precise reclamation-cost oracle. Exact cost prediction is unnecessary: under recompute-fallback semantics the scheduler's task is to rank victim candidates so that requests whose reclamation is relatively cheap are preferred over expensive ones. The three features—completion progress, prompt length, and preemption history—capture the axes of reclamation heterogeneity established in Section 2 and need only preserve relative ordering across these dimensions to steer selection toward low-cost victims.</p>
+<p>Because reclaimed requests are fully recomputed by the framework's native recovery path, the policy preserves output correctness; the policy governs which request is reclaimed at each pressure event. This choice directly shapes admission responsiveness: cost-aware victim ranking reduces wasted recomputation and keeps KV capacity available for queued requests, reducing TTFT and improving SLO attainment (Section 6).</p>
+<h3 id="sec-8-2">7.2 Limitations<a class="headerlink" href="#sec-8-2" title="复制本节链接">§</a></h3>
+<ul>
+<li><strong>Single GPU.</strong> All experiments use a single A6000. Multi-GPU deployments may introduce coordination overhead for bid collection.</li>
+<li><strong>Single model scale.</strong> We evaluate on Llama-3.1-8B-Instruct. Larger models (70B+) with different KV-to-weight ratios may exhibit different pressure dynamics.</li>
+<li><strong>Execution model.</strong> All experiments use recompute-fallback semantics, the default recovery path in vLLM and SGLang. Alternative execution models (e.g., swap-to-host, partial truncation) may change the cost structure; adapting the scorer to such models is future work.</li>
+</ul>
+<h3 id="sec-8-3">7.3 Broader Impact<a class="headerlink" href="#sec-8-3" title="复制本节链接">§</a></h3>
+<p>Because bids make per-request disruption sensitivity an explicit input to the scheduler, the interface can encode SLO-differentiated serving: higher-priority requests express higher disruption cost, receiving stronger protection against reclamation. A consequence is that lower-priority requests may absorb a disproportionate share of preemption events. Per-request preemption caps—limiting how often any single request can be reclaimed within a scheduling window—provide a straightforward guard; exploring richer fairness-aware scheduling extensions is left to future work.</p>
+<h2 id="sec-9">8 Conclusion<a class="headerlink" href="#sec-9" title="复制本节链接">§</a></h2>
+<p>We presented BidKV, a bid-based scheduling abstraction for active-KV reclamation in online LLM serving. BidKV surfaces per-request reclamation sensitivity as an explicit, structured signal and performs online utility-ranked cross-request victim selection, replacing implicit ordering heuristics with a utility-guided decision interface (<span class="arithmatex">\(U = r/(\delta+\varepsilon)\)</span>). Under recompute-fallback semantics the policy preserves output correctness; the differentiation lies in which request is selected for reclamation at each pressure event—a choice that directly shapes how quickly queued requests receive KV allocation and, consequently, first-token latency and SLO attainment.</p>
+<p>Through a five-strategy evaluation on vLLM with Llama-3.1-8B-Instruct under mixed-length ShareGPT workloads, we showed that BidKV achieves the best cross-rate SLO attainment (87.1%) and TTFT P95 (562 ms), outperforming both capacity-greedy heuristics and default scheduling baselines at a modest throughput cost (<span class="arithmatex">\(\sim\)</span>7%). At low load, BidKV leads on all four metrics. At medium and high load, strategies that enable aggressive SRPT preemption trade tail latency for throughput; BidKV provides the best admission responsiveness under sustained KV pressure. A supplementary long-context evaluation confirms that the benefit is most pronounced when heterogeneous request lifecycles create actionable differences in reclamation cost.</p>
+<p>BidKV integrates with both vLLM and SGLang via a portable adapter abstraction, reusing each framework's native reclamation and recovery paths without source-code modification. The decoupled scoring-to-selection architecture enables independent evolution of scoring strategies and selection algorithms. Future work includes token-level truncation for partial KV release, fairness-aware scheduling extensions, and multi-GPU coordination.</p>
+<h2 id="sec-10">References<a class="headerlink" href="#sec-10" title="复制本节链接">§</a></h2>
+<ol>
+<li>Amey Agrawal, Nitin Kedia, Ashish Panwar, Jayashree Mohan, Nipun Kwatra, Bhargav S. Gulavani, Alexey Tumanov, and Ramachandran Ramjee. 2024. Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve. In <em>Proceedings of the 18th USENIX Symposium on Operating Systems Design and Implementation (OSDI)</em>.</li>
+<li>Joshua Ainslie, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. 2023. GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints. arXiv:2305.13245 [cs.CL]. <a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2305.13245</a></li>
+<li>Zefan Cai, Yichi Zhang, Bofei Gao, Yuliang Liu, Yucheng Li, et al. 2025. PyramidKV: Dynamic KV Cache Compression based on Pyramidal Information Funneling. arXiv:2406.02069 [cs.CL]. <a href="https://arxiv.org/abs/2406.02069" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2406.02069</a></li>
+<li>Ali Ghodsi, Matei Zaharia, Benjamin Hindman, Andy Konwinski, Scott Shenker, and Ion Stoica. 2011. Dominant Resource Fairness: Fair Allocation of Multiple Resource Types. In <em>Proceedings of the 8th USENIX Symposium on Networked Systems Design and Implementation (NSDI)</em>.</li>
+<li>In Gim, Guojun Chen, Seung seob Lee, Nikhil Sarda, Anurag Khandelwal, and Lin Zhong. 2024. Prompt Cache: Modular Attention Reuse for Low-Latency Inference. arXiv:2311.04934 [cs.CL]. <a href="https://arxiv.org/abs/2311.04934" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2311.04934</a></li>
+<li>Robert Grandl, Ganesh Ananthanarayanan, Srikanth Kandula, Sriram Rao, and Aditya Akella. 2014. Multi-resource packing for cluster schedulers. In <em>Proceedings of the 2014 ACM Conference on SIGCOMM</em> (Chicago, Illinois, USA) (SIGCOMM '14). Association for Computing Machinery, New York, NY, USA, 455–466. <a href="https://doi.org/10.1145/2619239.2626334" target="_blank" rel="noopener noreferrer" class="external">https://doi.org/10.1145/2619239.2626334</a></li>
+<li>Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, et al. 2024. The Llama 3 Herd of Models. arXiv:2407.21783 [cs.AI]. <a href="https://arxiv.org/abs/2407.21783" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2407.21783</a></li>
+<li>Arpan Gujarati, Reza Karimi, Safya Alzayat, Wei Hao, Antoine Kaufmann, Ymir Vigfusson, and Jonathan Mace. 2020. Serving DNNs Like Clockwork: Performance Predictability from the Bottom Up. In <em>Proceedings of the 14th USENIX Symposium on Operating Systems Design and Implementation (OSDI)</em>, 443–462.</li>
+<li>Jordan Juravsky, Bradley Brown, Ryan Ehrlich, Daniel Y. Fu, Christopher Ré, and Azalia Mirhoseini. 2024. Hydragen: High-Throughput LLM Inference with Shared Prefixes. arXiv:2402.05099 [cs.LG]. <a href="https://arxiv.org/abs/2402.05099" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2402.05099</a></li>
+<li>Hans Kellerer, Ulrich Pferschy, and David Pisinger. 2004. <em>Knapsack Problems</em>. Springer. <a href="https://doi.org/10.1007/978-3-540-24777-7" target="_blank" rel="noopener noreferrer" class="external">https://doi.org/10.1007/978-3-540-24777-7</a></li>
+<li>Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica. 2023. Efficient Memory Management for Large Language Model Serving with PagedAttention. In <em>Proceedings of the 29th Symposium on Operating Systems Principles</em> (Koblenz, Germany) (SOSP '23). Association for Computing Machinery, New York, NY, USA, 611–626. <a href="https://doi.org/10.1145/3600006.3613165" target="_blank" rel="noopener noreferrer" class="external">https://doi.org/10.1145/3600006.3613165</a></li>
+<li>Yuhong Li, Yingbing Huang, Bowen Yang, Bharat Venkitesh, Acyr Locatelli, Hanchen Ye, Tianle Cai, Patrick Lewis, and Deming Chen. 2024. SnapKV: LLM Knows What You are Looking for Before Generation. arXiv:2404.14469 [cs.CL]. <a href="https://arxiv.org/abs/2404.14469" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2404.14469</a></li>
+<li>Zichang Liu, Aditya Desai, Fangshuo Liao, Weitao Wang, Victor Xie, Zhaozhuo Xu, Anastasios Kyrillidis, and Anshumali Shrivastava. 2023. Scissorhands: Exploiting the Persistence of Importance Hypothesis for LLM KV Cache Compression at Test Time. arXiv:2305.17118 [cs.LG]. <a href="https://arxiv.org/abs/2305.17118" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2305.17118</a></li>
+<li>Silvano Martello and Paolo Toth. 1990. <em>Knapsack Problems: Algorithms and Computer Implementations</em>. John Wiley &amp; Sons.</li>
+<li>Pratyush Patel, Esha Choukse, Chaojie Zhang, Aashaka Shah, Íñigo Goiri, Saeed Maleki, and Ricardo Bianchini. 2025. Splitwise: Efficient Generative LLM Inference Using Phase Splitting. In <em>Proceedings of the 51st Annual International Symposium on Computer Architecture</em> (Buenos Aires, Argentina) (ISCA '24). IEEE Press, 118–132. <a href="https://doi.org/10.1109/ISCA59077.2024.00019" target="_blank" rel="noopener noreferrer" class="external">https://doi.org/10.1109/ISCA59077.2024.00019</a></li>
+<li>Reiner Pope, Sholto Douglas, Aakanksha Chowdhery, Jacob Devlin, James Bradbury, et al. 2022. Efficiently Scaling Transformer Inference. arXiv:2211.05102 [cs.LG]. <a href="https://arxiv.org/abs/2211.05102" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2211.05102</a></li>
+<li>Ying Sheng, Lianmin Zheng, Binhang Yuan, Zhuohan Li, Max Ryabinin, et al. 2023. FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU. arXiv:2303.06865 [cs.LG]. <a href="https://arxiv.org/abs/2303.06865" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2303.06865</a></li>
+<li>TeamShareGPT. 2023. ShareGPT Conversations Dataset.</li>
+<li>Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. <em>Advances in Neural Information Processing Systems</em> 30 (2017).</li>
+<li>Bingyang Wu, Shengyu Liu, Yinmin Zhong, Peng Sun, Xuanzhe Liu, and Xin Jin. 2024. LoongServe: Efficiently Serving Long-Context Large Language Models with Elastic Sequence Parallelism. In <em>Proceedings of the ACM SIGOPS 30th Symposium on Operating Systems Principles</em> (Austin, TX, USA) (SOSP '24). Association for Computing Machinery, New York, NY, USA, 640–654. <a href="https://doi.org/10.1145/3694715.3695948" target="_blank" rel="noopener noreferrer" class="external">https://doi.org/10.1145/3694715.3695948</a></li>
+<li>Guangxuan Xiao, Yuandong Tian, Beidi Chen, Song Han, and Mike Lewis. 2024. Efficient Streaming Language Models with Attention Sinks. arXiv:2309.17453 [cs.CL]. <a href="https://arxiv.org/abs/2309.17453" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2309.17453</a></li>
+<li>Gyeong-In Yu, Joo Seong Jeong, Geon-Woo Kim, Soojeong Kim, and Byung-Gon Chun. 2022. Orca: A Distributed Serving System for Transformer-Based Generative Models. In <em>Proceedings of the 16th USENIX Symposium on Operating Systems Design and Implementation (OSDI)</em>, 521–538.</li>
+<li>Zhenyu Zhang, Ying Sheng, Tianyi Zhou, Tianlong Chen, Lianmin Zheng, et al. 2023. H2O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models. arXiv:2306.14048 [cs.LG]. <a href="https://arxiv.org/abs/2306.14048" target="_blank" rel="noopener noreferrer" class="external">https://arxiv.org/abs/2306.14048</a></li>
+<li>Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Tianle Li, Siyuan Zhuang, et al. 2024. LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset. In <em>Proceedings of the 12th International Conference on Learning Representations (ICLR)</em>.</li>
+<li>Lianmin Zheng, Liangsheng Yin, Zhiqiang Xie, Chuyue Sun, Jeff Huang, et al. 2024. SGLang: Efficient Execution of Structured Language Model Programs. In <em>Advances in Neural Information Processing Systems 37 (NeurIPS 2024)</em>.</li>
+<li>Yinmin Zhong, Shengyu Liu, Junda Chen, Jianbo Hu, Yibo Zhu, Xuanzhe Liu, Xin Jin, and Hao Zhang. 2024. DistServe: Disaggregating Prefill and Decoding for Goodput-optimized Large Language Model Serving. In <em>Proceedings of the 18th USENIX Symposium on Operating Systems Design and Implementation (OSDI)</em>.</li>
+<li>Zirui Liu, Jiayi Yuan, Hongye Jin, Shaochen Zhong, Zhaozhuo Xu, Vladimir Braverman, Beidi Chen, and Xia Hu. 2023. KIVI: Plug-and-play 2bit KV Cache Quantization with Streaming Asymmetric Quantization. <a href="https://doi.org/10.13140/RG.2.2.28167.37282" target="_blank" rel="noopener noreferrer" class="external">https://doi.org/10.13140/RG.2.2.28167.37282</a></li>
+</ol>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{bidkv2026,
+  author = {Yanbo Chen and Mingqi Wang and Shuhao Zhang and Xiaofei Liao and Hai Jin},
+  title = {BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving},
+  year = {2026},
+  howpublished = {SC26: International Conference for High Performance Computing, Networking, Storage and Analysis},
+  url = {https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf},
+  note = {AI Infra Paper Library, bidkv}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</dd></div>
+        <div><dt>作者</dt><dd>Yanbo Chen · Mingqi Wang · Shuhao Zhang · Xiaofei Liao · Hai Jin</dd></div>
+        <div><dt>发表</dt><dd>SC26 国际高性能计算、网络、存储与分析会议 · 2026</dd></div>
+<div><dt>会议页</dt><dd><a href="https://sc26.conference-program.com/presentation/?id=pap1108&amp;sess=sess210" target="_blank" rel="noopener noreferrer">SC26 官方 program</a></dd></div><div><dt>代码</dt><dd><a href="https://github.com/CGCL-codes/BidKV" target="_blank" rel="noopener noreferrer">https://github.com/CGCL-codes/BidKV</a></dd></div><div><dt>原文链接</dt><dd><a href="https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf" target="_blank" rel="noopener noreferrer">https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（10 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-back" href="../../index.html"><span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>返回</span><strong>全部论文</strong></a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/cover.svg" alt="BidKV 论文封面：KV 压力网格、P95 TTFT 631 ms、SLO 83.2% 与 29× 效用" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>BidKV</h2>
+      <p class="rail-authors">Yanbo Chen · Mingqi Wang · Shuhao Zhang · Xiaofei Liao · Hai Jin</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2026</dd></div>
+        <div><dt>页数</dt><dd>10</dd></div>
+        <div><dt>阅读</dt><dd>34 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://sc26.conference-program.com/presentation/?id=pap1108&amp;sess=sess210" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>SC26 会议页</a><a href="https://github.com/CGCL-codes/BidKV" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线 PDF</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=8001617773"></script>
+</body>
+</html>

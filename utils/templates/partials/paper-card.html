@@ -1,0 +1,32 @@
+{% from "partials/icons.html" import icon %}
+<article class="paper-card" data-slug="{{ paper.slug }}">
+  <a class="card-cover" href="{{ paper.slug }}/index.html" tabindex="-1" aria-hidden="true">
+    {% if paper.cover %}
+    <img src="{{ paper.slug }}/{{ paper.cover }}" alt="" loading="lazy" decoding="async">
+    {% else %}
+    <div class="cover-fallback">
+      <span class="cover-kicker">{{ paper.venue_zh or "PAPER" }}</span>
+      <strong>{{ paper.title_zh[:16] }}</strong>
+      <span class="cover-year">{{ paper.year }}</span>
+    </div>
+    {% endif %}
+    <span class="card-number">{{ "%02d"|format(paper.number) }}</span>
+  </a>
+  <div class="card-body">
+    <div class="card-topline">
+      <span>{{ paper.year }}</span>
+      <span class="card-dot"></span>
+      <span>{{ paper.venue_zh or "Research paper" }}</span>
+    </div>
+    <h3><a href="{{ paper.slug }}/index.html">{{ paper.title_zh }}</a></h3>
+    <p class="paper-alt-title" lang="en">{{ paper.title }}</p>
+    <p class="card-summary">{{ paper.abstract_zh|truncate(150, true, "…") }}</p>
+    <div class="paper-tags">
+      {% for tag in paper.tags[:3] %}<span class="chip chip-static">{{ tag }}</span>{% endfor %}
+    </div>
+    <div class="card-footer">
+      <span>{{ icon("clock", 14) }}约 {{ paper.reading_minutes }} 分钟</span>
+      <span class="card-link">阅读 {{ icon("arrow-right", 14) }}</span>
+    </div>
+  </div>
+</article>

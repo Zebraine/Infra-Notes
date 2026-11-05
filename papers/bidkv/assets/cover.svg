@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="BidKV paper cover">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1717"/>
+      <stop offset="0.55" stop-color="#0d1d1c"/>
+      <stop offset="1" stop-color="#102724"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.18" cy="0.18" r="0.75">
+      <stop offset="0" stop-color="#0f766e" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#0f766e" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#274440" stroke-width="1"/>
+    </pattern>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect width="1200" height="900" fill="url(#glow)"/>
+  <rect width="1200" height="900" fill="url(#grid)" opacity="0.5"/>
+
+  <g font-family="'Noto Sans CJK SC','Source Han Sans SC','PingFang SC',sans-serif">
+    <g fill="#7fb8af" font-size="15" font-weight="600" letter-spacing="4">
+      <text x="72" y="88">AI INFRA · PAPER LIBRARY</text>
+      <text x="1010" y="88" text-anchor="end">2026 / 01</text>
+    </g>
+
+    <rect x="72" y="112" width="46" height="3" rx="1.5" fill="#5eead4"/>
+
+    <text x="68" y="288" font-size="132" font-weight="800" letter-spacing="-7" fill="#f0fdfa">BidKV</text>
+
+    <text x="72" y="366" font-size="38" font-weight="600" letter-spacing="-1" fill="#9fe8dc">Utility-Guided Preemption</text>
+    <text x="72" y="414" font-size="27" font-weight="400" fill="#8aa9a5">for KV-Pressure LLM Serving</text>
+
+    <g font-size="12" font-weight="600" letter-spacing="2.2" fill="#6f938d">
+      <text x="72" y="512">TTFT P95</text>
+      <text x="282" y="512">SLO 300 MS</text>
+      <text x="492" y="512">UTILITY</text>
+    </g>
+    <g font-size="38" font-weight="700" fill="#e8fffa" font-family="'JetBrains Mono','SFMono-Regular',monospace">
+      <text x="70" y="562">631<tspan font-size="17" fill="#77a49c"> ms</tspan></text>
+      <text x="280" y="562">83.2<tspan font-size="17" fill="#77a49c"> %</tspan></text>
+      <text x="490" y="562">29<tspan font-size="17" fill="#77a49c"> ×</tspan></text>
+    </g>
+
+    <line x1="72" y1="614" x2="620" y2="614" stroke="#27433f" stroke-width="1"/>
+    <g font-size="14" fill="#7f9d98" font-family="'JetBrains Mono','SFMono-Regular',monospace" letter-spacing="0.5">
+      <text x="72" y="652">pressure</text>
+      <text x="180" y="652" fill="#5eead4">→</text>
+      <text x="214" y="652">bid</text>
+      <text x="270" y="652" fill="#5eead4">→</text>
+      <text x="304" y="652">rank</text>
+      <text x="372" y="652" fill="#5eead4">→</text>
+      <text x="406" y="652">preempt</text>
+    </g>
+
+    <g>
+      <rect x="72" y="786" width="470" height="1" fill="#223c38"/>
+      <text x="72" y="826" font-size="12" fill="#65837e" letter-spacing="2.4">ANONYMOUS PREPRINT</text>
+      <text x="596" y="826" text-anchor="end" font-size="12" fill="#65837e" letter-spacing="2.4">PAPER 01 / 2026</text>
+    </g>
+  </g>
+
+  <g transform="translate(756 150)">
+    <rect x="0" y="0" width="372" height="574" rx="18" fill="#0c1a19" stroke="#2b4a45"/>
+    <g font-family="'JetBrains Mono','SFMono-Regular',monospace">
+      <text x="24" y="42" font-size="11" letter-spacing="1.8" fill="#7f9d98">KV PRESSURE</text>
+      <text x="348" y="42" text-anchor="end" font-size="12" font-weight="700" fill="#f08a7e">94%</text>
+    </g>
+
+    <g transform="translate(24 64)">
+      <rect x="0" y="0" width="324" height="286" rx="10" fill="#102321" stroke="#28443f"/>
+      <g fill="#2d4c46">
+        <rect x="16" y="16" width="34" height="24" rx="3"/><rect x="58" y="16" width="34" height="24" rx="3"/><rect x="100" y="16" width="34" height="24" rx="3"/><rect x="142" y="16" width="34" height="24" rx="3"/><rect x="184" y="16" width="34" height="24" rx="3"/><rect x="226" y="16" width="34" height="24" rx="3"/><rect x="268" y="16" width="34" height="24" rx="3"/>
+        <rect x="16" y="48" width="34" height="24" rx="3"/><rect x="58" y="48" width="34" height="24" rx="3"/><rect x="100" y="48" width="34" height="24" rx="3"/><rect x="226" y="48" width="34" height="24" rx="3"/><rect x="268" y="48" width="34" height="24" rx="3"/>
+        <rect x="16" y="80" width="34" height="24" rx="3"/><rect x="58" y="80" width="34" height="24" rx="3"/><rect x="100" y="80" width="34" height="24" rx="3"/><rect x="184" y="80" width="34" height="24" rx="3"/><rect x="268" y="80" width="34" height="24" rx="3"/>
+        <rect x="16" y="112" width="34" height="24" rx="3"/><rect x="58" y="112" width="34" height="24" rx="3"/><rect x="142" y="112" width="34" height="24" rx="3"/><rect x="184" y="112" width="34" height="24" rx="3"/><rect x="226" y="112" width="34" height="24" rx="3"/>
+        <rect x="16" y="144" width="34" height="24" rx="3"/><rect x="100" y="144" width="34" height="24" rx="3"/><rect x="142" y="144" width="34" height="24" rx="3"/><rect x="268" y="144" width="34" height="24" rx="3"/>
+        <rect x="16" y="176" width="34" height="24" rx="3"/><rect x="58" y="176" width="34" height="24" rx="3"/><rect x="142" y="176" width="34" height="24" rx="3"/><rect x="184" y="176" width="34" height="24" rx="3"/><rect x="226" y="176" width="34" height="24" rx="3"/>
+        <rect x="16" y="208" width="34" height="24" rx="3"/><rect x="100" y="208" width="34" height="24" rx="3"/><rect x="184" y="208" width="34" height="24" rx="3"/><rect x="268" y="208" width="34" height="24" rx="3"/>
+        <rect x="16" y="240" width="34" height="24" rx="3"/><rect x="58" y="240" width="34" height="24" rx="3"/><rect x="100" y="240" width="34" height="24" rx="3"/><rect x="142" y="240" width="34" height="24" rx="3"/><rect x="226" y="240" width="34" height="24" rx="3"/>
+      </g>
+      <g fill="#c98a3e">
+        <rect x="184" y="48" width="34" height="24" rx="3"/><rect x="226" y="80" width="34" height="24" rx="3"/><rect x="142" y="80" width="34" height="24" rx="3"/><rect x="268" y="112" width="34" height="24" rx="3"/><rect x="226" y="144" width="34" height="24" rx="3"/><rect x="100" y="176" width="34" height="24" rx="3"/><rect x="58" y="208" width="34" height="24" rx="3"/><rect x="142" y="240" width="34" height="24" rx="3"/>
+      </g>
+      <rect x="100" y="112" width="34" height="24" rx="3" fill="#c1473a"/>
+      <rect x="96" y="108" width="42" height="32" rx="5" fill="none" stroke="#f08a7e" stroke-width="2"/>
+      <path d="M138 122h22" stroke="#f08a7e" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <g font-family="'JetBrains Mono','SFMono-Regular',monospace">
+        <text x="166" y="120" font-size="9" fill="#f2b0a8">R4</text>
+        <text x="166" y="132" font-size="8" fill="#9d746f">victim</text>
+      </g>
+    </g>
+
+    <g font-family="'JetBrains Mono','SFMono-Regular',monospace">
+      <text x="24" y="388" font-size="10" letter-spacing="1.4" fill="#6e8f89">ACTIVE</text>
+      <text x="100" y="388" font-size="10" letter-spacing="1.4" fill="#c98a3e">PRESSURE</text>
+      <text x="224" y="388" font-size="10" letter-spacing="1.4" fill="#c1473a">VICTIM</text>
+    </g>
+
+    <line x1="24" y1="418" x2="348" y2="418" stroke="#28443f"/>
+    <g font-family="'JetBrains Mono','SFMono-Regular',monospace">
+      <text x="24" y="450" font-size="9" letter-spacing="1.2" fill="#6e8f89">RECLAIMABLE</text>
+      <text x="24" y="486" font-size="28" font-weight="700" fill="#e8fffa">1,825<tspan font-size="12" fill="#77a49c"> tok</tspan></text>
+      <text x="196" y="450" font-size="9" letter-spacing="1.2" fill="#6e8f89">COST</text>
+      <text x="196" y="486" font-size="28" font-weight="700" fill="#e8fffa">62<tspan font-size="12" fill="#77a49c"> tok</tspan></text>
+    </g>
+    <rect x="24" y="514" width="324" height="34" rx="7" fill="#12312d" stroke="#2d5952"/>
+    <text x="186" y="536" text-anchor="middle" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="10" letter-spacing="1" fill="#7fe0d2">utility = r / (δ + ε)  29×</text>
+  </g>
+</svg>

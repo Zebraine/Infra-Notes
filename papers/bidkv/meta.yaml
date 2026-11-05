@@ -1,0 +1,73 @@
+slug: bidkv
+title: "BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving"
+title_zh: "BidKV：面向 KV 压力场景的效用引导抢占调度"
+short_title: "BidKV"
+authors:
+  - "Yanbo Chen"
+  - "Mingqi Wang"
+  - "Shuhao Zhang"
+  - "Xiaofei Liao"
+  - "Hai Jin"
+affiliation: "Huazhong University of Science and Technology (HUST)"
+year: 2026
+date: 2026-11-18
+venue: "SC26: International Conference for High Performance Computing, Networking, Storage and Analysis"
+venue_zh: "SC26"
+venue_full_zh: "SC26 国际高性能计算、网络、存储与分析会议"
+conference_url: "https://sc26.conference-program.com/presentation/?id=pap1108&sess=sess210"
+code_url: "https://github.com/CGCL-codes/BidKV"
+provenance_note: "SC26 录用论文。本地 PDF 为匿名评审版；作者与单位依据 SC26 官方 program 补全，正文数据以本地 PDF 为准。"
+provenance_note_en: "Accepted at SC26. The local PDF is the anonymous review version; authors and affiliations follow the official SC26 program, and body results follow the local PDF."
+type: "系统论文"
+tags:
+  - "LLM Serving"
+  - "KV Cache"
+  - "调度"
+  - "抢占"
+  - "vLLM"
+  - "SGLang"
+abstract: >-
+  When KV-cache demand exceeds GPU memory capacity during online LLM serving,
+  serving engines reclaim cache from active requests to admit waiting ones.
+  Poor victim selection wastes recomputation, delays admission of queued
+  requests, and degrades first-token latency—a metric directly visible to users.
+  Existing policies rely on coarse request-order heuristics (LIFO, FCFS) or
+  independent per-request scoring rules, lacking both explicit reclamation-cost
+  signals and cross-request coordination. We present BidKV, a utility-guided
+  reclamation policy that improves admission responsiveness under KV pressure.
+  Each active request produces a bid encoding recoverable capacity and estimated
+  disruption cost; at each pressure event, an online utility-ranked selection
+  policy identifies the intended highest-utility victim and preempts it via the
+  framework's native mechanism. The current prototype instantiates disruption
+  cost from request-lifecycle proxies (completion progress, prompt length,
+  preemption history) under recompute-fallback semantics. BidKV integrates
+  non-invasively with vLLM and SGLang via a portable adapter layer. Evaluated
+  with Llama-3.1-8B-Instruct on an NVIDIA RTX A6000 under ShareGPT traces, BidKV
+  reduces P95 TTFT by 89% and improves 300 ms SLO attainment by 14.9 pp over
+  vLLM's native policy, at a modest throughput cost.
+abstract_zh: >-
+  在线 LLM 服务过程中，当 KV 缓存需求超过 GPU 显存容量时，服务引擎会从活跃请求中回收缓存，
+  以便接纳等待中的请求。糟糕的牺牲者选择会浪费重算工作、推迟排队请求的准入，并恶化首 token
+  延迟——这是用户可以直接感知的指标。现有策略依赖粗粒度的请求顺序启发式（LIFO、FCFS）或
+  独立的单请求打分规则，既缺乏显式的回收代价信号，也缺乏跨请求协调。我们提出 BidKV，一种
+  效用引导的回收策略，用于改善 KV 压力下的准入响应性。每个活跃请求产生一个投标（bid），
+  编码可回收容量与估计的中断代价；在每次压力事件中，在线效用排序选择策略找出预期效用最高的
+  牺牲者，并通过框架原生机制抢占它。当前原型在重算回退语义下，用请求生命周期代理指标
+  （完成进度、提示长度、抢占历史）实例化中断代价。BidKV 通过可移植适配层以非侵入方式集成
+  vLLM 与 SGLang。在 NVIDIA RTX A6000 上使用 Llama-3.1-8B-Instruct 和 ShareGPT 轨迹评估，
+  BidKV 相比 vLLM 原生策略将 P95 TTFT 降低 89%，将 300 ms SLO 达成率提高 14.9 个百分点，
+  代价是适度的吞吐损失。
+summary: >-
+  用“投标”把每个请求的回收代价显式化，并在批次层面按效用选择牺牲者；在不改 vLLM/SGLang
+  源码的前提下显著降低 KV 压力下的 P95 首 token 延迟。
+cover: "assets/cover.svg"
+cover_alt: "BidKV 论文封面：KV 压力网格、P95 TTFT 631 ms、SLO 83.2% 与 29× 效用"
+pdf: "assets/source.pdf"
+source_url: "https://me.sage.org.ai/contents/research_papers/2026/2026_bidkv_sc_2026.pdf"
+pages: 10
+featured: true
+order: 1
+citation_key: "bidkv2026"
+license: "原文版权归作者所有；本页仅用于学习与研究。"
+translation: "zh.md"
+original: "original.md"

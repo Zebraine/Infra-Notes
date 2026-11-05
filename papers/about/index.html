@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>格式手册 · AI Infra 论文库</title>
+  <meta name="description" content="论文库支持的 Markdown、数学、Mermaid、代码、图片与视频写法。">
+  <meta name="author" content="AI Infra Notes">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="格式手册 · AI Infra 论文库">
+  <meta property="og:description" content="论文库支持的 Markdown、数学、Mermaid、代码、图片与视频写法。">
+  <meta property="og:type" content="article">
+  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../assets/site/pygments.css">
+  <link rel="stylesheet" href="../assets/site/site.css?v=8001617773">
+</head>
+<body id="top" class="page-article nav-about">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html" aria-current="page" class="is-active">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<section class="about-hero">
+  <div class="about-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>格式手册</span>
+    </nav>
+    <p class="eyebrow"><span class="status-dot"></span>FIELD GUIDE</p>
+    <h1>格式手册</h1>
+    <p>这个论文库支持什么、内容放在哪里、怎样新增一篇论文。下面每个示例都由同一套 Markdown 管线实时渲染。</p>
+    <div class="paper-actions" style="margin-top: 20px;">
+      <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+      <a class="btn btn-ghost btn-sm" href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>返回论文库</a>
+    </div>
+  </div>
+</section>
+
+<div class="reading-shell reading-shell-about">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本页目录">
+    <div class="toc-head">
+      <span>本页目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+<nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">关于这个论文库</a></li>
+<li><a href="#sec-2">支持的格式</a><ul>
+<li><a href="#sec-2-1">数学公式</a></li>
+<li><a href="#sec-2-2">Mermaid 图</a></li>
+<li><a href="#sec-2-3">代码块</a></li>
+<li><a href="#sec-2-4">表格</a></li>
+<li><a href="#sec-2-5">图片</a></li>
+<li><a href="#sec-2-6">视频</a></li>
+<li><a href="#sec-2-7">提示块</a></li>
+</ul>
+</li>
+<li><a href="#sec-3">文件结构</a></li>
+<li><a href="#sec-4">新增一篇论文</a></li>
+<li><a href="#sec-5">设计取舍</a></li>
+</ul>
+</div>
+</nav>    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p><strong>格式手册</strong><span>示例中的图片、视频、公式与图表都是真实渲染结果，不是截图。</span></p>
+    </div>
+    <h2 id="sec-1">关于这个论文库<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>这里是 AI Infra 方向系统论文的中文精读与原文对照。每篇论文都保留原始 PDF、英文原文、
+逐节中文译文，以及从原文裁切的图表；公式、表格和章节编号尽量与原文一致。</p>
+<p>本站是一个纯静态站点：内容是可移植的 Markdown，页面、目录、搜索索引和资源清单都由
+<code>utils/</code> 下的构建器生成。没有数据库，也没有运行时后端。</p>
+<h2 id="sec-2">支持的格式<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<h3 id="sec-2-1">数学公式<a class="headerlink" href="#sec-2-1" title="复制本节链接">§</a></h3>
+<p>行内公式：<span class="arithmatex">\(U(b)=r/(\delta+\varepsilon)\)</span>。块级公式：</p>
+<div class="arithmatex">\[
+U(b)=\frac{b.r}{b.\delta+\varepsilon},
+\qquad \varepsilon=10^{-3}
+\]</div>
+<h3 id="sec-2-2">Mermaid 图<a class="headerlink" href="#sec-2-2" title="复制本节链接">§</a></h3>
+<figure class="mermaid-figure" data-diagram><div class="mermaid-toolbar"><span class="mermaid-label"><span class="dot"></span>Mermaid</span><span class="mermaid-hint">点击图表可放大</span></div><div class="mermaid" data-src="&quot;flowchart LR\n  P[\&quot;KV 使用率&lt;br/&gt;超过阈值\&quot;] --&gt; D[\&quot;压力检测\&quot;]\n  D --&gt; B[\&quot;为每个请求&lt;br/&gt;生成投标\&quot;]\n  B --&gt; R[\&quot;按效用 U = r/(δ+ε)&lt;br/&gt;排序\&quot;]\n  R --&gt; V[\&quot;选择最高效用&lt;br/&gt;牺牲者\&quot;]\n  V --&gt; E[\&quot;框架原生抢占\&quot;]\n  E --&gt; Q[\&quot;请求重新排队\&quot;]\n  Q -.-&gt; P&quot;"></div><figcaption class="mermaid-caption">BidKV 的一次压力事件</figcaption></figure>
+<h3 id="sec-2-3">代码块<a class="headerlink" href="#sec-2-3" title="复制本节链接">§</a></h3>
+<p>带文件名和语法高亮：</p>
+<div class="language-python codehilite"><span class="filename">utils/paperlib/utility.py</span><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">utility</span><span class="p">(</span><span class="n">freed_tokens</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">disruption</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Rank a request by reclaimable capacity per unit disruption."""</span>
+    <span class="k">return</span> <span class="n">freed_tokens</span> <span class="o">/</span> <span class="p">(</span><span class="n">disruption</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="sec-2-4">表格<a class="headerlink" href="#sec-2-4" title="复制本节链接">§</a></h3>
+<figure class="paper-table"><figcaption id="tab-format">表 1：格式能力一览。</figcaption><div class="table-scroll"><table aria-labelledby="tab-format">
+<thead>
+<tr>
+<th>能力</th>
+<th>写法</th>
+<th>页面效果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数学</td>
+<td><code>$...$</code> / <code>$$...$$</code></td>
+<td>KaTeX 渲染，可横向滚动</td>
+</tr>
+<tr>
+<td>图表</td>
+<td><code>```mermaid</code></td>
+<td>本地 Mermaid 渲染，可放大</td>
+</tr>
+<tr>
+<td>代码</td>
+<td>三反引号 + 语言</td>
+<td>Pygments 高亮、复制按钮</td>
+</tr>
+<tr>
+<td>图片</td>
+<td><code>![图注](assets/...)</code></td>
+<td>语义化 figure、灯箱预览</td>
+</tr>
+<tr>
+<td>视频</td>
+<td><code>```video</code></td>
+<td>本地 MP4 或 YouTube/Bilibili</td>
+</tr>
+<tr>
+<td>目录</td>
+<td>自动从 h2/h3 生成</td>
+<td>滚动高亮、移动端抽屉</td>
+</tr>
+</tbody>
+</table>
+</div></figure><h3 id="sec-2-5">图片<a class="headerlink" href="#sec-2-5" title="复制本节链接">§</a></h3>
+<figure class="paper-figure"><a aria-label="查看大图" class="figure-media" href="../bidkv/assets/figures/fig2.png"><img alt="图 1：BidKV 的四层调度架构。图片会自动包成 figure，并支持点击放大。" decoding="async" loading="lazy" src="../bidkv/assets/figures/fig2.png"></a><figcaption>图 1：BidKV 的四层调度架构。图片会自动包成 figure，并支持点击放大。</figcaption></figure><h3 id="sec-2-6">视频<a class="headerlink" href="#sec-2-6" title="复制本节链接">§</a></h3>
+<p>本地视频会自动响应式铺满容器，支持封面图和说明文字：</p>
+<figure class="paper-video"><div class="video-frame"><video controls playsinline preload="metadata" poster="assets/demo-poster.jpg" muted><source src="assets/demo.mp4" type="video/mp4">你的浏览器不支持内嵌视频，请下载后观看。</video></div><figcaption><span class="video-caption">示例视频：KV 压力下的一次抢占与重算循环。</span><span class="video-credit">由 ffmpeg 生成，仅用于演示视频块。</span></figcaption></figure>
+<h3 id="sec-2-7">提示块<a class="headerlink" href="#sec-2-7" title="复制本节链接">§</a></h3>
+<div class="admonition note">
+<p class="admonition-title">写作约定</p>
+<p>术语第一次出现时保留英文原文，例如 prefill（预填充）、victim（被抢占请求）。
+公式中的符号与原文保持一致，方便逐条核对。</p>
+</div>
+<h2 id="sec-3">文件结构<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<div class="language-text codehilite"><pre><span></span><code>papers/
+  bidkv/
+    meta.yaml          # 标题、作者、摘要、标签、封面
+    zh.md              # 中文译文
+    original.md        # 英文原文
+    assets/
+      source.pdf       # 原始 PDF
+      figures/         # 从 PDF 裁切的图
+  index.html           # 论文库首页（生成）
+  bidkv/index.html     # 译文页（生成）
+  bidkv/original/      # 原文页（生成）
+</code></pre></div>
+<h2 id="sec-4">新增一篇论文<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<div class="language-bash codehilite"><pre><span></span><code>python3<span class="w"> </span>utils/new_paper.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--slug<span class="w"> </span>my-paper<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--title<span class="w"> </span><span class="s2">"Paper Title"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--title-zh<span class="w"> </span><span class="s2">"论文中文标题"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--url<span class="w"> </span><span class="s2">"https://example.com/paper.pdf"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--year<span class="w"> </span><span class="m">2026</span>
+
+<span class="c1"># 编辑 papers/my-paper/zh.md、original.md 和 meta.yaml</span>
+./utils/build.sh
+</code></pre></div>
+<p>构建器会校验中英文标题层级、图片路径、重复 id 和缺失资源。若两版章节结构不一致，
+语言切换会报错，而不是悄悄跳到错误位置。</p>
+<h2 id="sec-5">设计取舍<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<ul>
+<li><strong>静态优先</strong>：所有页面可直接用浏览器打开，不需要服务器；KaTeX、Mermaid 全部本地化。</li>
+<li><strong>章节 id 对齐</strong>：中英文使用同一套 <code>sec-*</code> id，切换语言时保留当前阅读位置。</li>
+<li><strong>内容与样式分离</strong>：论文只写 Markdown；版式、目录、灯箱、搜索都在 <code>utils/</code> 中维护。</li>
+<li><strong>可校验</strong>：构建失败比发布坏链接好；<code>--strict</code> 会把警告升级为错误。</li>
+</ul>
+  </article>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../assets/vendor/katex/katex.min.js"></script><script src="../assets/vendor/mermaid/mermaid.min.js"></script>  <script src="../assets/site/site.js?v=8001617773"></script>
+</body>
+</html>

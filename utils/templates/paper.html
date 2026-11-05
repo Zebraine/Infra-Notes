@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+
+{% block content %}
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="{{ root }}index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER {{ "%02d"|format(paper.number) }}</span>
+      <span aria-hidden="true">/</span>
+      <span>{{ lang_label }}</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER {{ "%02d"|format(paper.number) }} · {{ paper.year }}{% if paper.venue_zh %} · {{ paper.venue_zh }}{% endif %}</p>
+        <h1>{{ paper_title }}</h1>
+        <p class="paper-alt-title" lang="{{ 'en' if lang == 'zh' else 'zh-CN' }}">{{ alt_title }}</p>
+        <p class="paper-authors">{{ paper.authors_line }}{% if paper.affiliation %} <span class="affiliation">· {{ paper.affiliation }}</span>{% endif %}</p>
+        {% if paper.provenance_note %}
+        <p class="paper-status">{{ paper.provenance_note if lang == "zh" else paper.provenance_note_en }}</p>
+        {% endif %}
+        <div class="paper-meta paper-meta-lg">
+          {% if paper.pages %}<span>{{ icon("file", 16) }}{{ paper.pages }} 页原文</span>{% endif %}
+          <span>{{ icon("clock", 16) }}约 {{ reading_minutes }} 分钟</span>
+          <span>{{ icon("book", 16) }}中英双语</span>
+          <span>{{ icon("layers", 16) }}{{ paper.tags|length }} 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="{{ translation_url }}" class="{{ 'is-active' if lang == 'zh' else '' }}"{% if lang == 'zh' %} aria-current="page"{% endif %} data-lang="zh">中文译文</a>
+          <a href="{{ original_url }}" class="{{ 'is-active' if lang == 'en' else '' }}"{% if lang == 'en' %} aria-current="page"{% endif %} data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="{{ pdf_url }}" target="_blank" rel="noopener">{{ icon("file", 16) }}PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex">{{ icon("quote", 16) }}引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false">{{ icon("menu", 16) }}目录</button>
+        </div>
+        <p class="paper-side-note">{{ "译文由 AI 辅助完成，技术细节以原文为准。" if lang == "zh" else "Original text transcribed from the paper PDF." }}</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+      {% for tag in paper.tags %}<a class="chip chip-static" href="{{ root }}index.html?tag={{ tag|urlencode }}">{{ tag }}</a>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录">{{ icon("x", 18) }}</button>
+    </div>
+    <div class="toc-scroll">
+      {% if toc %}
+      <nav class="toc" aria-label="章节导航">{{ toc }}</nav>
+      {% else %}
+      <p class="toc-empty">本文没有分级标题。</p>
+      {% endif %}
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top">{{ icon("arrow-up", 14) }}回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon">{{ icon("info", 18) }}</span>
+      <p>
+        {% if lang == "zh" %}
+        <strong>中文译文</strong><span>{{ translation_note }}</span>
+        {% else %}
+        <strong>Original</strong><span>English text transcribed from the paper PDF. Figures are cropped from the original; equation and section numbers follow the PDF.</span>
+        {% endif %}
+      </p>
+    </div>
+
+    {{ body }}
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex">{{ icon("copy", 15) }}复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>{{ citation }}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">{{ paper.title }}</dd></div>
+        <div><dt>作者</dt><dd>{{ paper.authors_line }}</dd></div>
+        <div><dt>发表</dt><dd>{{ paper.venue_full_zh or paper.venue_zh or "未注明" }} · {{ paper.year }}</dd></div>
+        {% if paper.conference_url %}<div><dt>会议页</dt><dd><a href="{{ paper.conference_url }}" target="_blank" rel="noopener noreferrer">SC26 官方 program</a></dd></div>{% endif %}
+        {% if paper.code_url %}<div><dt>代码</dt><dd><a href="{{ paper.code_url }}" target="_blank" rel="noopener noreferrer">{{ paper.code_url }}</a></dd></div>{% endif %}
+        {% if paper.source_url %}<div><dt>原文链接</dt><dd><a href="{{ paper.source_url }}" target="_blank" rel="noopener noreferrer">{{ paper.source_url }}</a></dd></div>{% endif %}
+        <div><dt>PDF</dt><dd><a href="{{ pdf_url }}" target="_blank" rel="noopener">本地存档（{{ paper.pages or "?" }} 页）</a></dd></div>
+        <div><dt>译本</dt><dd>{{ "中文译文由 AI 辅助完成；如发现术语或公式问题，请以英文原文为准。" if lang == "zh" else "English text transcribed from the original PDF for reading convenience." }}</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      {% if prev_paper %}
+      <a class="pager-link pager-prev" href="{{ root }}{{ prev_paper.slug }}/{{ 'original/' if lang == 'en' else '' }}index.html">
+        <span class="pager-label">{{ icon("arrow-left", 14) }}更新一篇</span>
+        <strong>{{ prev_paper.title_zh if lang == "zh" else prev_paper.title }}</strong>
+      </a>
+      {% endif %}
+      {% if next_paper %}
+      <a class="pager-link pager-next" href="{{ root }}{{ next_paper.slug }}/{{ 'original/' if lang == 'en' else '' }}index.html">
+        <span class="pager-label">更早一篇{{ icon("arrow-right", 14) }}</span>
+        <strong>{{ next_paper.title_zh if lang == "zh" else next_paper.title }}</strong>
+      </a>
+      {% endif %}
+      {% if not prev_paper and not next_paper %}
+      <a class="pager-link pager-back" href="{{ root }}index.html"><span class="pager-label">{{ icon("arrow-left", 14) }}返回</span><strong>全部论文</strong></a>
+      {% endif %}
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      {% if cover_url %}
+      <div class="rail-cover"><img src="{{ cover_url }}" alt="{{ paper.cover_alt }}" loading="lazy" decoding="async"></div>
+      {% endif %}
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>{{ paper.short_title }}</h2>
+      <p class="rail-authors">{{ paper.authors_line }}</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>{{ paper.year }}</dd></div>
+        <div><dt>页数</dt><dd>{{ paper.pages or "—" }}</dd></div>
+        <div><dt>阅读</dt><dd>{{ reading_minutes }} 分钟</dd></div>
+        <div><dt>版本</dt><dd>{{ lang_label }}</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="{{ pdf_url }}" target="_blank" rel="noopener">{{ icon("file", 15) }}PDF 原文</a>
+        {% if paper.conference_url %}<a href="{{ paper.conference_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}SC26 会议页</a>{% endif %}
+        {% if paper.code_url %}<a href="{{ paper.code_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}代码仓库</a>{% endif %}
+        {% if paper.source_url %}<a href="{{ paper.source_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}在线 PDF</a>{% endif %}
+        <a href="{{ original_url if lang == 'zh' else translation_url }}">{{ icon("book", 15) }}{{ "English Original" if lang == "zh" else "中文译文" }}</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex">{{ icon("copy", 16) }}复制引用</button>
+      <button class="rail-action" type="button" data-copy-url>{{ icon("external", 16) }}复制本页链接</button>
+      <a class="rail-action" href="#cite">{{ icon("quote", 16) }}跳转到引用</a>
+    </div>
+
+    {% if related %}
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        {% for item in related %}
+        <a class="related-item" href="{{ root }}{{ item.slug }}/{{ 'original/' if lang == 'en' else '' }}index.html">
+          <span class="related-year">{{ item.year }}</span>
+          <strong>{{ item.title_zh if lang == "zh" else item.title }}</strong>
+          <span class="related-meta">约 {{ item.reading }} 分钟</span>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

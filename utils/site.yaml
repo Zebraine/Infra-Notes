@@ -1,0 +1,13 @@
+title: "AI Infra 论文库"
+short_title: "AI Infra Papers"
+description: "AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。"
+author: "AI Infra Notes"
+lang: "zh-CN"
+accent: "#0f766e"
+repo_url: ""
+footer_note: "内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。"
+nav:
+  - label: "论文库"
+    href: "index.html"
+  - label: "格式手册"
+    href: "about/index.html"

@@ -1,0 +1,6 @@
+{
+  "version": "8001617773",
+  "site": "assets/site/",
+  "katex": "assets/vendor/katex/",
+  "mermaid": "assets/vendor/mermaid/"
+}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "partials/icons.html" import icon %}
+
+{% block content %}
+<section class="about-hero">
+  <div class="about-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="{{ root }}index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>格式手册</span>
+    </nav>
+    <p class="eyebrow"><span class="status-dot"></span>FIELD GUIDE</p>
+    <h1>格式手册</h1>
+    <p>这个论文库支持什么、内容放在哪里、怎样新增一篇论文。下面每个示例都由同一套 Markdown 管线实时渲染。</p>
+    <div class="paper-actions" style="margin-top: 20px;">
+      <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false">{{ icon("menu", 16) }}目录</button>
+      <a class="btn btn-ghost btn-sm" href="{{ root }}index.html">{{ icon("arrow-left", 15) }}返回论文库</a>
+    </div>
+  </div>
+</section>
+
+<div class="reading-shell reading-shell-about">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本页目录">
+    <div class="toc-head">
+      <span>本页目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录">{{ icon("x", 18) }}</button>
+    </div>
+    <div class="toc-scroll">
+      {% if toc %}<nav class="toc" aria-label="章节导航">{{ toc }}</nav>{% endif %}
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top">{{ icon("arrow-up", 14) }}回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon">{{ icon("info", 18) }}</span>
+      <p><strong>格式手册</strong><span>示例中的图片、视频、公式与图表都是真实渲染结果，不是截图。</span></p>
+    </div>
+    {{ body }}
+  </article>
+</div>
+{% endblock %}
