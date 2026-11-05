@@ -1105,17 +1105,18 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 
 .paper-list {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-auto-rows: 1fr;
-  gap: 24px;
+  gap: 22px;
   margin-top: 22px;
 }
 
 .paper-card {
-  display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
   background: var(--bg-elev);
   box-shadow: var(--shadow-sm);
   transition:
@@ -1131,7 +1132,9 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .card-cover {
   position: relative;
   display: block;
-  min-height: 390px;
+  flex: none;
+  aspect-ratio: 2 / 1;
+  min-height: 0;
   overflow: hidden;
   background:
     radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
@@ -1143,7 +1146,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 
 .cover-art {
   position: absolute;
-  inset: 22px;
+  inset: 18px;
   z-index: 1;
   background-position: center;
   background-repeat: no-repeat;
@@ -1165,7 +1168,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 }
 
 .cover-art--figure::before {
-  inset: -22px;
+  inset: -18px;
   background-image:
     radial-gradient(circle at 20% 12%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 58%),
     linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
@@ -1192,7 +1195,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 
 .cover-overlay {
   position: absolute;
-  inset: 16px 16px auto;
+  inset: 14px 14px auto;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -1205,44 +1208,19 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   border-color: rgba(255, 255, 255, 0.26);
 }
 
-.cover-caption {
-  position: absolute;
-  bottom: 22px;
-  left: 22px;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  color: #fff;
-  pointer-events: none;
-}
-
-.cover-caption span {
-  color: rgba(255, 255, 255, 0.58);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.16em;
-}
-
-.cover-caption strong {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
 .paper-badge,
 .paper-year {
   display: inline-flex;
   align-items: center;
-  min-height: 26px;
-  padding: 0 9px;
+  min-height: 24px;
+  padding: 0 8px;
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 6px;
   background: rgba(10, 16, 18, 0.38);
   backdrop-filter: blur(8px);
   color: #fff;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.07em;
 }
@@ -1257,8 +1235,8 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  min-height: 390px;
-  padding: 24px;
+  min-height: 0;
+  padding: 20px;
   background:
     radial-gradient(
       circle at 82% 16%,
@@ -1279,7 +1257,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 .cover-fallback strong {
   max-width: 88%;
   color: var(--ink);
-  font-size: clamp(1.5rem, 2.4vw, 2.2rem);
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
   line-height: 1.25;
   letter-spacing: -0.03em;
 }
@@ -1292,17 +1270,17 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 
 .card-body {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
-  padding: clamp(26px, 3.2vw, 44px);
+  padding: 22px 24px 24px;
 }
 
 .card-body h3 {
   display: -webkit-box;
-  min-height: 2.4em;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
   overflow: hidden;
-  font-size: clamp(1.55rem, 2.5vw, 2.18rem);
+  font-size: clamp(1.3rem, 1.55vw, 1.55rem);
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.035em;
@@ -1321,35 +1299,34 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
 
 .card-body .paper-alt-title {
   overflow: hidden;
-  font-size: 15px;
+  font-size: 14px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .card-body .paper-authors {
   display: -webkit-box;
-  min-height: 3.2em;
-  margin-top: 12px;
+  margin-top: 9px;
   overflow: hidden;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12.5px;
+  line-height: 1.55;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .card-summary {
   display: -webkit-box;
-  margin-top: 18px;
+  margin-top: 14px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 14.5px;
-  line-height: 1.8;
+  font-size: 13.5px;
+  line-height: 1.7;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
 }
 
 .card-body .paper-tags {
-  margin-top: 20px;
+  margin-top: 14px;
 }
 
 .card-footer {
@@ -1357,16 +1334,16 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   margin-top: auto;
-  padding-top: 26px;
+  padding-top: 16px;
 }
 
 .card-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .file-btn {
@@ -3042,7 +3019,14 @@ summary {
   width: auto;
   height: auto;
   border-radius: 6px;
+}
+
+.lightbox-media img {
   background: #fff;
+}
+
+.lightbox-media svg {
+  background: var(--bg-elev);
 }
 
 .lightbox-caption {
@@ -3239,14 +3223,6 @@ html[data-reading-size="lg"] .paper-prose {
     right: -18px;
   }
 
-  .paper-card {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  }
-
-  .card-cover {
-    min-height: 340px;
-  }
-
   .reading-guide {
     grid-template-columns: minmax(0, 1fr);
     gap: 30px;
@@ -3291,17 +3267,12 @@ html[data-reading-size="lg"] .paper-prose {
     text-align: left;
   }
 
-  .paper-card {
+  .paper-list {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .card-cover {
-    min-height: 0;
-    aspect-ratio: 16 / 8.5;
-  }
-
   .card-body {
-    padding: 26px;
+    padding: 24px;
   }
 
   .reading-shell,
@@ -3465,10 +3436,6 @@ html[data-reading-size="lg"] .paper-prose {
 
   .paper-list {
     gap: 18px;
-  }
-
-  .card-cover {
-    aspect-ratio: 16 / 10;
   }
 
   .card-footer {

@@ -10,12 +10,6 @@
       <span class="cover-year">{{ paper.year }}</span>
     </span>
     {% endif %}
-    {% if paper.cover and not paper.cover.endswith('.svg') %}
-    <span class="cover-caption" aria-hidden="true">
-      <span>FIGURE</span>
-      <strong>{{ paper.short_title }}</strong>
-    </span>
-    {% endif %}
     <span class="cover-overlay">
       <span class="paper-badge">PAPER {{ "%02d"|format(paper.number) }}</span>
       <span class="paper-year">{{ paper.year }}</span>

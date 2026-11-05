@@ -316,6 +316,39 @@
     });
   }
 
+  function fitSvgToLightbox(svg) {
+    var box = (svg.getAttribute("viewBox") || "")
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
+    if (
+      box.length !== 4 ||
+      !isFinite(box[2]) ||
+      !isFinite(box[3]) ||
+      box[2] <= 0 ||
+      box[3] <= 0
+    ) {
+      svg.removeAttribute("width");
+      svg.removeAttribute("height");
+      svg.style.width = "auto";
+      svg.style.height = "auto";
+      svg.style.maxWidth = "92vw";
+      svg.style.maxHeight = "74vh";
+      return;
+    }
+    var maxWidth = Math.max(160, window.innerWidth * 0.92);
+    var maxHeight = Math.max(120, window.innerHeight * 0.74);
+    var scale = Math.min(maxWidth / box[2], maxHeight / box[3]);
+    var width = Math.max(1, Math.round(box[2] * scale));
+    var height = Math.max(1, Math.round(box[3] * scale));
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+    svg.style.width = width + "px";
+    svg.style.height = height + "px";
+    svg.style.maxWidth = "92vw";
+    svg.style.maxHeight = "74vh";
+  }
+
   function showLightbox(index) {
     if (!gallery.length) return;
     if (index < 0) index = gallery.length - 1;
@@ -332,8 +365,7 @@
       media.appendChild(image);
     } else if (item.type === "svg" && item.svg) {
       var clone = item.svg.cloneNode(true);
-      clone.removeAttribute("width");
-      clone.removeAttribute("height");
+      fitSvgToLightbox(clone);
       media.appendChild(clone);
     }
     caption.textContent = item.caption || "";
@@ -389,6 +421,13 @@
         if (index < 0) return;
         openLightbox(index, figure);
       });
+    });
+    window.addEventListener("resize", function () {
+      if (!lightbox || lightbox.hidden) return;
+      var item = gallery[lightboxIndex];
+      if (!item || item.type !== "svg") return;
+      var svg = $(".lightbox-media svg", lightbox);
+      if (svg) fitSvgToLightbox(svg);
     });
     document.addEventListener("keydown", function (event) {
       if (!lightbox || lightbox.hidden) return;
