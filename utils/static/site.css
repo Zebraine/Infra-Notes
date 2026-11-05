@@ -704,34 +704,108 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 430px;
+  min-height: 500px;
+}
+
+.pressure-stack {
+  position: relative;
+  width: min(100%, 390px);
+  height: 440px;
 }
 
 .pressure-card {
-  position: relative;
-  z-index: 2;
-  width: min(100%, 390px);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--bg-elev);
   box-shadow: var(--shadow-lg);
-  transform: rotate(-1.6deg);
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform-origin: 50% 75%;
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+  will-change: transform;
 }
 
-.hero-visual:hover .pressure-card {
-  transform: rotate(0deg) translateY(-3px);
+.pressure-card.is-front {
+  z-index: 3;
+  transform: rotate(-1.6deg) translate(0, 0);
+}
+
+.pressure-card.is-mid {
+  z-index: 2;
+  box-shadow: var(--shadow-md);
+  transform: rotate(3.8deg) translate(24px, 16px) scale(0.96);
+}
+
+.pressure-card.is-back {
+  z-index: 1;
+  box-shadow: var(--shadow-md);
+  transform: rotate(-6.5deg) translate(-30px, 34px) scale(0.92);
+}
+
+.pressure-stack:hover .pressure-card.is-front {
+  transform: rotate(-0.8deg) translateY(-6px);
+}
+
+.pressure-stack:hover .pressure-card.is-mid {
+  transform: rotate(4.8deg) translate(32px, 22px) scale(0.965);
+}
+
+.pressure-stack:hover .pressure-card.is-back {
+  transform: rotate(-8deg) translate(-38px, 44px) scale(0.93);
 }
 
 .pressure-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.08em;
+}
+
+.pressure-paper {
+  margin: 0 0 12px;
+}
+
+.pressure-kicker {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  letter-spacing: 0.07em;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pressure-paper strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.pressure-subtitle {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pressure-label {
@@ -873,7 +947,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   font-weight: 500;
 }
 
-.victim-tag {
+.hero-tag {
   position: absolute;
   top: 47%;
   right: -34px;
@@ -881,26 +955,34 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   align-items: center;
   gap: 6px;
   padding: 7px 11px;
-  border: 1px solid color-mix(in srgb, var(--red) 35%, var(--line));
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
   border-radius: 7px;
   background: var(--bg-elev);
   box-shadow: var(--shadow-md);
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 9.5px;
+  white-space: nowrap;
   transform: rotate(2deg);
+  transition: opacity 0.3s ease;
 }
 
-.victim-tag span {
+.pressure-card:not(.is-front) .hero-tag {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.hero-tag span {
   padding: 2px 5px;
   border-radius: 3px;
-  background: var(--red-soft);
-  color: var(--red);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
   font-weight: 700;
 }
 
 .pressure-flow {
-  margin-top: 14px;
+  margin-top: auto;
+  padding-top: 12px;
   color: var(--faint);
   font-family: var(--font-mono);
   font-size: 9px;
@@ -961,9 +1043,7 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   margin-bottom: 26px;
 }
 
-.section-head h2,
-.reading-guide h2,
-.build-note h2 {
+.section-head h2 {
   font-size: clamp(1.8rem, 3vw, 2.45rem);
   font-weight: 800;
   letter-spacing: -0.035em;
@@ -1387,129 +1467,6 @@ html[data-theme="dark"] .theme-toggle .icon-moon {
   margin-bottom: 18px;
   color: var(--muted);
   font-size: 13.5px;
-}
-
-/* --------------------------------------------------------------------------
-   Reading guide / build note
-   -------------------------------------------------------------------------- */
-
-.reading-guide {
-  display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
-  gap: clamp(36px, 6vw, 88px);
-  width: min(100% - 48px, var(--content-w));
-  margin: 0 auto;
-  padding: clamp(56px, 7vw, 84px) 0;
-  border-top: 1px solid var(--line);
-}
-
-.guide-intro p:last-child {
-  max-width: 360px;
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 14.5px;
-  line-height: 1.8;
-}
-
-.guide-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.guide-list li {
-  padding: 0 22px;
-  border-left: 1px solid var(--line);
-}
-
-.guide-list li:first-child {
-  padding-left: 0;
-  border-left: 0;
-}
-
-.guide-num {
-  display: block;
-  margin-bottom: 18px;
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-}
-
-.guide-list h3 {
-  margin-bottom: 10px;
-  font-size: 17px;
-  font-weight: 750;
-}
-
-.guide-list p {
-  color: var(--muted);
-  font-size: 13.5px;
-  line-height: 1.75;
-}
-
-.build-note {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 40px;
-  align-items: center;
-  width: min(100% - 48px, var(--content-w));
-  margin: 0 auto clamp(56px, 7vw, 88px);
-  padding: clamp(30px, 4vw, 46px);
-  border-radius: var(--radius-lg);
-  background: var(--panel);
-  color: var(--panel-ink);
-}
-
-.build-note .eyebrow {
-  color: var(--panel-muted);
-}
-
-.build-note h2 {
-  margin-bottom: 12px;
-  color: var(--panel-ink);
-}
-
-.build-note p:last-child {
-  max-width: 520px;
-  color: var(--panel-muted);
-  font-size: 14px;
-  line-height: 1.75;
-}
-
-.build-note code {
-  color: #7ff5e4;
-}
-
-.build-command {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  justify-self: end;
-  width: min(100%, 390px);
-  padding: 20px;
-  border: 1px solid rgba(127, 245, 228, 0.22);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.2);
-}
-
-.build-command code {
-  font-size: clamp(1rem, 2vw, 1.28rem);
-  letter-spacing: -0.02em;
-}
-
-.build-command code span {
-  margin-right: 8px;
-  color: var(--panel-muted);
-}
-
-.build-command > span {
-  color: var(--panel-muted);
-  font-size: 11.5px;
 }
 
 /* --------------------------------------------------------------------------
@@ -3216,30 +3173,22 @@ html[data-reading-size="lg"] .paper-prose {
   }
 
   .hero-visual {
-    min-height: 380px;
+    min-height: 480px;
   }
 
-  .victim-tag {
+  .pressure-stack {
+    width: min(100%, 340px);
+    height: 424px;
+  }
+
+  .pressure-card {
+    padding: 18px;
+  }
+
+  .hero-tag {
     right: -18px;
   }
 
-  .reading-guide {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 30px;
-  }
-
-  .guide-intro p:last-child {
-    max-width: 560px;
-  }
-
-  .build-note {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 26px;
-  }
-
-  .build-command {
-    justify-self: start;
-  }
 }
 
 @media (max-width: 920px) {
@@ -3393,8 +3342,6 @@ html[data-reading-size="lg"] .paper-prose {
   }
 
   .library,
-  .reading-guide,
-  .build-note,
   .footer-inner,
   .paper-hero-inner,
   .about-hero-inner {
@@ -3449,29 +3396,6 @@ html[data-reading-size="lg"] .paper-prose {
 
   .card-actions .btn {
     flex: 1;
-  }
-
-  .guide-list {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 22px;
-  }
-
-  .guide-list li,
-  .guide-list li:first-child {
-    padding: 0;
-    border-left: 0;
-  }
-
-  .guide-num {
-    margin-bottom: 7px;
-  }
-
-  .build-note {
-    padding: 26px 22px;
-  }
-
-  .build-command {
-    width: 100%;
   }
 
   .paper-hero-inner {

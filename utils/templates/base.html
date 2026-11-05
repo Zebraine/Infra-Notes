@@ -96,6 +96,7 @@
     {% block content %}{% endblock %}
   </main>
 
+  {% block footer %}
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-brand">
@@ -121,6 +122,7 @@
       </div>
     </div>
   </footer>
+  {% endblock %}
 
   {% if has_math %}<script src="{{ root }}assets/vendor/katex/katex.min.js"></script>{% endif %}
   {% if has_mermaid %}<script src="{{ root }}assets/vendor/mermaid/mermaid.min.js"></script>{% endif %}

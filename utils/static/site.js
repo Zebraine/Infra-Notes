@@ -848,9 +848,60 @@
     apply();
   }
 
+  /* -------------------------------------------------------------- hero stack */
+  function initHeroStack() {
+    var stack = $(".pressure-stack");
+    if (!stack) return;
+    var cards = $$(".pressure-card", stack);
+    if (cards.length < 2) return;
+    var order = cards.slice();
+    var timer = null;
+    var resetTimer = null;
+
+    function apply() {
+      order.forEach(function (card, index) {
+        card.classList.toggle("is-front", index === 0);
+        card.classList.toggle("is-mid", index === 1);
+        card.classList.toggle("is-back", index === 2);
+      });
+    }
+
+    function cycle() {
+      order.push(order.shift());
+      apply();
+    }
+
+    function start() {
+      window.clearTimeout(resetTimer);
+      if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ) {
+        return;
+      }
+      window.clearInterval(timer);
+      cycle();
+      timer = window.setInterval(cycle, 2000);
+    }
+
+    function stop() {
+      window.clearInterval(timer);
+      timer = null;
+      window.clearTimeout(resetTimer);
+      resetTimer = window.setTimeout(function () {
+        order = cards.slice();
+        apply();
+      }, 900);
+    }
+
+    stack.addEventListener("mouseenter", start);
+    stack.addEventListener("mouseleave", stop);
+  }
+
   /* ---------------------------------------------------------------- boot */
   function boot() {
     initTheme();
+    initHeroStack();
     initToc();
     initTocDrawer();
     initFontSize();

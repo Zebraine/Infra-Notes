@@ -24,28 +24,39 @@
     </div>
 
     <div class="hero-visual" aria-hidden="true">
-      <div class="pressure-card">
-        <div class="pressure-head">
-          <span class="pressure-label"><span class="status-dot"></span>KV PRESSURE</span>
-          <span class="pressure-status">94%</span>
+      <div class="pressure-stack">
+        {% for card in hero_cards %}
+        <div class="pressure-card{% if loop.index0 == 0 %} is-front{% elif loop.index0 == 1 %} is-mid{% else %} is-back{% endif %}">
+          <div class="pressure-head">
+            <span class="pressure-label"><span class="status-dot"></span>KV PRESSURE</span>
+            <span class="pressure-status">{{ card.pressure }}%</span>
+          </div>
+          <div class="pressure-paper">
+            <span class="pressure-kicker">PAPER {{ "%02d"|format(card.number) }} · {{ card.venue }} · {{ card.year }}</span>
+            <strong>{{ card.short_title }}</strong>
+            <span class="pressure-subtitle" title="{{ card.title_zh }}">{{ card.title_zh }}</span>
+          </div>
+          <div class="kv-grid">
+            {% for i in range(32) %}
+            <i class="kv-cell{% if i in card.hot_cells %} is-hot{% endif %}{% if i == card.victim %} is-victim{% endif %}"></i>
+            {% endfor %}
+          </div>
+          <div class="pressure-legend">
+            <span><i class="legend-dot active"></i>active</span>
+            <span><i class="legend-dot hot"></i>pressure</span>
+            <span><i class="legend-dot victim"></i>victim</span>
+          </div>
+          <div class="pressure-metrics">
+            <div><span>PAGES</span><strong>{{ card.pages }}<small>p</small></strong></div>
+            <div><span>READ</span><strong>{{ card.reading_minutes }}<small>min</small></strong></div>
+            <div><span>TAGS</span><strong>{{ card.tag_count }}</strong></div>
+          </div>
+          <div class="hero-tag"><span>{{ card.tags[0] }}</span> {{ card.venue }} · {{ card.year }}</div>
+          <div class="pressure-flow">
+            {% for tag in card.tags %}{% if not loop.first %} <b>→</b> {% endif %}{{ tag }}{% endfor %}
+          </div>
         </div>
-        <div class="kv-grid">
-          {% for i in range(48) %}
-          <i class="kv-cell{% if i in [5,6,12,13,20,21,22,29,37,38,42] %} is-hot{% endif %}{% if i == 27 %} is-victim{% endif %}"></i>
-          {% endfor %}
-        </div>
-        <div class="pressure-legend">
-          <span><i class="legend-dot active"></i>active</span>
-          <span><i class="legend-dot hot"></i>pressure</span>
-          <span><i class="legend-dot victim"></i>victim</span>
-        </div>
-        <div class="pressure-metrics">
-          <div><span>TTFT P95</span><strong>631<small>ms</small></strong></div>
-          <div><span>SLO 300ms</span><strong>83.2<small>%</small></strong></div>
-          <div><span>utility</span><strong>29<small>×</small></strong></div>
-        </div>
-        <div class="victim-tag"><span>R4</span> victim · 3% complete</div>
-        <div class="pressure-flow">pressure <b>→</b> bid <b>→</b> rank <b>→</b> preempt</div>
+        {% endfor %}
       </div>
     </div>
   </div>
@@ -106,42 +117,7 @@
   </div>
 </section>
 
-<section class="reading-guide">
-  <div class="guide-intro">
-    <p class="eyebrow">HOW TO READ</p>
-    <h2>一篇论文，三种读法</h2>
-    <p>译文负责建立直觉，原文负责校准细节，图表负责把结论落到系统上。</p>
-  </div>
-  <ol class="guide-list">
-    <li>
-      <span class="guide-num">01</span>
-      <h3>先读译文</h3>
-      <p>用中文快速建立问题、机制与结论的骨架。术语保留英文缩写，方便回到原文。</p>
-    </li>
-    <li>
-      <span class="guide-num">02</span>
-      <h3>再对原文</h3>
-      <p>两版章节 id 一一对应，切换语言不会丢失当前位置；公式、表格与图注逐条核验。</p>
-    </li>
-    <li>
-      <span class="guide-num">03</span>
-      <h3>最后看实验</h3>
-      <p>把 P95、SLO、吞吐放回实验设置里读，区分机制收益与配置差异。</p>
-    </li>
-  </ol>
-</section>
-
-<section class="build-note">
-  <div>
-    <p class="eyebrow">STATIC BY DESIGN</p>
-    <h2>一条命令，重建整座论文库</h2>
-    <p>内容是可移植的 Markdown；页面、目录、公式、图表与搜索索引都由 <code>utils/</code> 生成。</p>
-  </div>
-  <div class="build-command">
-    <code><span>$</span> ./utils/build.sh</code>
-    <span>无运行时依赖 · 可直接用浏览器打开</span>
-  </div>
-</section>
-
 <script id="paper-data" type="application/json">{{ papers_json|json_script }}</script>
 {% endblock %}
+
+{% block footer %}{% endblock %}

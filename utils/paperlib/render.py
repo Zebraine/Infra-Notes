@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import math
+import random
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,6 +48,39 @@ def _duration(minutes: int) -> str:
         return f"{minutes} 分钟"
     hours, mins = divmod(minutes, 60)
     return f"{hours} 小时 {mins} 分" if mins else f"{hours} 小时"
+
+
+def _hero_cards(papers: list[Paper], limit: int = 3) -> list[dict[str, Any]]:
+    """Build the decorative hero stack from the newest papers."""
+    latest = sorted(
+        papers,
+        key=lambda paper: (paper.date, paper.order, paper.slug),
+        reverse=True,
+    )[:limit]
+    cards: list[dict[str, Any]] = []
+    for paper in latest:
+        rng = random.Random(f"hero:{paper.slug}")
+        pressure = rng.randint(84, 96)
+        hot_count = 6 + (pressure - 84) // 3
+        hot_cells = set(rng.sample(range(32), hot_count))
+        victim = rng.choice([index for index in range(32) if index not in hot_cells])
+        cards.append(
+            {
+                "number": paper.number,
+                "short_title": paper.short_title,
+                "title_zh": paper.title_zh,
+                "venue": paper.venue_zh,
+                "year": paper.year,
+                "pages": paper.pages,
+                "reading_minutes": paper.reading_minutes,
+                "tags": paper.tags[:3],
+                "tag_count": len(paper.tags),
+                "hot_cells": hot_cells,
+                "victim": victim,
+                "pressure": pressure,
+            }
+        )
+    return cards
 
 
 class SiteRenderer:
@@ -205,6 +239,7 @@ class SiteRenderer:
             {
                 "total_pages": total_pages,
                 "papers_json": payload,
+                "hero_cards": _hero_cards(self.papers),
             }
         )
         html = self.env.get_template("index.html").render(**ctx)
