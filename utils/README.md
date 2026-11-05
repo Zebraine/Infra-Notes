@@ -254,3 +254,20 @@ KaTeX 字体也在本地。浏览器打开 `papers/index.html` 即可离线阅�
 
 `./utils/build.sh --clean` 只删除生成页面与 `papers/assets/` 下的构建资源，不会删除
 论文 Markdown、PDF、图表或视频。
+
+## GitHub Pages 自动部署
+
+仓库根目录的 `.github/workflows/pages.yml` 会在推送到 `main` 时自动：
+
+1. 安装 `utils/requirements.txt` 中的 Python 依赖；
+2. 运行 `python utils/build.py --strict` 并校验论文；
+3. 把生成的 `papers/` 目录作为 Pages artifact 上传；
+4. 通过 GitHub Pages 官方 action 部署。
+
+首次使用时，在仓库的 **Settings → Pages → Build and deployment** 中把 Source 设为
+**GitHub Actions**。工作流里的 `configure-pages` 也会尝试自动启用 Pages。
+部署地址形如 `https://<user>.github.io/<repo>/`；站点内部全部使用相对链接，
+因此放在项目子路径下也能正常工作。
+
+只改 `notes/` 或 README 也会触发重新构建；如需限制触发路径，可在 workflow 的
+`on.push` 下添加 `paths` 过滤。
