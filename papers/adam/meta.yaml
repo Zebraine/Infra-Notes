@@ -1,0 +1,47 @@
+slug: adam
+title: 'Adam: A Method for Stochastic Optimization'
+title_zh: Adam：一种随机优化方法
+short_title: Adam
+authors:
+- Diederik P. Kingma
+- Jimmy Lei Ba
+affiliation: University of Amsterdam · OpenAI · University of Toronto
+year: 2015
+date: '2014-12-22'
+venue: ICLR 2015
+venue_zh: ICLR
+venue_full_zh: 国际学习表征会议（ICLR）
+conference_url: ''
+code_url: ''
+type: 经典论文
+tags:
+- 基础
+- 优化器
+- Adam
+- 训练
+abstract: We introduce Adam, an algorithm for first-order gradient-based optimization of stochastic objective
+  functions, based on adaptive estimates of lower-order moments. The method is straightforward to implement,
+  is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of
+  the gradients, and is well suited for problems that are large in terms of data and/or parameters. The
+  method is also appropriate for non-stationary objectives and problems with very noisy and/or sparse
+  gradients. The hyper-parameters have intuitive interpretations and typically require little tuning.
+  Some connections to related algorithms, on which Adam was inspired, are discussed. We also analyze the
+  theoretical convergence properties of the algorithm and provide a regret bound on the convergence rate
+  that is comparable to the best known results under the online convex optimization framework. Empirical
+  results demonstrate that Adam works well in practice and compares favorably to other stochastic optimization
+  methods. Finally, we discuss AdaMax, a variant of Adam based on the infinity norm.
+abstract_zh: 我们提出 Adam，一种基于低阶矩自适应估计、用于随机目标函数一阶梯度优化的算法。该方法实现简单、计算高效、显存需求小，对梯度的对角缩放具有不变性，适合数据量和/或参数量很大的问题；也适用于非平稳目标以及梯度噪声很大或稀疏的场景。它的超参数具有直观解释，通常不需要太多调参。我们讨论了
+  Adam 与相关算法的联系，分析了其理论收敛性质，并给出与在线凸优化框架下已知最佳结果相当的 regret bound。实验表明 Adam 在实际中表现良好，优于多种随机优化方法。最后，我们讨论了基于无穷范数的
+  Adam 变体 AdaMax。
+summary: 把一阶动量和二阶矩估计结合起来，为每个参数自适应缩放步长，并用偏差校正修正零初始化偏差；Adam 由此成为深度学习默认优化器。
+cover: assets/cover.svg
+cover_alt: Adam 封面：一阶/二阶矩估计与自适应步长更新
+pdf: assets/source.pdf
+source_url: https://arxiv.org/abs/1412.6980
+pages: 15
+featured: false
+order: 16
+citation_key: kingma2015adam
+translation_note: 中文精读版：摘要、Adam 更新规则、偏差校正与关键实验对译；完整收敛证明与附录见 PDF。
+original_note: 'English reading edition: abstract, the Adam update, bias correction, and key experiments.
+  Complete convergence proofs and appendix in the PDF.'

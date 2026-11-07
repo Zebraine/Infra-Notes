@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adam：一种随机优化方法 · AI Infra 论文库</title>
+  <meta name="description" content="我们提出 Adam，一种基于低阶矩自适应估计、用于随机目标函数一阶梯度优化的算法。该方法实现简单、计算高效、显存需求小，对梯度的对角缩放具有不变性，适合数据量和/或参数量很大的问题；也适用于非平稳目标以及梯度噪声很大或稀疏的场景。它的超参数具有直观解释，通常不需要太多调参。我们讨论了 Adam 与相关算法的联系，分析了">
+  <meta name="author" content="Diederik P. Kingma, Jimmy Lei Ba">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="Adam：一种随机优化方法 · AI Infra 论文库">
+  <meta property="og:description" content="我们提出 Adam，一种基于低阶矩自适应估计、用于随机目标函数一阶梯度优化的算法。该方法实现简单、计算高效、显存需求小，对梯度的对角缩放具有不变性，适合数据量和/或参数量很大的问题；也适用于非平稳目标以及梯度噪声很大或稀疏的场景。它的超参数具有直观解释，通常不需要太多调参。我们讨论了 Adam 与相关算法的联系，分析了">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2014-12-22">  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../assets/site/pygments.css">
+  <link rel="stylesheet" href="../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 11</span>
+      <span aria-hidden="true">/</span>
+      <span>中文译文</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 11 · 2015 · ICLR</p>
+        <h1>Adam：一种随机优化方法</h1>
+        <p class="paper-alt-title" lang="en">Adam: A Method for Stochastic Optimization</p>
+        <p class="paper-authors">Diederik P. Kingma · Jimmy Lei Ba <span class="affiliation">· University of Amsterdam · OpenAI · University of Toronto</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>15 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 6 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="index.html" class="is-active" aria-current="page" data-lang="zh">中文译文</a>
+          <a href="original/index.html" class="" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">译文由 AI 辅助完成，技术细节以原文为准。</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../index.html?tag=%E4%BC%98%E5%8C%96%E5%99%A8">优化器</a><a class="chip chip-static" href="../index.html?tag=Adam">Adam</a><a class="chip chip-static" href="../index.html?tag=%E8%AE%AD%E7%BB%83">训练</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">摘要</a></li>
+<li><a href="#sec-2">1 精读导读</a></li>
+<li><a href="#sec-3">2 问题与背景</a></li>
+<li><a href="#sec-4">3 方法</a><ul>
+<li><a href="#sec-4-1">3.1 一阶矩与二阶矩估计</a></li>
+<li><a href="#sec-4-2">3.2 偏差校正与更新规则</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 实验与结果</a></li>
+<li><a href="#sec-6">5 影响与局限</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>中文译文</strong><span>中文精读版：摘要、Adam 更新规则、偏差校正与关键实验对译；完整收敛证明与附录见 PDF。</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">摘要<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>我们提出 Adam，一种基于低阶矩自适应估计、用于随机目标函数一阶梯度优化的算法。该方法实现简单、计算高效、显存需求小，对梯度的对角缩放具有不变性，适合数据量和/或参数量很大的问题；也适用于非平稳目标以及梯度噪声很大或稀疏的场景。它的超参数具有直观解释，通常不需要太多调参。我们讨论了 Adam 与相关算法的联系，分析了其理论收敛性质，并给出与在线凸优化框架下已知最佳结果相当的 regret bound。实验表明 Adam 在实际中表现良好，优于多种随机优化方法。最后，我们讨论了基于无穷范数的 Adam 变体 AdaMax。</p>
+<h2 id="sec-2">1 精读导读<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>Adam 是让“自适应矩估计”成为深度学习默认选择的优化器。在它之前，带动量的 SGD 是主力，AdaGrad 擅长稀疏梯度但学习率衰减过快，RMSProp 修正了衰减却缺少动量，也没有系统的零初始化校正。Adam 把两种思想结合起来：梯度的一阶矩（均值）和梯度平方的二阶矩（未中心化方差）的指数滑动平均，并用偏差校正让训练早期的估计不再偏向零。</p>
+<p>结果是：每个参数的步长近似被学习率上界约束，对梯度整体缩放不变，并在接近最优时随信噪比下降自动退火。它只需要一阶梯度，每个参数额外保存两个向量（一阶矩、二阶矩），相对模型和激活来说开销很小。</p>
+<p>从基础设施角度看，Adam 定义了训练系统的显存和通信模式。优化器状态是显存预算的大头（ZeRO 论文按混合精度 Adam 计算，每个参数约 12 字节的 fp32 状态），梯度 all-reduce 和优化器更新则主导通信与 kernel 调度。后来的 AdamW 把权重衰减从自适应更新中解耦，但 Adam 的矩估计仍是基线。</p>
+<h2 id="sec-3">2 问题与背景<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>随机梯度优化是机器学习的核心。许多目标函数是数据子集上子函数之和，因此可以用 minibatch 估计梯度，这就是 SGD。SGD 高效且有效，但对学习率敏感，而且单一全局学习率对梯度尺度差异很大的参数并不合适。AdaGrad 用平方梯度的历史为每个参数自适应调整学习率，擅长稀疏特征，但累加器只增不减，有效学习率会衰减到零。RMSProp 用平方梯度的指数滑动平均避免这种衰减，适合在线和非平稳场景。</p>
+<p>论文要解决的问题是：如何把 AdaGrad 对稀疏梯度的鲁棒性与 RMSProp 在非平稳目标上的表现结合起来，同时保留动量的好处；并且只依赖一阶梯度、显存开销小、超参数少、对梯度对角缩放不变。</p>
+<h2 id="sec-4">3 方法<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 一阶矩与二阶矩估计<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>设第 <span class="arithmatex">\(t\)</span> 步的随机梯度为 <span class="arithmatex">\(g_t=\nabla_\theta f_t(\theta_{t-1})\)</span>。Adam 维护梯度及其逐元素平方的指数滑动平均：</p>
+<div class="arithmatex">\[
+m_t=\beta_1m_{t-1}+(1-\beta_1)g_t,
+\qquad
+v_t=\beta_2v_{t-1}+(1-\beta_2)g_t^2,
+\]</div>
+<p>其中 <span class="arithmatex">\(\beta_1,\beta_2\in[0,1)\)</span> 控制衰减率。<span class="arithmatex">\(m_t\)</span> 估计一阶矩（均值），<span class="arithmatex">\(v_t\)</span> 估计二阶原始矩（未中心化方差）。论文使用的默认值是 <span class="arithmatex">\(\alpha=0.001\)</span>、<span class="arithmatex">\(\beta_1=0.9\)</span>、<span class="arithmatex">\(\beta_2=0.999\)</span>、<span class="arithmatex">\(\epsilon=10^{-8}\)</span>。</p>
+<p>一个关键性质是更新幅度。忽略 <span class="arithmatex">\(\epsilon\)</span>，有效步长为 <span class="arithmatex">\(\Delta_t=\alpha\,\hat m_t/\sqrt{\hat v_t}\)</span>。由于 <span class="arithmatex">\(|\mathbb{E}[g]/\sqrt{\mathbb{E}[g^2]}|\le 1\)</span>，这个比值大致被 1 约束，因此步长幅度近似以学习率 <span class="arithmatex">\(\alpha\)</span> 为上界。把所有梯度缩放 <span class="arithmatex">\(c\)</span> 倍，<span class="arithmatex">\(\hat m_t\)</span> 和 <span class="arithmatex">\(\sqrt{\hat v_t}\)</span> 都缩放 <span class="arithmatex">\(c\)</span> 倍，更新保持不变。接近最优时信噪比下降，步长会自动退火。</p>
+<h3 id="sec-4-2">3.2 偏差校正与更新规则<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>滑动平均初始化为零，因此早期估计偏向零，<span class="arithmatex">\(\beta_2\)</span> 接近 1 时尤其明显。Adam 用如下校正：</p>
+<div class="arithmatex">\[
+\hat m_t=\frac{m_t}{1-\beta_1^t},
+\qquad
+\hat v_t=\frac{v_t}{1-\beta_2^t},
+\]</div>
+<p>然后更新参数：</p>
+<div class="arithmatex">\[
+\theta_t=\theta_{t-1}-\alpha\,\frac{\hat m_t}{\sqrt{\hat v_t}+\epsilon}.
+\]</div>
+<p>校正来自把滑动平均展开为过去梯度的加权和：有限 <span class="arithmatex">\(t\)</span> 时权重之和不为 1，除以 <span class="arithmatex">\(1-\beta^t\)</span> 可恢复无偏估计。论文表明，不做偏差校正时，接近 1 的 <span class="arithmatex">\(\beta_2\)</span> 会产生非常大的早期更新，在稀疏梯度场景尤其明显。</p>
+<h2 id="sec-5">4 实验与结果<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>论文在 L2 正则的多分类逻辑回归（MNIST 与 IMDB bag-of-words）、带/不带 dropout 的 MNIST 多层感知机、CIFAR-10 卷积网络，以及用于偏差校正研究的变分自编码器上评估 Adam。超参数在稠密网格上搜索，并为每个优化器报告最佳设置。</p>
+<p>在 MNIST 逻辑回归上，Adam 的收敛与带 Nesterov 动量的 SGD 相近，二者都快于 AdaGrad。在稀疏的 IMDB bag-of-words 任务上，AdaGrad 大幅优于动量 SGD；Adam 的收敛速度与 AdaGrad 相当，说明它能利用稀疏特征。在 MLP 实验中，无论按迭代数还是墙钟时间，Adam 都比基线进展更快；SFO 因为要更新曲率信息，每次迭代慢 5–10 倍。在 CIFAR-10 CNN 上，Adam 与 SGD 最终都比 AdaGrad 快；Adam 相对动量 SGD 只有边际提升，但它能自动为不同层调整学习率尺度，而不需要手工设置。</p>
+<p>偏差校正实验在 <span class="arithmatex">\(\beta_1\)</span>、<span class="arithmatex">\(\beta_2\)</span>、<span class="arithmatex">\(\alpha\)</span> 的网格上训练 VAE。<span class="arithmatex">\(\beta_2\)</span> 接近 1 时，不做偏差校正在最初几个 epoch 会导致训练不稳定；加入偏差校正后，Adam 在整个网格上等于或优于 RMSProp。</p>
+<h2 id="sec-6">5 影响与局限<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>Adam 成为深度学习的默认优化器，至今仍是训练系统中的基线。它的逐参数自适应步长让学习率调参容易得多，矩估计也成为优化器实现的标准组件。论文还提出了无穷范数变体 AdaMax，其分析帮助确立了自适应一阶方法的术语体系。</p>
+<p>局限同样重要。Adam 为每个参数额外保存两个向量，增加了优化器状态显存（这正是 ZeRO、FSDP 的重要动机）。原论文把 L2 正则耦合进梯度，与自适应缩放交互不佳；AdamW 后来把权重衰减解耦。某些负载上 Adam 的泛化略逊于精细调参的 SGD，原算法也存在已知的非收敛反例。这些问题推动了 AdamW、Lion、Sophia 和显存高效优化器的发展，但 Adam 的矩估计与偏差校正仍是基础。</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{kingma2015adam,
+  author = {Diederik P. Kingma and Jimmy Lei Ba},
+  title = {Adam: A Method for Stochastic Optimization},
+  year = {2015},
+  howpublished = {ICLR 2015},
+  url = {https://arxiv.org/abs/1412.6980},
+  note = {AI Infra Paper Library, adam}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">Adam: A Method for Stochastic Optimization</dd></div>
+        <div><dt>作者</dt><dd>Diederik P. Kingma · Jimmy Lei Ba</dd></div>
+        <div><dt>发表</dt><dd>国际学习表征会议（ICLR） · 2015</dd></div>
+<div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/1412.6980</a></dd></div>        <div><dt>PDF</dt><dd><a href="assets/source.pdf" target="_blank" rel="noopener">本地存档（15 页）</a></dd></div>
+        <div><dt>译本</dt><dd>中文译文由 AI 辅助完成；如发现术语或公式问题，请以英文原文为准。</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../transformer/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>Attention Is All You Need：Transformer 架构</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="assets/cover.svg" alt="Adam 封面：一阶/二阶矩估计与自适应步长更新" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>Adam</h2>
+      <p class="rail-authors">Diederik P. Kingma · Jimmy Lei Ba</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2015</dd></div>
+        <div><dt>页数</dt><dd>15</dd></div>
+        <div><dt>阅读</dt><dd>6 分钟</dd></div>
+        <div><dt>版本</dt><dd>中文译文</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="original/index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>English Original</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../bidkv/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV：面向 KV 压力场景的效用引导抢占调度</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../transmla/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA：多头潜变量注意力足矣</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../assets/vendor/katex/katex.min.js"></script>  <script src="../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>

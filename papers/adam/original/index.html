@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Adam: A Method for Stochastic Optimization · AI Infra 论文库</title>
+  <meta name="description" content="We introduce Adam, an algorithm for first-order gradient-based optimization of stochastic objective functions, based on adaptive estimates of lower-order moment">
+  <meta name="author" content="Diederik P. Kingma, Jimmy Lei Ba">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="Adam: A Method for Stochastic Optimization · AI Infra 论文库">
+  <meta property="og:description" content="We introduce Adam, an algorithm for first-order gradient-based optimization of stochastic objective functions, based on adaptive estimates of lower-order moment">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2014-12-22">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 11</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 11 · 2015 · ICLR</p>
+        <h1>Adam: A Method for Stochastic Optimization</h1>
+        <p class="paper-alt-title" lang="zh-CN">Adam：一种随机优化方法</p>
+        <p class="paper-authors">Diederik P. Kingma · Jimmy Lei Ba <span class="affiliation">· University of Amsterdam · OpenAI · University of Toronto</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>15 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 6 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../../index.html?tag=%E4%BC%98%E5%8C%96%E5%99%A8">优化器</a><a class="chip chip-static" href="../../index.html?tag=Adam">Adam</a><a class="chip chip-static" href="../../index.html?tag=%E8%AE%AD%E7%BB%83">训练</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Editor's Note</a></li>
+<li><a href="#sec-3">2 Problem and Background</a></li>
+<li><a href="#sec-4">3 Method</a><ul>
+<li><a href="#sec-4-1">3.1 First and Second Moment Estimates</a></li>
+<li><a href="#sec-4-2">3.2 Bias Correction and the Update Rule</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 Experiments and Results</a></li>
+<li><a href="#sec-6">5 Impact and Limitations</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English reading edition: abstract, the Adam update, bias correction, and key experiments. Complete convergence proofs and appendix in the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>We introduce Adam, an algorithm for first-order gradient-based optimization of stochastic objective functions, based on adaptive estimates of lower-order moments. The method is straightforward to implement, is computationally efficient, has little memory requirements, is invariant to diagonal rescaling of the gradients, and is well suited for problems that are large in terms of data and/or parameters. The method is also appropriate for non-stationary objectives and problems with very noisy and/or sparse gradients. The hyper-parameters have intuitive interpretations and typically require little tuning. Some connections to related algorithms, on which Adam was inspired, are discussed. We also analyze the theoretical convergence properties of the algorithm and provide a regret bound on the convergence rate that is comparable to the best known results under the online convex optimization framework. Empirical results demonstrate that Adam works well in practice and compares favorably to other stochastic optimization methods. Finally, we discuss AdaMax, a variant of Adam based on the infinity norm.</p>
+<h2 id="sec-2">1 Editor's Note<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>Adam is the optimizer that made adaptive moment estimation the default choice for deep learning. Before it, SGD with momentum was the workhorse, AdaGrad handled sparse gradients but decayed its learning rate too aggressively, and RMSProp fixed that decay but lacked momentum and a principled initialization correction. Adam combines the two ideas: an exponential moving average of the gradient (first moment) and an exponential moving average of the squared gradient (second moment), with a bias-correction step that makes the estimates unbiased early in training.</p>
+<p>The result is an update whose per-parameter step size is approximately bounded by the learning rate, invariant to gradient rescaling, and naturally annealed as the signal-to-noise ratio falls near an optimum. It needs only first-order gradients and a constant amount of extra memory per parameter—three vectors (first moment, second moment, and the parameter itself), which is cheap relative to the model and activations at the scales where it is used.</p>
+<p>For infrastructure, Adam matters because it defines the memory and communication pattern of training. Optimizer state is a major part of the memory budget (the ZeRO paper counts 12 bytes per parameter for Adam's fp32 states in mixed precision), and gradient all-reduce plus optimizer updates dominate the communication and kernel schedule. AdamW later decoupled weight decay from the adaptive update, but the core Adam estimator remains the baseline.</p>
+<h2 id="sec-3">2 Problem and Background<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>Stochastic gradient-based optimization is central to machine learning. Many objectives are sums of subfunctions evaluated on minibatches, so gradient steps can be computed from individual subfunctions; this is SGD. SGD is efficient and effective, but it is sensitive to the choice of learning rate, and a single global learning rate may be wrong for parameters with very different gradient scales. AdaGrad adapts per-parameter rates using the history of squared gradients and works well with sparse features, but its accumulator only grows, so the effective learning rate decays to zero. RMSProp uses an exponential moving average of squared gradients to avoid that decay and works well in online and non-stationary settings.</p>
+<p>The paper asks for a method that combines AdaGrad's robustness to sparse gradients with RMSProp's behavior on non-stationary objectives, while retaining the benefits of momentum. It should require only first-order gradients, little memory, and little hyper-parameter tuning, and it should be invariant to diagonal rescaling of the gradients.</p>
+<h2 id="sec-4">3 Method<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 First and Second Moment Estimates<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>Let <span class="arithmatex">\(g_t=\nabla_\theta f_t(\theta_{t-1})\)</span> be the stochastic gradient at step <span class="arithmatex">\(t\)</span>. Adam maintains an exponential moving average of the gradient and of its elementwise square:</p>
+<div class="arithmatex">\[
+m_t=\beta_1m_{t-1}+(1-\beta_1)g_t,
+\qquad
+v_t=\beta_2v_{t-1}+(1-\beta_2)g_t^2,
+\]</div>
+<p>where <span class="arithmatex">\(\beta_1,\beta_2\in[0,1)\)</span> control the decay rates. <span class="arithmatex">\(m_t\)</span> estimates the first moment (mean) and <span class="arithmatex">\(v_t\)</span> estimates the second raw moment (uncentered variance). The defaults used in the paper are <span class="arithmatex">\(\alpha=0.001\)</span>, <span class="arithmatex">\(\beta_1=0.9\)</span>, <span class="arithmatex">\(\beta_2=0.999\)</span>, and <span class="arithmatex">\(\epsilon=10^{-8}\)</span>.</p>
+<p>A key property is the scale of the update. Ignoring <span class="arithmatex">\(\epsilon\)</span>, the effective step is <span class="arithmatex">\(\Delta_t=\alpha\,\hat m_t/\sqrt{\hat v_t}\)</span>. Because <span class="arithmatex">\(|\mathbb{E}[g]/\sqrt{\mathbb{E}[g^2]}|\le 1\)</span>, the ratio is roughly bounded by one, so the step magnitude is approximately bounded by the step size <span class="arithmatex">\(\alpha\)</span>. Rescaling all gradients by <span class="arithmatex">\(c\)</span> scales both <span class="arithmatex">\(\hat m_t\)</span> and <span class="arithmatex">\(\sqrt{\hat v_t}\)</span> by <span class="arithmatex">\(c\)</span>, so the update is invariant to gradient scale. As the signal-to-noise ratio falls near an optimum, the step size anneals automatically.</p>
+<h3 id="sec-4-2">3.2 Bias Correction and the Update Rule<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>The moving averages are initialized at zero, so early estimates are biased toward zero, especially when <span class="arithmatex">\(\beta_2\)</span> is close to one. Adam corrects this with</p>
+<div class="arithmatex">\[
+\hat m_t=\frac{m_t}{1-\beta_1^t},
+\qquad
+\hat v_t=\frac{v_t}{1-\beta_2^t},
+\]</div>
+<p>and updates parameters as</p>
+<div class="arithmatex">\[
+\theta_t=\theta_{t-1}-\alpha\,\frac{\hat m_t}{\sqrt{\hat v_t}+\epsilon}.
+\]</div>
+<p>The correction follows from expanding the moving average as a weighted sum of past gradients; the weights do not sum to one at finite <span class="arithmatex">\(t\)</span>, and dividing by <span class="arithmatex">\(1-\beta^t\)</span> restores the unbiased estimate. The paper shows that without bias correction, a <span class="arithmatex">\(\beta_2\)</span> close to one can produce very large early updates, and the effect is particularly visible in sparse-gradient settings.</p>
+<h2 id="sec-5">4 Experiments and Results<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>The paper evaluates Adam on L2-regularized multinomial logistic regression (MNIST and IMDB bag-of-words), multilayer perceptrons on MNIST with and without dropout, convolutional networks on CIFAR-10, and a variational autoencoder for the bias-correction study. Hyper-parameters are searched over a dense grid and the best setting is reported for each optimizer.</p>
+<p>On MNIST logistic regression, Adam converges similarly to SGD with Nesterov momentum and both converge faster than AdaGrad. On the sparse IMDB bag-of-words task, AdaGrad outperforms SGD with momentum by a large margin; Adam converges as fast as AdaGrad, consistent with its ability to exploit sparse features. On the MLP experiments, Adam makes faster progress than the baselines in both iterations and wall-clock time; SFO is 5–10x slower per iteration because of curvature updates. On CIFAR-10 CNNs, Adam and SGD eventually converge faster than AdaGrad; Adam shows a marginal improvement over SGD with momentum while adapting the learning-rate scale per layer instead of hand-tuning it.</p>
+<p>The bias-correction experiment trains a VAE over a grid of <span class="arithmatex">\(\beta_1\)</span>, <span class="arithmatex">\(\beta_2\)</span>, and <span class="arithmatex">\(\alpha\)</span>. Values of <span class="arithmatex">\(\beta_2\)</span> close to one cause instability without bias correction, especially in the first epochs; with bias correction, Adam performs equal to or better than RMSProp across the grid.</p>
+<h2 id="sec-6">5 Impact and Limitations<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>Adam became the default optimizer for deep learning and remains the baseline in training systems. Its per-parameter adaptive step sizes made learning-rate tuning much easier, and its moment estimates are now a standard part of optimizer implementations. The paper also introduced AdaMax, an infinity-norm variant, and its analysis helped establish the vocabulary of adaptive first-order methods.</p>
+<p>The limitations are equally important. Adam stores two extra vectors per parameter, which increases optimizer-state memory (a key motivation for ZeRO and FSDP). The original paper couples L2 regularization into the gradient, which interacts poorly with adaptive scaling; AdamW later decouples weight decay. Some workloads generalize slightly worse with Adam than with well-tuned SGD, and there are known non-convergence examples for the original algorithm. These issues drove later work on AdamW, Lion, Sophia, and memory-efficient optimizers, but Adam's moment estimates and bias correction remain the foundation.</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{kingma2015adam,
+  author = {Diederik P. Kingma and Jimmy Lei Ba},
+  title = {Adam: A Method for Stochastic Optimization},
+  year = {2015},
+  howpublished = {ICLR 2015},
+  url = {https://arxiv.org/abs/1412.6980},
+  note = {AI Infra Paper Library, adam}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">Adam: A Method for Stochastic Optimization</dd></div>
+        <div><dt>作者</dt><dd>Diederik P. Kingma · Jimmy Lei Ba</dd></div>
+        <div><dt>发表</dt><dd>国际学习表征会议（ICLR） · 2015</dd></div>
+<div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/1412.6980</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（15 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../../transformer/original/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>Attention Is All You Need</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/cover.svg" alt="Adam 封面：一阶/二阶矩估计与自适应步长更新" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>Adam</h2>
+      <p class="rail-authors">Diederik P. Kingma · Jimmy Lei Ba</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2015</dd></div>
+        <div><dt>页数</dt><dd>15</dd></div>
+        <div><dt>阅读</dt><dd>6 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://arxiv.org/abs/1412.6980" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../../bidkv/original/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../../transmla/original/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA: Multi-Head Latent Attention Is All You Need</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>

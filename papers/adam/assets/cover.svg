@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Adam 封面：一阶/二阶矩估计与自适应步长更新">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1515"/>
+      <stop offset="0.52" stop-color="#0d1d1b"/>
+      <stop offset="1" stop-color="#122a27"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="18%" cy="8%" r="85%">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.22"/>
+      <stop offset="0.58" stop-color="#2dd4bf" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#7ff5e4" stroke-opacity="0.09" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="accentLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#5eead4" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5eead4"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect width="1200" height="900" fill="url(#glow)"/>
+  <rect width="1200" height="900" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1200" height="6" fill="url(#accentLine)"/>
+  <text x="70" y="82" fill="#8fb8b1" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="600" letter-spacing="4">AI INFRA · FOUNDATIONS</text>
+  <text x="70" y="240" fill="#f2fbf9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="132" font-weight="800" letter-spacing="-4">Adam</text>
+  <text x="72" y="284" fill="#c6ded9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="27" font-weight="400">A Method for Stochastic Optimization</text>
+  <text x="72" y="410" fill="#9bbdb8" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="19" font-weight="500">Diederik P. Kingma · Jimmy Lei Ba</text>
+  <text x="72" y="444" fill="#5eead4" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="700" letter-spacing="1.2">ICLR · 2015</text>
+
+  <g transform="translate(70 500)">
+    <text x="0" y="18" fill="#5eead4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" letter-spacing="2">ADAPTIVE MOMENT ESTIMATION</text>
+
+    <g transform="translate(0 46)">
+      <rect x="0" y="0" width="150" height="70" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+      <text x="75" y="32" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="17" font-weight="700" text-anchor="middle">gₜ</text>
+      <text x="75" y="54" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="middle">stochastic gradient</text>
+      <path d="M158 35 H204" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="214" y="0" width="178" height="70" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+      <text x="303" y="30" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" text-anchor="middle">mₜ , vₜ</text>
+      <text x="303" y="53" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="middle">EMA of g and g²</text>
+      <path d="M400 35 H446" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="456" y="0" width="196" height="70" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+      <text x="554" y="30" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" text-anchor="middle">bias correction</text>
+      <text x="554" y="53" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="middle">m̂ₜ = mₜ / (1 − β₁ᵗ)</text>
+      <path d="M660 35 H706" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="716" y="0" width="344" height="70" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+      <text x="888" y="31" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" text-anchor="middle">θ ← θ − α · m̂ₜ / (√v̂ₜ + ε)</text>
+      <text x="888" y="54" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="middle">per-parameter adaptive step</text>
+    </g>
+
+    <g transform="translate(0 150)">
+      <rect x="0" y="0" width="520" height="132" rx="9" fill="#0a1d1b" stroke="#2dd4bf" stroke-opacity="0.3"/>
+      <text x="18" y="24" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="12">defaults</text>
+      <text x="18" y="56" fill="#d7fff8" font-family="'Noto Sans CJK SC',sans-serif" font-size="15">α = 0.001　β₁ = 0.9　β₂ = 0.999　ε = 1e-8</text>
+      <text x="18" y="88" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="12">update ≈ bounded by α · invariant to gradient scale</text>
+      <text x="18" y="112" fill="#f0a44a" font-family="'Noto Sans CJK SC',sans-serif" font-size="12">SNR↓ near optimum → automatic step annealing</text>
+      <g transform="translate(556 8)">
+        <rect x="0" y="0" width="504" height="116" rx="9" fill="#0a1d1b" stroke="#2dd4bf" stroke-opacity="0.3"/>
+        <path d="M28 94 H480 M28 94 V18" stroke="#5f837d" stroke-width="1"/>
+        <path d="M40 82 C120 70 170 48 246 38 C330 26 400 22 470 20" fill="none" stroke="#f0a44a" stroke-width="3" stroke-linecap="round"/>
+        <path d="M40 88 C140 84 210 78 300 74 C370 70 430 68 470 66" fill="none" stroke="#5eead4" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round"/>
+        <text x="300" y="106" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="middle">optimization steps</text>
+        <text x="470" y="38" fill="#f0a44a" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="end">Adam</text>
+        <text x="470" y="84" fill="#5eead4" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="end">SGD / AdaGrad</text>
+      </g>
+    </g>
+  </g>
+  <text x="1130" y="846" fill="#5f837d" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="15" font-weight="600" letter-spacing="2" text-anchor="end">FOUNDATIONAL PAPER</text>
+</svg>
