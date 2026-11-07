@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Transformer 封面：多头自注意力与编码器/解码器堆叠">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1515"/>
+      <stop offset="0.52" stop-color="#0d1d1b"/>
+      <stop offset="1" stop-color="#122a27"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="18%" cy="8%" r="85%">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.22"/>
+      <stop offset="0.58" stop-color="#2dd4bf" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#7ff5e4" stroke-opacity="0.09" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="accentLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#5eead4" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5eead4"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect width="1200" height="900" fill="url(#glow)"/>
+  <rect width="1200" height="900" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1200" height="6" fill="url(#accentLine)"/>
+  <text x="70" y="82" fill="#8fb8b1" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="600" letter-spacing="4">AI INFRA · FOUNDATIONS</text>
+  <text x="70" y="236" fill="#f2fbf9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="118" font-weight="800" letter-spacing="-3">Transformer</text>
+  <text x="72" y="282" fill="#c6ded9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="26" font-weight="400">Attention Is All You Need</text>
+  <text x="72" y="410" fill="#9bbdb8" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="19" font-weight="500">Vaswani · Shazeer · Parmar · Uszkoreit · Jones · Gomez · Kaiser · Polosukhin</text>
+  <text x="72" y="444" fill="#5eead4" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="700" letter-spacing="1.2">NeurIPS · 2017</text>
+  <g transform="translate(70 500)">
+<g opacity="0.95">
+  <text x="0" y="18" fill="#5eead4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" letter-spacing="2">MULTI-HEAD SELF-ATTENTION</text>
+  <rect x="0" y="44" width="188" height="74" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+  <text x="94" y="76" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="18" font-weight="700" text-anchor="middle">Q  K  V</text>
+  <text x="94" y="98" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="12" text-anchor="middle">linear projections</text>
+  <path d="M196 81 H242" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="252" y="44" width="214" height="74" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+  <text x="359" y="74" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="17" font-weight="700" text-anchor="middle">8 heads</text>
+  <text x="359" y="98" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="12" text-anchor="middle">parallel attention</text>
+  <path d="M474 81 H520" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+  <g transform="translate(530 44)">
+    <rect width="186" height="186" rx="9" fill="#0a1d1b" stroke="#2dd4bf" stroke-opacity="0.35"/>
+    <g fill="#1c4a43">
+      <rect x="14" y="14" width="30" height="30"/><rect x="50" y="14" width="30" height="30"/><rect x="86" y="14" width="30" height="30"/><rect x="122" y="14" width="30" height="30"/>
+      <rect x="14" y="50" width="30" height="30"/><rect x="50" y="50" width="30" height="30"/><rect x="86" y="50" width="30" height="30"/><rect x="122" y="50" width="30" height="30"/>
+      <rect x="14" y="86" width="30" height="30"/><rect x="50" y="86" width="30" height="30"/><rect x="86" y="86" width="30" height="30"/><rect x="122" y="86" width="30" height="30"/>
+      <rect x="14" y="122" width="30" height="30"/><rect x="50" y="122" width="30" height="30"/><rect x="86" y="122" width="30" height="30"/><rect x="122" y="122" width="30" height="30"/>
+    </g>
+    <g fill="#f0a44a" opacity="0.85"><rect x="50" y="14" width="30" height="30"/><rect x="86" y="50" width="30" height="30"/><rect x="14" y="86" width="30" height="30"/><rect x="122" y="122" width="30" height="30"/></g>
+    <text x="93" y="172" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="11" text-anchor="middle">softmax(QKᵀ/√dₖ)V</text>
+  </g>
+  <path d="M726 137 H772" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="782" y="44" width="188" height="74" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+  <text x="876" y="74" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="17" font-weight="700" text-anchor="middle">Concat + Wᴼ</text>
+  <text x="876" y="98" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="12" text-anchor="middle">residual + LayerNorm</text>
+  <text x="0" y="268" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13">O(N²d) compute · O(1) path length · fully parallel across positions</text>
+</g>
+</g>
+  <text x="1130" y="846" fill="#5f837d" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="15" font-weight="600" letter-spacing="2" text-anchor="end">FOUNDATIONAL PAPER</text>
+</svg>

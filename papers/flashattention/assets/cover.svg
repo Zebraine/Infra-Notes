@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="FlashAttention 封面：HBM/SRAM 分块与融合注意力">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1515"/>
+      <stop offset="0.52" stop-color="#0d1d1b"/>
+      <stop offset="1" stop-color="#122a27"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="18%" cy="8%" r="85%">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.22"/>
+      <stop offset="0.58" stop-color="#2dd4bf" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#7ff5e4" stroke-opacity="0.09" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="accentLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#5eead4" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5eead4"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect width="1200" height="900" fill="url(#glow)"/>
+  <rect width="1200" height="900" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1200" height="6" fill="url(#accentLine)"/>
+  <text x="70" y="82" fill="#8fb8b1" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="600" letter-spacing="4">AI INFRA · FOUNDATIONS</text>
+  <text x="70" y="236" fill="#f2fbf9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="88" font-weight="800" letter-spacing="-3">FlashAttention</text>
+  <text x="72" y="282" fill="#c6ded9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="26" font-weight="400">Fast and Memory-Efficient Exact Attention</text>
+  <text x="72" y="316" fill="#c6ded9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="26" font-weight="400">with IO-Awareness</text>
+  <text x="72" y="410" fill="#9bbdb8" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="19" font-weight="500">Dao · Fu · Ermon · Rudra · Ré</text>
+  <text x="72" y="444" fill="#5eead4" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="700" letter-spacing="1.2">NeurIPS · 2022</text>
+  <g transform="translate(70 500)">
+<g opacity="0.95">
+  <text x="0" y="18" fill="#5eead4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" letter-spacing="2">IO-AWARE TILING</text>
+  <g transform="translate(0 46)">
+    <rect x="0" y="22" width="290" height="190" rx="9" fill="#0a1d1b" stroke="#2dd4bf" stroke-opacity="0.35"/>
+    <text x="145" y="0" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13" text-anchor="middle">HBM: Q, K, V, O</text>
+    <g stroke="#5eead4" stroke-opacity="0.25">
+      <path d="M0 22 H290"/><path d="M0 70 H290"/><path d="M0 118 H290"/><path d="M0 166 H290"/><path d="M0 212 H290"/>
+    </g>
+    <text x="145" y="246" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="12" text-anchor="middle">no N × N materialization</text>
+    <path d="M300 118 H356" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="366" y="22" width="300" height="190" rx="9" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.6"/>
+    <text x="516" y="0" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13" text-anchor="middle">SRAM: tiles + online softmax</text>
+    <g>
+      <rect x="390" y="44" width="72" height="42" rx="5" fill="#1c4a43"/><text x="426" y="70" fill="#d7fff8" font-size="12" text-anchor="middle">Q tile</text>
+      <rect x="474" y="44" width="72" height="42" rx="5" fill="#2d6a5f"/><text x="510" y="70" fill="#d7fff8" font-size="12" text-anchor="middle">K tile</text>
+      <rect x="558" y="44" width="72" height="42" rx="5" fill="#f0a44a" opacity="0.7"/><text x="594" y="70" fill="#0b1717" font-size="12" font-weight="700" text-anchor="middle">S tile</text>
+      <path d="M426 90 V112" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M510 90 V112" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="390" y="120" width="240" height="46" rx="6" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <text x="510" y="148" fill="#d7fff8" font-size="13" font-weight="600" text-anchor="middle">flash attention kernel (fused)</text>
+      <text x="510" y="194" fill="#8fb8b1" font-size="12" text-anchor="middle">softmax stats (m, ℓ) saved for backward</text>
+    </g>
+    <path d="M676 118 H732" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="742" y="22" width="290" height="190" rx="9" fill="#0e2723" stroke="#2dd4bf" stroke-opacity="0.4"/>
+    <text x="887" y="0" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13" text-anchor="middle">output to HBM once</text>
+    <g font-family="'Noto Sans CJK SC',sans-serif" font-size="13" fill="#d7fff8">
+      <text x="762" y="66">Θ(N²d²M⁻¹) HBM accesses</text>
+      <text x="762" y="100" fill="#8fb8b1">vs Θ(Nd + N²) for standard</text>
+      <text x="762" y="140" fill="#f0a44a">up to 9× fewer HBM reads</text>
+      <text x="762" y="174" fill="#8fb8b1">exact attention, linear memory</text>
+    </g>
+  </g>
+  <text x="0" y="286" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13">15% BERT-large · 3× GPT-2 · 2.4× LRA · up to 7.6× attention</text>
+</g>
+</g>
+  <text x="1130" y="846" fill="#5f837d" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="15" font-weight="600" letter-spacing="2" text-anchor="end">FOUNDATIONAL PAPER</text>
+</svg>

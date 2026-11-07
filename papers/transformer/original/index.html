@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Attention Is All You Need · AI Infra 论文库</title>
+  <meta name="description" content="The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best perfor">
+  <meta name="author" content="Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, Illia Polosukhin">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="Attention Is All You Need · AI Infra 论文库">
+  <meta property="og:description" content="The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best perfor">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2017-06-12">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 10</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 10 · 2017 · NeurIPS</p>
+        <h1>Attention Is All You Need</h1>
+        <p class="paper-alt-title" lang="zh-CN">Attention Is All You Need：Transformer 架构</p>
+        <p class="paper-authors">Ashish Vaswani · Noam Shazeer · Niki Parmar · Jakob Uszkoreit · Llion Jones · Aidan N. Gomez · Łukasz Kaiser · Illia Polosukhin <span class="affiliation">· Google Brain · Google Research · University of Toronto</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>15 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 6 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../../index.html?tag=Transformer">Transformer</a><a class="chip chip-static" href="../../index.html?tag=Self-Attention">Self-Attention</a><a class="chip chip-static" href="../../index.html?tag=%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1">序列建模</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Editor's Note</a></li>
+<li><a href="#sec-3">2 Problem and Background</a></li>
+<li><a href="#sec-4">3 Method</a><ul>
+<li><a href="#sec-4-1">3.1 Scaled Dot-Product and Multi-Head Attention</a></li>
+<li><a href="#sec-4-2">3.2 Encoder-Decoder Stack and Positional Encoding</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 Experiments and Results</a></li>
+<li><a href="#sec-6">5 Impact and Limitations</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English reading edition: abstract, core method, key experiments, and impact. Complete paper in the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>The dominant sequence transduction models are based on complex recurrent or convolutional neural networks that include an encoder and a decoder. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.</p>
+<h2 id="sec-2">1 Editor's Note<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>The Transformer is the architectural root of nearly every modern language model. Before 2017, the strongest sequence models were recurrent networks: computation advanced one token at a time, so training could not fully exploit GPU parallelism. The Transformer replaces recurrence with attention, turning a sequence problem into a stack of dense matrix multiplications. That single change made it practical to train on much more data and much larger batches, and it is the reason the later scaling stories of BERT, GPT, T5, LLaMA, and DeepSeek are possible.</p>
+<p>For infrastructure, the paper is foundational in three ways. First, self-attention is a GEMM-heavy workload whose arithmetic intensity and memory traffic determine serving cost. Second, the model has no hidden state carried across tokens, so training and inference can be parallelized across the sequence dimension. Third, its <span class="arithmatex">\(O(N^2)\)</span> attention matrix creates the memory pressure that later work—KV caching, PagedAttention, FlashAttention, MLA, and preemption scheduling—tries to manage.</p>
+<p>This reading edition keeps the paper's original abstract and core technical passages, then adds a short guide to the results and legacy. The complete experimental appendix and all ablations remain in the PDF.</p>
+<h2 id="sec-3">2 Problem and Background<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>Recurrent models typically factor computation along the symbol positions of the input and output sequences. Aligning the positions to steps in computation time, they generate a sequence of hidden states <span class="arithmatex">\(h_t\)</span> as a function of the previous hidden state <span class="arithmatex">\(h_{t-1}\)</span> and the input for position <span class="arithmatex">\(t\)</span>. This inherently sequential nature precludes parallelization within training examples, which becomes critical at longer sequence lengths, as memory constraints limit batching across examples.</p>
+<p>Attention mechanisms have become an integral part of compelling sequence modeling and transduction models, allowing modeling of dependencies without regard to their distance in the input or output sequences. In almost all previous work, however, attention was used in conjunction with a recurrent network. The Transformer is the first transduction model that relies entirely on self-attention to compute representations of its input and output without using sequence-aligned RNNs or convolution.</p>
+<h2 id="sec-4">3 Method<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 Scaled Dot-Product and Multi-Head Attention<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>An attention function maps a query and a set of key-value pairs to an output. The output is a weighted sum of the values, where the weight assigned to each value is computed by a compatibility function between the query and the corresponding key. The paper uses scaled dot-product attention:</p>
+<div class="arithmatex">\[
+\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V .
+\]</div>
+<p>The dot products grow large in magnitude for large <span class="arithmatex">\(d_k\)</span>, pushing the softmax into regions with extremely small gradients; dividing by <span class="arithmatex">\(\sqrt{d_k}\)</span> counteracts this. Instead of performing a single attention function, the model projects the queries, keys, and values <span class="arithmatex">\(h\)</span> times with learned linear projections, applies attention in parallel, concatenates the results, and projects again:</p>
+<div class="arithmatex">\[
+\mathrm{MultiHead}(Q,K,V)=\mathrm{Concat}(\mathrm{head}_1,\ldots,\mathrm{head}_h)W^O,
+\]</div>
+<div class="arithmatex">\[
+\mathrm{head}_i=\mathrm{Attention}(QW_i^Q,KW_i^K,VW_i^V).
+\]</div>
+<p>Multi-head attention lets the model jointly attend to information from different representation subspaces at different positions. The paper also compares additive attention and dot-product attention, and reports that dot-product attention is much faster and more space-efficient in practice because it can be implemented with highly optimized matrix multiplication.</p>
+<h3 id="sec-4-2">3.2 Encoder-Decoder Stack and Positional Encoding<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>The encoder is a stack of <span class="arithmatex">\(N=6\)</span> identical layers. Each layer has two sub-layers: multi-head self-attention and a position-wise fully connected feed-forward network. A residual connection is employed around each sub-layer, followed by layer normalization. The decoder is also a stack of six identical layers; in addition to the two sub-layers in each encoder layer, the decoder inserts a third sub-layer that performs multi-head attention over the encoder output. Masking in the decoder self-attention prevents positions from attending to subsequent positions, preserving the auto-regressive property.</p>
+<p>Because the model contains no recurrence and no convolution, positional information must be injected explicitly. The paper adds sinusoidal positional encodings to the input embeddings:</p>
+<div class="arithmatex">\[
+PE_{(pos,2i)}=\sin\!\left(\frac{pos}{10000^{2i/d_{\mathrm{model}}}}\right),\qquad
+PE_{(pos,2i+1)}=\cos\!\left(\frac{pos}{10000^{2i/d_{\mathrm{model}}}}\right).
+\]</div>
+<p>The wavelengths form a geometric progression, which allows the model to attend by relative position and to extrapolate to sequence lengths longer than those seen during training. The base model uses <span class="arithmatex">\(d_{\mathrm{model}}=512\)</span>, <span class="arithmatex">\(h=8\)</span>, <span class="arithmatex">\(d_k=d_v=64\)</span>, and a feed-forward inner dimension of 2048; the big model uses <span class="arithmatex">\(d_{\mathrm{model}}=1024\)</span>, <span class="arithmatex">\(h=16\)</span>, and a feed-forward dimension of 4096.</p>
+<h2 id="sec-5">4 Experiments and Results<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>The model is trained on the WMT 2014 English-German and English-French translation tasks. The big Transformer reaches 28.4 BLEU on English-German, improving over the previous best results—including ensembles—by more than 2 BLEU. On English-French it reaches 41.8 BLEU as a single model after 3.5 days of training on eight P100 GPUs, a small fraction of the training cost of the best models in the literature. The base model can be trained in about 12 hours on eight P100 GPUs and still reaches 27.3 BLEU on English-German and 38.1 BLEU on English-French.</p>
+<p>The paper reports that the Transformer generalizes beyond translation: it achieves strong results on English constituency parsing with both the Wall Street Journal and semi-supervised settings. Ablations show that multi-head attention, the sinusoidal positional encoding, and model size all matter; the paper also studies attention head specialization and the effect of the number of layers and attention heads.</p>
+<h2 id="sec-6">5 Impact and Limitations<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>The Transformer replaced the sequential inductive bias of recurrent networks with a parallel, attention-based computation graph. That shift made it possible to train on far more data and to scale model size, and it directly enabled the BERT/GPT/T5 generation of models. In serving systems, the same attention operator is the source of the KV cache and the quadratic prefill cost that dominate LLM inference.</p>
+<p>The paper's limitations are equally important for later infrastructure work. Self-attention costs <span class="arithmatex">\(O(N^2)\)</span> time and memory in sequence length, and the experiments focus on translation and parsing rather than open-ended generation. There is no KV cache in the paper, and the model is trained and evaluated at relatively short sequence lengths. These gaps motivated efficient attention kernels, paged KV memory, latent attention, and long-context training—the subjects of many papers in this library.</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{vaswani2017attention,
+  author = {Ashish Vaswani and Noam Shazeer and Niki Parmar and Jakob Uszkoreit and Llion Jones and Aidan N. Gomez and Łukasz Kaiser and Illia Polosukhin},
+  title = {Attention Is All You Need},
+  year = {2017},
+  howpublished = {NeurIPS 2017},
+  url = {https://arxiv.org/abs/1706.03762},
+  note = {AI Infra Paper Library, transformer}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">Attention Is All You Need</dd></div>
+        <div><dt>作者</dt><dd>Ashish Vaswani · Noam Shazeer · Niki Parmar · Jakob Uszkoreit · Llion Jones · Aidan N. Gomez · Łukasz Kaiser · Illia Polosukhin</dd></div>
+        <div><dt>发表</dt><dd>神经信息处理系统大会（NeurIPS） · 2017</dd></div>
+<div><dt>会议页</dt><dd><a href="https://papers.nips.cc/paper/7181-attention-is-all-you-need" target="_blank" rel="noopener noreferrer">NeurIPS 官方页面</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/1706.03762</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（15 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../../megatron-lm/original/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/cover.svg" alt="Transformer 封面：多头注意力与编码器/解码器堆叠示意" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>Transformer</h2>
+      <p class="rail-authors">Ashish Vaswani · Noam Shazeer · Niki Parmar · Jakob Uszkoreit · Llion Jones · Aidan N. Gomez · Łukasz Kaiser · Illia Polosukhin</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2017</dd></div>
+        <div><dt>页数</dt><dd>15</dd></div>
+        <div><dt>阅读</dt><dd>6 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://papers.nips.cc/paper/7181-attention-is-all-you-need" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>NeurIPS 页面</a><a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../../bidkv/original/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../../transmla/original/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA: Multi-Head Latent Attention Is All You Need</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>

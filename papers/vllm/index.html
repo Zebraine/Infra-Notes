@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>vLLM：用 PagedAttention 高效管理大模型服务显存 · AI Infra 论文库</title>
+  <meta name="description" content="高吞吐地服务大语言模型（LLM）需要一次批处理足够多的请求；但每个请求的键值缓存（KV cache）巨大且动态伸缩，现有系统难以高效管理。管理不当时，显存会被碎片和冗余副本大量浪费，限制批大小。为此，我们提出 PagedAttention——一种受操作系统虚拟内存与分页技术启发的注意力算法。在它之上我们构建了 vLLM">
+  <meta name="author" content="Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, Ion Stoica">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="vLLM：用 PagedAttention 高效管理大模型服务显存 · AI Infra 论文库">
+  <meta property="og:description" content="高吞吐地服务大语言模型（LLM）需要一次批处理足够多的请求；但每个请求的键值缓存（KV cache）巨大且动态伸缩，现有系统难以高效管理。管理不当时，显存会被碎片和冗余副本大量浪费，限制批大小。为此，我们提出 PagedAttention——一种受操作系统虚拟内存与分页技术启发的注意力算法。在它之上我们构建了 vLLM">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-09-12">  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../assets/site/pygments.css">
+  <link rel="stylesheet" href="../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 04</span>
+      <span aria-hidden="true">/</span>
+      <span>中文译文</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 04 · 2023 · SOSP</p>
+        <h1>vLLM：用 PagedAttention 高效管理大模型服务显存</h1>
+        <p class="paper-alt-title" lang="en">Efficient Memory Management for Large Language Model Serving with PagedAttention</p>
+        <p class="paper-authors">Woosuk Kwon · Zhuohan Li · Siyuan Zhuang · Ying Sheng · Lianmin Zheng · Cody Hao Yu · Joseph E. Gonzalez · Hao Zhang · Ion Stoica <span class="affiliation">· UC Berkeley · Stanford University · UC San Diego</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>16 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 5 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="index.html" class="is-active" aria-current="page" data-lang="zh">中文译文</a>
+          <a href="original/index.html" class="" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">译文由 AI 辅助完成，技术细节以原文为准。</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../index.html?tag=LLM%20Serving">LLM Serving</a><a class="chip chip-static" href="../index.html?tag=KV%20Cache">KV Cache</a><a class="chip chip-static" href="../index.html?tag=PagedAttention">PagedAttention</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">摘要</a></li>
+<li><a href="#sec-2">1 精读导读</a></li>
+<li><a href="#sec-3">2 问题与背景</a></li>
+<li><a href="#sec-4">3 方法</a><ul>
+<li><a href="#sec-4-1">3.1 PagedAttention</a></li>
+<li><a href="#sec-4-2">3.2 KV 缓存共享与调度</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 实验与结果</a></li>
+<li><a href="#sec-6">5 影响与局限</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>中文译文</strong><span>中文精读版：摘要、PagedAttention、显存管理与关键实验对译；完整实现与附录见 PDF。</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">摘要<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>高吞吐地服务大语言模型（LLM）需要一次批处理足够多的请求；但每个请求的键值缓存（KV cache）巨大且动态伸缩，现有系统难以高效管理。管理不当时，显存会被碎片和冗余副本大量浪费，限制批大小。为此，我们提出 PagedAttention——一种受操作系统虚拟内存与分页技术启发的注意力算法。在它之上我们构建了 vLLM 服务系统，做到（1）KV 缓存显存近乎零浪费；（2）请求内与请求间灵活共享 KV 缓存，进一步降低显存占用。评估表明，在相同延迟水平下，vLLM 将主流 LLM 的吞吐相比 FasterTransformer、Orca 等 SOTA 系统提升 2–4 倍；序列更长、模型更大、解码算法更复杂时收益更明显。vLLM 源码已开源：https://github.com/vllm-project/vllm。</p>
+<h2 id="sec-2">1 精读导读<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>vLLM 是把“KV cache 显存管理”变成一等问题的那篇论文。Orca 解决了如何连续地调度迭代；vLLM 解释了这些迭代使用的显存为何被严重碎片化，以及如何修好它。观察几乎简单得过分：现有引擎会为每个请求按最大可能长度预留一块连续 KV 区域。实际长度未知且通常短得多，于是大部分预留被浪费；长期存活的请求还会挡住新请求，共享前缀的序列也无法共享物理显存。</p>
+<p>PagedAttention 借用了操作系统的答案：固定大小的页、每请求一张页表、写时复制共享。KV cache 变成一组不必连续的块；注意力 kernel 按块表收集 K/V，对模型保持逻辑连续，对物理显存则可以按需分配和共享。</p>
+<p>这就是 vLLM 做成广泛使用的开源服务引擎的设计，也是 prefix caching、显存感知调度以及后来大量服务论文（包括 BidKV 的 KV 压力视角）的直接前身。</p>
+<h2 id="sec-3">2 问题与背景<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>LLM 服务是显存受限的。对 40 GB A100 上的 13B 模型，约 65% 显存存放静态模型权重，接近 30% 存放动态 KV cache，只有很小一部分用于激活。KV cache 随 token 生成而增长或收缩，其生命周期和最终长度事先未知。现有系统把每个请求的 KV cache 存在连续显存中，因为多数深度学习框架要求张量连续。</p>
+<p>这种设计造成三类浪费。<em>预留</em>（reserved）：按最大序列长度分配却从未使用；<em>内部碎片</em>：实际长度小于预留长度；<em>外部碎片</em>：不同大小的连续块之间留下无法使用的空隙。论文的 profiling 显示，现有系统实际只用到 20.4%–38.2% 的 KV cache 显存。浪费限制批大小，批大小又限制吞吐。</p>
+<h2 id="sec-4">3 方法<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 PagedAttention<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>PagedAttention 把每个请求的 KV cache 切成固定大小的块，每块存放 <span class="arithmatex">\(B\)</span> 个 token 的 key 和 value。每个请求维护一张块表，把逻辑块映射到 GPU 显存中的物理块；物理块不必连续。给定 query <span class="arithmatex">\(q_i\)</span> 和第 <span class="arithmatex">\(j\)</span> 个块中的 key <span class="arithmatex">\(K_j\)</span>、value <span class="arithmatex">\(V_j\)</span>，块级注意力为</p>
+<div class="arithmatex">\[
+A_{ij}=\frac{\exp(q_i^{\top}K_j/\sqrt{d})}{\sum_{j'}\exp(q_i^{\top}K_{j'}/\sqrt{d})},
+\qquad
+o_i=\sum_j V_j A_{ij}^{\top}.
+\]</div>
+<p>kernel 读取块表，收集 K/V 块并在其上计算注意力。因为块大小固定，内部碎片最多浪费最后一个块，外部碎片则消失；显存随生成过程按需分配，因此接近零浪费。</p>
+<h3 id="sec-4-2">3.2 KV 缓存共享与调度<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>块表还带来共享能力。并行采样或 beam search 时，多个输出序列可以让共享前缀指向同一批物理块；当某个序列要向共享块写入新 token 时，vLLM 用写时复制创建私有副本。跨请求的共享前缀同理。论文报告 beam search 最多节省 55% 显存，共享 prompt 也有显著收益。</p>
+<p>vLLM 的调度器按 FCFS 组批，物理块耗尽时进行抢占：可以把块换出到 CPU，或丢弃后重算；对于单卡放不下的模型，它使用张量并行。块管理器、调度器和注意力 kernel 是协同设计的：调度器分配块，块表广播给 worker，kernel 按块表访问正确的物理显存。</p>
+<h2 id="sec-5">4 实验与结果<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>论文在 OPT-13B、OPT-66B、OPT-175B 上使用 ShareGPT 和 Alpaca 轨迹评估。与 FasterTransformer、Orca 相比，vLLM 在相同延迟下吞吐提升 2–4 倍；序列越长、模型越大、解码算法越复杂，收益越明显。主实验中 vLLM 的 KV cache 显存浪费低于 4%，而基线为 60%–80%。</p>
+<p>论文还表明 PagedAttention 不改变模型精度——它改变的是显存布局，不是注意力数学；共享与写时复制在并行采样、beam search 中带来大幅节省。系统通过张量并行支持超过单卡容量的模型。</p>
+<h2 id="sec-6">5 影响与局限<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>PagedAttention 与 vLLM 改变了 LLM 服务的默认显存模型。基于块的 KV 管理、前缀缓存、写时复制共享如今已是标准思路，vLLM 本身也成为最广泛使用的开源服务引擎之一。论文还把 KV cache 变成服务研究的中心对象：一旦显存可以分页，就可以在更丰富的设计空间里讨论驱逐、共享、抢占和调度。</p>
+<p>局限主要在范围。论文关注给定延迟下的吞吐，没有深入优化 SLO、公平性或优先级；块大小是碎片与 kernel 效率之间的权衡；跨请求前缀缓存带来失效和安全问题。此外，PagedAttention 仍要对所有缓存 token 做完整注意力，不能降低超长上下文的二次计算——后来的 FlashAttention 和 MLA 才从另一条轴解决这个问题。</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{kwon2023vllm,
+  author = {Woosuk Kwon and Zhuohan Li and Siyuan Zhuang and Ying Sheng and Lianmin Zheng and Cody Hao Yu and Joseph E. Gonzalez and Hao Zhang and Ion Stoica},
+  title = {Efficient Memory Management for Large Language Model Serving with PagedAttention},
+  year = {2023},
+  howpublished = {SOSP 2023},
+  url = {https://arxiv.org/abs/2309.06180},
+  note = {AI Infra Paper Library, vllm}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">Efficient Memory Management for Large Language Model Serving with PagedAttention</dd></div>
+        <div><dt>作者</dt><dd>Woosuk Kwon · Zhuohan Li · Siyuan Zhuang · Ying Sheng · Lianmin Zheng · Cody Hao Yu · Joseph E. Gonzalez · Hao Zhang · Ion Stoica</dd></div>
+        <div><dt>发表</dt><dd>ACM 操作系统原理研讨会（SOSP） · 2023</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer">https://github.com/vllm-project/vllm</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2309.06180</a></dd></div>        <div><dt>PDF</dt><dd><a href="assets/source.pdf" target="_blank" rel="noopener">本地存档（16 页）</a></dd></div>
+        <div><dt>译本</dt><dd>中文译文由 AI 辅助完成；如发现术语或公式问题，请以英文原文为准。</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../deepseek-v2/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>DeepSeek-V2：强大、经济且高效的混合专家语言模型</strong>
+      </a>
+      <a class="pager-link pager-next" href="../orca/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>Orca：面向 Transformer 生成模型的分布式服务系统</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="assets/cover.svg" alt="vLLM 封面：分页 KV 缓存与逻辑块表示意" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>vLLM</h2>
+      <p class="rail-authors">Woosuk Kwon · Zhuohan Li · Siyuan Zhuang · Ying Sheng · Lianmin Zheng · Cody Hao Yu · Joseph E. Gonzalez · Hao Zhang · Ion Stoica</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2023</dd></div>
+        <div><dt>页数</dt><dd>16</dd></div>
+        <div><dt>阅读</dt><dd>5 分钟</dd></div>
+        <div><dt>版本</dt><dd>中文译文</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/2309.06180" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="original/index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>English Original</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../bidkv/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV：面向 KV 压力场景的效用引导抢占调度</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../transmla/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA：多头潜变量注意力足矣</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../assets/vendor/katex/katex.min.js"></script>  <script src="../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>

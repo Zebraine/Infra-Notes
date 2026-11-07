@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism · AI Infra 论文库</title>
+  <meta name="description" content="Recent work in language modeling demonstrates that training large transformer models advances the state of the art in Natural Language Processing (NLP) applicat">
+  <meta name="author" content="Mohammad Shoeybi, Mostofa Patwary, Raul Puri, Patrick LeGresley, Jared Casper, Bryan Catanzaro">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism · AI Infra 论文库">
+  <meta property="og:description" content="Recent work in language modeling demonstrates that training large transformer models advances the state of the art in Natural Language Processing (NLP) applicat">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2019-09-17">  <link rel="icon" href="../../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../../assets/site/pygments.css">
+  <link rel="stylesheet" href="../../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 09</span>
+      <span aria-hidden="true">/</span>
+      <span>English Original</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 09 · 2019 · arXiv 预印本</p>
+        <h1>Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</h1>
+        <p class="paper-alt-title" lang="zh-CN">Megatron-LM：用模型并行训练数十亿参数语言模型</p>
+        <p class="paper-authors">Mohammad Shoeybi · Mostofa Patwary · Raul Puri · Patrick LeGresley · Jared Casper · Bryan Catanzaro <span class="affiliation">· NVIDIA</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>15 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 6 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="../index.html" class="" data-lang="zh">中文译文</a>
+          <a href="index.html" class="is-active" aria-current="page" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">Original text transcribed from the paper PDF.</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../../index.html?tag=%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83">分布式训练</a><a class="chip chip-static" href="../../index.html?tag=%E5%BC%A0%E9%87%8F%E5%B9%B6%E8%A1%8C">张量并行</a><a class="chip chip-static" href="../../index.html?tag=%E6%A8%A1%E5%9E%8B%E5%B9%B6%E8%A1%8C">模型并行</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">Abstract</a></li>
+<li><a href="#sec-2">1 Editor's Note</a></li>
+<li><a href="#sec-3">2 Problem and Background</a></li>
+<li><a href="#sec-4">3 Method</a><ul>
+<li><a href="#sec-4-1">3.1 Column- and Row-Parallel MLP</a></li>
+<li><a href="#sec-4-2">3.2 Head-Parallel Attention and Communication Schedule</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 Experiments and Results</a></li>
+<li><a href="#sec-6">5 Impact and Limitations</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>Original</strong><span>English reading edition: abstract, tensor-parallel method, key experiments, and impact. Complete paper in the PDF.</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">Abstract<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>Recent work in language modeling demonstrates that training large transformer models advances the state of the art in Natural Language Processing (NLP) applications. However, very large models can be quite difficult to train due to memory constraints. In this work, we present our techniques for training very large transformer models and implement a simple, efficient intra-layer model parallel approach that enables training transformer models with billions of parameters. Our approach does not require a new compiler or library changes, is orthogonal and complimentary to pipeline model parallelism, and can be fully implemented with the insertion of a few communication operations in native PyTorch. We illustrate this approach by converging transformer based models up to 8.3 billion parameters using 512 GPUs. We sustain 15.1 PetaFLOPs across the entire application with 76% scaling efficiency when compared to a strong single GPU baseline that sustains 39 TeraFLOPs, which is 30% of peak FLOPs. To demonstrate that large language models can further advance the state of the art (SOTA), we train an 8.3 billion parameter transformer language model similar to GPT-2 and a 3.9 billion parameter model similar to BERT. We show that careful attention to the placement of layer normalization in BERT-like models is critical to achieving increased performance as the model size grows. Using the GPT-2 model we achieve SOTA results on the WikiText103 (10.8 compared to SOTA perplexity of 15.8) and LAMBADA (66.5% compared to SOTA accuracy of 63.2%) datasets. Our BERT model achieves SOTA results on the RACE dataset (90.9% compared to SOTA accuracy of 89.4%).</p>
+<h2 id="sec-2">1 Editor's Note<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>Megatron-LM is the paper that made tensor parallelism a standard systems primitive. Before it, training a model that did not fit on one GPU usually meant model parallelism through a custom compiler or framework, or pipeline parallelism with bubbles and scheduling complexity. Megatron showed that a Transformer layer has just enough structure to split its GEMMs across GPUs with only a handful of all-reduce operations—no new compiler, no custom C++ kernels.</p>
+<p>The key idea is to split the <em>inside</em> of a layer rather than the whole layer. In the MLP, the first weight matrix is column-parallel and the second is row-parallel, so GeLU can be applied locally and only one all-reduce is needed at the end. In self-attention, Q/K/V projections are split by attention heads and the output projection is row-parallel. The result is a small, composable block that can be combined with data parallelism and pipeline parallelism.</p>
+<p>This paper is the direct ancestor of the tensor-parallel path in Megatron-LM, DeepSpeed, NeMo, and many later training stacks. It also made an important empirical point for architecture: when scaling BERT-style models, the <em>placement</em> of layer normalization matters as much as the parameter count.</p>
+<h2 id="sec-3">2 Problem and Background<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>Natural language processing is advancing in part because of more compute and more data, which enables larger unsupervised language models. Empirical evidence shows that larger models are dramatically more useful for article completion, question answering, and natural language inference. As these models become larger, however, they exceed the memory of modern accelerators, and standard optimizers such as Adam need additional per-parameter state for momentum and variance.</p>
+<p>Existing approaches to model parallelism, such as GPipe and Mesh-TensorFlow, partition the model and its optimizer state, but they require rewriting the model and rely on custom compilers and frameworks. Pipeline parallelism is orthogonal and useful, but it does not by itself solve the per-layer memory problem. The paper asks whether a Transformer can be trained at billions of parameters with a simple, native-PyTorch intra-layer split.</p>
+<h2 id="sec-4">3 Method<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 Column- and Row-Parallel MLP<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>A Transformer layer contains a self-attention block followed by a two-layer MLP. The MLP computes <span class="arithmatex">\(Y=\mathrm{GeLU}(XA)\)</span>. If we split the weight matrix <span class="arithmatex">\(A\)</span> along its rows and the input <span class="arithmatex">\(X\)</span> along its columns, then <span class="arithmatex">\(Y=\mathrm{GeLU}(X_1A_1+X_2A_2)\)</span>. Because GeLU is nonlinear, this requires a synchronization point before the nonlinearity, which is undesirable.</p>
+<p>Instead, Megatron splits <span class="arithmatex">\(A\)</span> along its columns: <span class="arithmatex">\(A=[A_1,A_2]\)</span>. Then</p>
+<div class="arithmatex">\[
+[Y_1,Y_2]=[\mathrm{GeLU}(XA_1),\mathrm{GeLU}(XA_2)] .
+\]</div>
+<p>The GeLU can be applied independently on each GPU. The second GEMM is split along its rows, so it consumes <span class="arithmatex">\([Y_1,Y_2]\)</span> directly without communication; only the final output needs an all-reduce before dropout. This "fuse two GEMMs, communicate once" pattern is the core of the method. The forward pass uses one all-reduce (the <span class="arithmatex">\(g\)</span> operator); the backward pass uses one all-reduce (the <span class="arithmatex">\(f\)</span> operator); the two are conjugates.</p>
+<h3 id="sec-4-2">3.2 Head-Parallel Attention and Communication Schedule<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>For self-attention, the Q/K/V GEMMs are split in a column-parallel fashion so that each attention head is computed locally on one GPU. The subsequent output linear layer is row-parallel and consumes the local attention output directly. This removes an immediate communication point inside the attention block and lets the per-head parameters and workload be divided across GPUs.</p>
+<p>With this design, all GEMMs in a Transformer layer require only two all-reduces in the forward path and two in the backward path. The layer-norm parameters are duplicated on each GPU, and dropout and residual connections are computed locally, avoiding extra broadcasts. The output embedding is also parallelized along the vocabulary dimension; the paper fuses the parallel GEMM with the cross-entropy loss so that only scalar losses, not the full logits, are communicated. This reduces communication from <span class="arithmatex">\(b \times s \times v\)</span> to <span class="arithmatex">\(b \times s\)</span>.</p>
+<h2 id="sec-5">4 Experiments and Results<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>The paper scales GPT-2-style models from 1.2B to 8.3B parameters, using up to 8-way model parallelism and 512 V100 GPUs. The 8.3B model sustains 15.1 PetaFLOPs across the application, with 76% scaling efficiency relative to a strong single-GPU baseline that sustains 39 TeraFLOPs (30% of peak). The models are trained on a deduplicated 174 GB corpus with mixed precision, activation checkpointing, and a carefully tuned initialization and learning-rate schedule.</p>
+<p>The 8.3B GPT-2 model reaches 10.81 perplexity on WikiText103 and 66.51% zero-shot accuracy on LAMBADA, both state of the art at the time. The BERT-style models scale to 3.9B parameters and reach 90.9% on RACE. A key systems/architecture finding is that simply enlarging BERT with the original layer-norm placement degrades; moving layer normalization to the input of each sub-layer (pre-LN order) stabilizes training and lets BERT-style models improve monotonically with size.</p>
+<h2 id="sec-6">5 Impact and Limitations<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>Megatron-LM established tensor parallelism as a practical, reusable building block. Its column-parallel/row-parallel decomposition, conjugate all-reduce operators, and vocabulary-parallel output layer are now standard in large-model training frameworks. The paper also demonstrated that systems and architecture co-design are inseparable at scale: the layer-norm change was necessary to make the larger BERT models trainable and accurate.</p>
+<p>The main limitation is scope: 8-way tensor parallelism is efficient within a node with high-bandwidth NVLink, but it does not by itself scale across many nodes. The paper explicitly positions its method as orthogonal to pipeline parallelism, and later systems combine tensor, pipeline, data, and sequence parallelism. The 8.3B model is also small by today's standards; the enduring contribution is the decomposition and the communication schedule, not the specific model size.</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{shoeybi2019megatron,
+  author = {Mohammad Shoeybi and Mostofa Patwary and Raul Puri and Patrick LeGresley and Jared Casper and Bryan Catanzaro},
+  title = {Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism},
+  year = {2019},
+  howpublished = {arXiv:1909.08053},
+  url = {https://arxiv.org/abs/1909.08053},
+  note = {AI Infra Paper Library, megatron-lm}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</dd></div>
+        <div><dt>作者</dt><dd>Mohammad Shoeybi · Mostofa Patwary · Raul Puri · Patrick LeGresley · Jared Casper · Bryan Catanzaro</dd></div>
+        <div><dt>发表</dt><dd>arXiv 预印本 arXiv:1909.08053 · 2019</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/NVIDIA/Megatron-LM" target="_blank" rel="noopener noreferrer">https://github.com/NVIDIA/Megatron-LM</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/1909.08053" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/1909.08053</a></dd></div>        <div><dt>PDF</dt><dd><a href="../assets/source.pdf" target="_blank" rel="noopener">本地存档（15 页）</a></dd></div>
+        <div><dt>译本</dt><dd>English text transcribed from the original PDF for reading convenience.</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../../zero/original/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</strong>
+      </a>
+      <a class="pager-link pager-next" href="../../transformer/original/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>Attention Is All You Need</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="../assets/cover.svg" alt="Megatron-LM 封面：矩阵切分与多 GPU 张量并行示意" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>Megatron-LM</h2>
+      <p class="rail-authors">Mohammad Shoeybi · Mostofa Patwary · Raul Puri · Patrick LeGresley · Jared Casper · Bryan Catanzaro</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2019</dd></div>
+        <div><dt>页数</dt><dd>15</dd></div>
+        <div><dt>阅读</dt><dd>6 分钟</dd></div>
+        <div><dt>版本</dt><dd>English Original</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="../assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/NVIDIA/Megatron-LM" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/1909.08053" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="../index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中文译文</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../../bidkv/original/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV: Utility-Guided Preemption Scheduling for KV-Pressure LLM Serving</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../../transmla/original/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA: Multi-Head Latent Attention Is All You Need</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../../index.html">论文库</a>
+          <a href="../../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../../assets/vendor/katex/katex.min.js"></script>  <script src="../../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+slug: orca
+title: 'Orca: A Distributed Serving System for Transformer-Based Generative Models'
+title_zh: Orca：面向 Transformer 生成模型的分布式服务系统
+short_title: Orca
+authors:
+- Gyeong-In Yu
+- Joo Seong Jeong
+- Geon-Woo Kim
+- Soojeong Kim
+- Byung-Gon Chun
+affiliation: Seoul National University · FriendliAI
+year: 2022
+date: '2022-07-11'
+venue: OSDI 2022
+venue_zh: OSDI
+venue_full_zh: USENIX 操作系统设计与实现研讨会（OSDI）
+conference_url: https://www.usenix.org/conference/osdi22/presentation/yu
+code_url: ''
+type: 经典论文
+tags:
+- 基础
+- LLM Serving
+- Continuous Batching
+- 调度
+abstract: 'Large-scale Transformer-based models trained for generation tasks (e.g., GPT-3) have recently
+  attracted huge interest, emphasizing the need for system support for serving models in this family.
+  Since these models generate a next token in an autoregressive manner, one has to run the model multiple
+  times to process an inference request where each iteration of the model generates a single output token
+  for the request. However, existing systems for inference serving do not perform well on this type of
+  workload that has a multi-iteration characteristic, due to their inflexible scheduling mechanism that
+  cannot change the current batch of requests being processed; requests that have finished earlier than
+  other requests in a batch cannot return to the client, while newly arrived requests have to wait until
+  the current batch completely finishes. In this paper, we propose iteration-level scheduling, a new scheduling
+  mechanism that schedules execution at the granularity of iteration (instead of request) where the scheduler
+  invokes the execution engine to run only a single iteration of the model on the batch. In addition,
+  to apply batching and iteration-level scheduling to a Transformer model at the same time, we suggest
+  selective batching, which applies batching only to a selected set of operations. Based on these two
+  techniques, we have implemented a distributed serving system called Orca, with additional designs for
+  scalability to models with hundreds of billions of parameters. Our evaluation on a GPT-3 175B model
+  shows that Orca can significantly outperform NVIDIA FasterTransformer in terms of both latency and throughput:
+  36.9× throughput improvement at the same level of latency.'
+abstract_zh: 面向生成任务的大规模 Transformer 模型（如 GPT-3）近来备受关注，亟需针对这类模型的服务系统支持。由于这类模型以自回归方式逐 token 生成，处理一个请求需要多次运行模型，每次迭代只生成一个输出
+  token。现有推理服务系统难以应对这种“多迭代”负载：其调度机制不灵活，无法改变正在处理的批；批内较早完成的请求不能先返回，新到达请求必须等整批结束。本文提出迭代级调度（iteration-level
+  scheduling），以迭代而非请求为粒度调度执行，调度器只让执行引擎在批上运行模型的一次迭代；同时在 Transformer 上把批处理与迭代级调度结合，提出选择性批处理（selective batching），只对选定算子做批处理。基于这两项技术，我们实现分布式服务系统
+  Orca，并针对数千亿参数模型增加可扩展性设计。在 GPT-3 175B 上的评估表明，Orca 在延迟和吞吐上都显著优于 NVIDIA FasterTransformer：在相同延迟水平下吞吐提升
+  36.9 倍。
+summary: 把 LLM 服务的调度粒度从“请求”降到“一次迭代”，用连续批处理让完成的请求立即返回、新请求随时加入；这是现代 LLM 推理引擎的调度基石。
+cover: assets/cover.svg
+cover_alt: Orca 封面：迭代级调度与连续批处理时间线
+pdf: assets/source.pdf
+source_url: https://www.usenix.org/conference/osdi22/presentation/yu
+pages: 19
+featured: false
+order: 13
+citation_key: yu2022orca
+translation_note: 中文精读版：摘要、迭代级调度、选择性批处理与关键实验对译；完整系统设计与附录见 PDF。
+original_note: 'English reading edition: abstract, iteration-level scheduling, selective batching, and
+  key experiments. Complete paper in the PDF.'

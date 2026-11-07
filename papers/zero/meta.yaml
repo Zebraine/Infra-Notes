@@ -1,0 +1,56 @@
+slug: zero
+title: 'ZeRO: Memory Optimizations Toward Training Trillion Parameter Models'
+title_zh: ZeRO：面向万亿参数模型训练的内存优化
+short_title: ZeRO
+authors:
+- Samyam Rajbhandari
+- Jeff Rasley
+- Olatunji Ruwase
+- Yuxiong He
+affiliation: Microsoft Research
+year: 2020
+date: '2019-10-13'
+venue: SC20
+venue_zh: SC20
+venue_full_zh: 国际高性能计算、网络、存储与分析会议（SC）
+conference_url: ''
+code_url: https://github.com/microsoft/DeepSpeed
+type: 经典论文
+tags:
+- 基础
+- 分布式训练
+- 显存优化
+- 数据并行
+abstract: 'Large deep learning models offer significant accuracy gains, but training billions to trillions
+  of parameters is challenging. Existing solutions such as data and model parallelisms exhibit fundamental
+  limitations to fit these models into limited device memory, while obtaining computation, communication
+  and development efficiency. We develop a novel solution, Zero Redundancy Optimizer (ZeRO), to optimize
+  memory, vastly improving training speed while increasing the model size that can be efficiently trained.
+  ZeRO eliminates memory redundancies in data- and model-parallel training while retaining low communication
+  volume and high computational granularity, allowing us to scale the model size proportional to the number
+  of devices with sustained high efficiency. Our analysis on memory requirements and communication volume
+  demonstrates: ZeRO has the potential to scale beyond 1 Trillion parameters using today''s hardware.
+  We implement and evaluate ZeRO: it trains large models of over 100B parameter with super-linear speedup
+  on 400 GPUs, achieving throughput of 15 Petaflops. This represents an 8x increase in model size and
+  10x increase in achievable performance over state-of-the-art. In terms of usability, ZeRO can train
+  large models of up to 13B parameters (e.g., larger than Megatron GPT 8.3B and T5 11B) without requiring
+  model parallelism which is harder for scientists to apply. Last but not the least, researchers have
+  used the system breakthroughs of ZeRO to create the world''s largest language model (17B parameters)
+  with record breaking accuracy.'
+abstract_zh: 大型深度学习模型带来显著精度收益，但训练数十亿到数万亿参数极具挑战。数据并行、模型并行等现有方案在有限显存、计算/通信效率与易用性之间难以兼顾。我们提出 Zero Redundancy
+  Optimizer（ZeRO），通过消除内存冗余来优化显存，在大幅提升训练速度的同时扩大可高效训练的模型规模。ZeRO 在数据并行和模型并行训练中消除内存冗余，同时保留低通信量与高计算粒度，使模型规模可以随设备数近似线性扩展。对显存需求和通信量的分析表明，ZeRO
+  有潜力在现有硬件上扩展到 1 万亿参数以上。我们在 400 块 GPU 上训练超过 1000 亿参数的模型，取得超线性加速和 15 Petaflops 吞吐，相比当时 SOTA 模型规模扩大 8 倍、可达性能提升
+  10 倍。ZeRO 还能在不使用模型并行的情况下训练 130 亿参数模型（大于 Megatron GPT 8.3B 和 T5 11B），显著降低科学家的使用门槛；研究者还借助 ZeRO 的系统突破训练出当时世界最大的
+  170 亿参数语言模型并刷新精度纪录。
+summary: 把优化器状态、梯度和参数按数据并行进程分片，消除冗余显存；ZeRO 让纯数据并行也能训练百亿甚至万亿参数模型。
+cover: assets/cover.svg
+cover_alt: ZeRO 封面：优化器状态、梯度与参数分片的内存条示意
+pdf: assets/source.pdf
+source_url: https://arxiv.org/abs/1910.02054
+pages: 24
+featured: false
+order: 12
+citation_key: rajbhandari2020zero
+translation_note: 中文精读版：摘要、ZeRO-DP 三阶段、ZeRO-R 与关键实验对译；完整推导与附录见 PDF。
+original_note: 'English reading edition: abstract, the three ZeRO-DP stages, ZeRO-R, and key experiments.
+  Complete paper in the PDF.'

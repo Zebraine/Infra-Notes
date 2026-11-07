@@ -1,0 +1,53 @@
+slug: transformer
+title: Attention Is All You Need
+title_zh: Attention Is All You Need：Transformer 架构
+short_title: Transformer
+authors:
+- Ashish Vaswani
+- Noam Shazeer
+- Niki Parmar
+- Jakob Uszkoreit
+- Llion Jones
+- Aidan N. Gomez
+- Łukasz Kaiser
+- Illia Polosukhin
+affiliation: Google Brain · Google Research · University of Toronto
+year: 2017
+date: '2017-06-12'
+venue: NeurIPS 2017
+venue_zh: NeurIPS
+venue_full_zh: 神经信息处理系统大会（NeurIPS）
+conference_url: https://papers.nips.cc/paper/7181-attention-is-all-you-need
+code_url: ''
+type: 经典论文
+tags:
+- 基础
+- Transformer
+- Self-Attention
+- 序列建模
+abstract: The dominant sequence transduction models are based on complex recurrent or convolutional neural
+  networks that include an encoder and a decoder. The best performing models also connect the encoder
+  and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer,
+  based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments
+  on two machine translation tasks show these models to be superior in quality while being more parallelizable
+  and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German
+  translation task, improving over the existing best results, including ensembles, by over 2 BLEU. On
+  the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art
+  BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs
+  of the best models from the literature. We show that the Transformer generalizes well to other tasks
+  by applying it successfully to English constituency parsing both with large and limited training data.
+abstract_zh: 主流的序列转导模型基于复杂的循环或卷积神经网络，包含编码器与解码器；性能最好的模型还会用注意力机制连接编码器和解码器。我们提出一种新的简单网络架构 Transformer，它完全基于注意力机制，彻底舍弃循环和卷积。两个机器翻译任务上的实验表明，这类模型质量更优、更易并行化，训练时间也显著缩短。在
+  WMT 2014 英德翻译任务上，我们的模型取得 28.4 BLEU，超过此前最佳结果（包括集成模型）2 BLEU 以上；在 WMT 2014 英法任务上，模型在 8 块 GPU 上训练 3.5 天后取得
+  41.8 BLEU 的单模型新 SOTA，训练成本仅为文献中最佳模型的一小部分。我们还将 Transformer 成功应用于英语成分句法分析（包括大规模和有限训练数据），说明它可以泛化到其他任务。
+summary: 用纯注意力替换循环与卷积，把序列建模变成可大规模并行的矩阵运算；Transformer 由此成为现代 LLM 的底座。
+cover: assets/cover.svg
+cover_alt: Transformer 封面：多头注意力与编码器/解码器堆叠示意
+pdf: assets/source.pdf
+source_url: https://arxiv.org/abs/1706.03762
+pages: 15
+featured: false
+order: 10
+citation_key: vaswani2017attention
+translation_note: 中文精读版：摘要、核心方法、关键实验与影响对译；完整实验与附录见 PDF。
+original_note: 'English reading edition: abstract, core method, key experiments, and impact. Complete
+  paper in the PDF.'

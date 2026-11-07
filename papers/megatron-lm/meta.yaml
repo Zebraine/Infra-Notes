@@ -1,0 +1,59 @@
+slug: megatron-lm
+title: 'Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism'
+title_zh: Megatron-LM：用模型并行训练数十亿参数语言模型
+short_title: Megatron-LM
+authors:
+- Mohammad Shoeybi
+- Mostofa Patwary
+- Raul Puri
+- Patrick LeGresley
+- Jared Casper
+- Bryan Catanzaro
+affiliation: NVIDIA
+year: 2019
+date: '2019-09-17'
+venue: arXiv:1909.08053
+venue_zh: arXiv 预印本
+venue_full_zh: arXiv 预印本 arXiv:1909.08053
+conference_url: ''
+code_url: https://github.com/NVIDIA/Megatron-LM
+type: 经典论文
+tags:
+- 基础
+- 分布式训练
+- 张量并行
+- 模型并行
+abstract: Recent work in language modeling demonstrates that training large transformer models advances
+  the state of the art in Natural Language Processing (NLP) applications. However, very large models can
+  be quite difficult to train due to memory constraints. In this work, we present our techniques for training
+  very large transformer models and implement a simple, efficient intra-layer model parallel approach
+  that enables training transformer models with billions of parameters. Our approach does not require
+  a new compiler or library changes, is orthogonal and complimentary to pipeline model parallelism, and
+  can be fully implemented with the insertion of a few communication operations in native PyTorch. We
+  illustrate this approach by converging transformer based models up to 8.3 billion parameters using 512
+  GPUs. We sustain 15.1 PetaFLOPs across the entire application with 76% scaling efficiency when compared
+  to a strong single GPU baseline that sustains 39 TeraFLOPs, which is 30% of peak FLOPs. To demonstrate
+  that large language models can further advance the state of the art (SOTA), we train an 8.3 billion
+  parameter transformer language model similar to GPT-2 and a 3.9 billion parameter model similar to BERT.
+  We show that careful attention to the placement of layer normalization in BERT-like models is critical
+  to achieving increased performance as the model size grows. Using the GPT-2 model we achieve SOTA results
+  on the WikiText103 (10.8 compared to SOTA perplexity of 15.8) and LAMBADA (66.5% compared to SOTA accuracy
+  of 63.2%) datasets. Our BERT model achieves SOTA results on the RACE dataset (90.9% compared to SOTA
+  accuracy of 89.4%).
+abstract_zh: 近期语言模型研究表明，训练更大的 Transformer 能推进 NLP 应用的最优结果，但超大模型受显存约束，训练十分困难。本文给出训练超大规模 Transformer 的技术，并实现一种简单高效的层内模型并行方法，使
+  Transformer 可以训练到数十亿参数。该方法不需要新编译器或改库，与流水线模型并行正交且互补，只需在原生 PyTorch 中插入少量通信操作即可完整实现。我们用 512 块 GPU 将 Transformer
+  收敛到 83 亿参数，整个应用持续达到 15.1 PetaFLOPs，相比单 GPU 强基线（39 TeraFLOPs，约为峰值算力的 30%）取得 76% 的扩展效率。为证明大模型能继续推进 SOTA，我们训练了类似
+  GPT-2 的 83 亿参数模型和类似 BERT 的 39 亿参数模型；结果表明，类 BERT 模型中 LayerNorm 的放置位置对规模增大后的性能至关重要。GPT-2 模型在 WikiText103（困惑度
+  10.8，此前 SOTA 15.8）和 LAMBADA（准确率 66.5%，此前 SOTA 63.2%）上取得 SOTA；BERT 模型在 RACE 上取得 90.9%（此前 SOTA 89.4%）。
+summary: 把 Transformer 层内的矩阵乘法按列/行切到多张 GPU 上，只用少量 all-reduce 就实现 8 路张量并行；这是大模型训练系统的奠基工作。
+cover: assets/cover.svg
+cover_alt: Megatron-LM 封面：矩阵切分与多 GPU 张量并行示意
+pdf: assets/source.pdf
+source_url: https://arxiv.org/abs/1909.08053
+pages: 15
+featured: false
+order: 11
+citation_key: shoeybi2019megatron
+translation_note: 中文精读版：摘要、张量并行方法、关键实验与影响对译；完整推导与附录见 PDF。
+original_note: 'English reading edition: abstract, tensor-parallel method, key experiments, and impact.
+  Complete paper in the PDF.'

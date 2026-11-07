@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ZeRO：面向万亿参数模型训练的内存优化 · AI Infra 论文库</title>
+  <meta name="description" content="大型深度学习模型带来显著精度收益，但训练数十亿到数万亿参数极具挑战。数据并行、模型并行等现有方案在有限显存、计算/通信效率与易用性之间难以兼顾。我们提出 Zero Redundancy Optimizer（ZeRO），通过消除内存冗余来优化显存，在大幅提升训练速度的同时扩大可高效训练的模型规模。ZeRO 在数据并行和模">
+  <meta name="author" content="Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, Yuxiong He">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="ZeRO：面向万亿参数模型训练的内存优化 · AI Infra 论文库">
+  <meta property="og:description" content="大型深度学习模型带来显著精度收益，但训练数十亿到数万亿参数极具挑战。数据并行、模型并行等现有方案在有限显存、计算/通信效率与易用性之间难以兼顾。我们提出 Zero Redundancy Optimizer（ZeRO），通过消除内存冗余来优化显存，在大幅提升训练速度的同时扩大可高效训练的模型规模。ZeRO 在数据并行和模">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2019-10-13">  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../assets/site/pygments.css">
+  <link rel="stylesheet" href="../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 08</span>
+      <span aria-hidden="true">/</span>
+      <span>中文译文</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 08 · 2020 · SC20</p>
+        <h1>ZeRO：面向万亿参数模型训练的内存优化</h1>
+        <p class="paper-alt-title" lang="en">ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</p>
+        <p class="paper-authors">Samyam Rajbhandari · Jeff Rasley · Olatunji Ruwase · Yuxiong He <span class="affiliation">· Microsoft Research</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>24 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 5 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="index.html" class="is-active" aria-current="page" data-lang="zh">中文译文</a>
+          <a href="original/index.html" class="" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">译文由 AI 辅助完成，技术细节以原文为准。</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../index.html?tag=%E5%88%86%E5%B8%83%E5%BC%8F%E8%AE%AD%E7%BB%83">分布式训练</a><a class="chip chip-static" href="../index.html?tag=%E6%98%BE%E5%AD%98%E4%BC%98%E5%8C%96">显存优化</a><a class="chip chip-static" href="../index.html?tag=%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C">数据并行</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">摘要</a></li>
+<li><a href="#sec-2">1 精读导读</a></li>
+<li><a href="#sec-3">2 问题与背景</a></li>
+<li><a href="#sec-4">3 方法</a><ul>
+<li><a href="#sec-4-1">3.1 ZeRO-DP：切分模型状态</a></li>
+<li><a href="#sec-4-2">3.2 ZeRO-R：管理残余显存</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 实验与结果</a></li>
+<li><a href="#sec-6">5 影响与局限</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>中文译文</strong><span>中文精读版：摘要、ZeRO-DP 三阶段、ZeRO-R 与关键实验对译；完整推导与附录见 PDF。</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">摘要<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>大型深度学习模型带来显著精度收益，但训练数十亿到数万亿参数极具挑战。数据并行、模型并行等现有方案在有限显存、计算/通信效率与易用性之间难以兼顾。我们提出 Zero Redundancy Optimizer（ZeRO），通过消除内存冗余来优化显存，在大幅提升训练速度的同时扩大可高效训练的模型规模。ZeRO 在数据并行和模型并行训练中消除内存冗余，同时保留低通信量与高计算粒度，使模型规模可以随设备数近似线性扩展。对显存需求和通信量的分析表明，ZeRO 有潜力在现有硬件上扩展到 1 万亿参数以上。我们在 400 块 GPU 上训练超过 1000 亿参数的模型，取得超线性加速和 15 Petaflops 吞吐，相比当时 SOTA 模型规模扩大 8 倍、可达性能提升 10 倍。ZeRO 还能在不使用模型并行的情况下训练 130 亿参数模型（大于 Megatron GPT 8.3B 和 T5 11B），显著降低科学家的使用门槛；研究者还借助 ZeRO 的系统突破训练出当时世界最大的 170 亿参数语言模型并刷新精度纪录。</p>
+<h2 id="sec-2">1 精读导读<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>ZeRO 是让“纯数据并行也能训练超大模型”变得可信的那篇论文。标准数据并行会在每个 worker 上复制完整模型状态：参数、梯度和优化器状态。对混合精度 Adam 来说，每个参数约需 16 字节，因此 14 亿参数的模型就能吃满 32 GB GPU，还没算激活。模型并行可以避免复制，但通信粒度细、框架复杂。</p>
+<p>ZeRO 的观察简单而有力：数据并行的各个 worker 并不需要<em>同时</em>保存相同的优化器状态、梯度和参数。把它们按数据并行组分片，在需要时再收集即可。三个阶段——优化器状态分片、梯度分片、参数分片——分别把每卡模型状态显存降到约 1/4、1/8 和 <span class="arithmatex">\(1/N_d\)</span>，同时保留数据并行的计算粒度和通信量级。</p>
+<p>这篇论文是 DeepSpeed ZeRO 和 PyTorch FSDP 的直接思想源头。它也第一次把大模型训练的显存结构讲清楚：模型状态只是问题的一部分，激活、临时缓冲和碎片化共同构成“残余状态”，必须单独管理。</p>
+<h2 id="sec-3">2 问题与背景<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>深度学习模型越来越大，规模增长带来显著精度收益。在 NLP 中，Transformer 催生了 BERT-large（0.3B）、GPT-2（1.5B）、Megatron-LM（8.3B）和 T5（11B）。从数百亿继续走向万亿参数会遇到硬约束：模型放不进单卡显存，而如果并行策略仍然复制状态，单纯增加设备并不能解决问题。</p>
+<p>基础数据并行（DP）不降低每卡显存，在 32 GB GPU 上超过约 14 亿参数就会 OOM。流水线并行、模型并行和 CPU offload 在功能、易用性、显存、计算/通信效率之间做出不同取舍。论文把显存分为两部分：模型状态（优化器状态、梯度、参数）和残余状态（激活、临时缓冲、碎片化显存）。</p>
+<h2 id="sec-4">3 方法<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 ZeRO-DP：切分模型状态<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>设模型有 <span class="arithmatex">\(\Psi\)</span> 个参数，使用混合精度 Adam 训练。标准数据并行下每卡模型状态约为 <span class="arithmatex">\(16\Psi\)</span> 字节：fp16 参数 2 字节、fp16 梯度 2 字节、fp32 优化器状态 12 字节（动量、方差和 master copy）。ZeRO-DP 把这些状态切分到 <span class="arithmatex">\(N_d\)</span> 个数据并行 worker 上。</p>
+<p>三个阶段是累加的。<span class="arithmatex">\(P_{os}\)</span> 切分优化器状态，模型状态显存降到约 <span class="arithmatex">\(4\Psi + 12\Psi/N_d\)</span>，通信量与 DP 相同；<span class="arithmatex">\(P_{os+g}\)</span> 再切分梯度，显存降到约 <span class="arithmatex">\(2\Psi + 14\Psi/N_d\)</span>，通信量仍与 DP 相同；<span class="arithmatex">\(P_{os+g+p}\)</span> 连参数也切分，每卡只需约 <span class="arithmatex">\(16\Psi/N_d\)</span> 字节，显存随 <span class="arithmatex">\(N_d\)</span> 线性下降，代价是通信量增加约 50%，因为每层计算前需要收集参数。</p>
+<p>关键在于，ZeRO 保留了数据并行的计算粒度：每个 worker 仍在本地 batch 上做大 GEMM。它改变的是“什么状态存在哪里”，而不是计算形状。开启全部三个阶段后，一个 Adam 模型状态需要 16 TB 的万亿参数模型，可以放到 1024 块 16 GB 显存的 GPU 上。</p>
+<h3 id="sec-4-2">3.2 ZeRO-R：管理残余显存<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>模型状态切分后，激活、临时缓冲和显存碎片会成为下一个瓶颈。ZeRO-R 分别处理：对激活，它在模型并行设备间切分激活检查点，并在合适时把激活 offload 到 CPU；对临时缓冲，它选择兼顾显存与计算效率的大小，而不是处处按最坏情况分配。</p>
+<p>对碎片化，ZeRO-R 注意到不同张量生命周期不同，缺少连续显存时即使总空闲显存足够也可能分配失败。它根据张量生命周期主动管理显存，避免碎片。ZeRO-DP 与 ZeRO-R 合起来构成完整的 ZeRO 系统。</p>
+<h2 id="sec-5">4 实验与结果<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>ZeRO 在 400 块 GPU 上训练超过 1000 亿参数的模型，取得超线性加速，持续吞吐约 15 Petaflops。相对当时 SOTA，这是模型规模 8 倍、可达性能 10 倍的提升。结合模型并行，ZeRO 可以训练 1700 亿参数模型；不使用任何模型并行时，它可以在 128 块 GPU 上训练最多 130 亿参数模型，大于 Megatron GPT 8.3B 和 T5 11B。</p>
+<p>论文给出了 8B 到 100B 模型的扩展性和吞吐结果，并显示 ZeRO-100B 在相同硬件上最多比基线快 10 倍。它还分析了各阶段通信量：第 1、2 阶段与 DP 相同，第 3 阶段约为 DP 的 1.5 倍。</p>
+<h2 id="sec-6">5 影响与局限<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>ZeRO 改变了大模型训练的默认假设：训练单卡放不下的模型，不一定需要模型并行。通过消除冗余模型状态，它让数据并行可以扩展到数百亿参数，并直接催生了 DeepSpeed 和 PyTorch FSDP。它提出的“模型状态 vs 残余状态”分类，至今仍是分析训练显存的正确框架。</p>
+<p>局限同样重要。第三阶段引入额外的参数 gather/scatter 通信，在小 batch 或慢速互联上可能拖慢训练；激活显存和碎片仍需细致管理；CPU offload 是用 PCIe 带宽换容量。ZeRO 也不是张量并行、流水线并行的替代品；最大规模的训练会同时使用这些并行方式。</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{rajbhandari2020zero,
+  author = {Samyam Rajbhandari and Jeff Rasley and Olatunji Ruwase and Yuxiong He},
+  title = {ZeRO: Memory Optimizations Toward Training Trillion Parameter Models},
+  year = {2020},
+  howpublished = {SC20},
+  url = {https://arxiv.org/abs/1910.02054},
+  note = {AI Infra Paper Library, zero}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</dd></div>
+        <div><dt>作者</dt><dd>Samyam Rajbhandari · Jeff Rasley · Olatunji Ruwase · Yuxiong He</dd></div>
+        <div><dt>发表</dt><dd>国际高性能计算、网络、存储与分析会议（SC） · 2020</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/microsoft/DeepSpeed" target="_blank" rel="noopener noreferrer">https://github.com/microsoft/DeepSpeed</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/1910.02054" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/1910.02054</a></dd></div>        <div><dt>PDF</dt><dd><a href="assets/source.pdf" target="_blank" rel="noopener">本地存档（24 页）</a></dd></div>
+        <div><dt>译本</dt><dd>中文译文由 AI 辅助完成；如发现术语或公式问题，请以英文原文为准。</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../roformer/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>RoFormer：使用旋转位置嵌入增强的 Transformer</strong>
+      </a>
+      <a class="pager-link pager-next" href="../megatron-lm/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>Megatron-LM：用模型并行训练数十亿参数语言模型</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="assets/cover.svg" alt="ZeRO 封面：优化器状态、梯度与参数分片的内存条示意" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>ZeRO</h2>
+      <p class="rail-authors">Samyam Rajbhandari · Jeff Rasley · Olatunji Ruwase · Yuxiong He</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2020</dd></div>
+        <div><dt>页数</dt><dd>24</dd></div>
+        <div><dt>阅读</dt><dd>5 分钟</dd></div>
+        <div><dt>版本</dt><dd>中文译文</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/microsoft/DeepSpeed" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/1910.02054" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="original/index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>English Original</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../bidkv/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV：面向 KV 压力场景的效用引导抢占调度</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../transmla/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA：多头潜变量注意力足矣</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../assets/vendor/katex/katex.min.js"></script>  <script src="../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>

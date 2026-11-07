@@ -1,0 +1,54 @@
+slug: vllm
+title: Efficient Memory Management for Large Language Model Serving with PagedAttention
+title_zh: vLLM：用 PagedAttention 高效管理大模型服务显存
+short_title: vLLM
+authors:
+- Woosuk Kwon
+- Zhuohan Li
+- Siyuan Zhuang
+- Ying Sheng
+- Lianmin Zheng
+- Cody Hao Yu
+- Joseph E. Gonzalez
+- Hao Zhang
+- Ion Stoica
+affiliation: UC Berkeley · Stanford University · UC San Diego
+year: 2023
+date: '2023-09-12'
+venue: SOSP 2023
+venue_zh: SOSP
+venue_full_zh: ACM 操作系统原理研讨会（SOSP）
+conference_url: ''
+code_url: https://github.com/vllm-project/vllm
+type: 经典论文
+tags:
+- 基础
+- LLM Serving
+- KV Cache
+- PagedAttention
+abstract: High throughput serving of large language models (LLMs) requires batching sufficiently many
+  requests at a time. However, existing systems struggle because the key-value cache (KV cache) memory
+  for each request is huge and grows and shrinks dynamically. When managed inefficiently, this memory
+  can be significantly wasted by fragmentation and redundant duplication, limiting the batch size. To
+  address this problem, we propose PagedAttention, an attention algorithm inspired by the classical virtual
+  memory and paging techniques in operating systems. On top of it, we build vLLM, an LLM serving system
+  that achieves (1) near-zero waste in KV cache memory and (2) flexible sharing of KV cache within and
+  across requests to further reduce memory usage. Our evaluations show that vLLM improves the throughput
+  of popular LLMs by 2-4× with the same level of latency compared to the state-of-the-art systems, such
+  as FasterTransformer and Orca. The improvement is more pronounced with longer sequences, larger models,
+  and more complex decoding algorithms. vLLM's source code is publicly available at https://github.com/vllm-project/vllm.
+abstract_zh: 高吞吐地服务大语言模型（LLM）需要一次批处理足够多的请求；但每个请求的键值缓存（KV cache）巨大且动态伸缩，现有系统难以高效管理。管理不当时，显存会被碎片和冗余副本大量浪费，限制批大小。为此，我们提出
+  PagedAttention——一种受操作系统虚拟内存与分页技术启发的注意力算法。在它之上我们构建了 vLLM 服务系统，做到（1）KV 缓存显存近乎零浪费；（2）请求内与请求间灵活共享 KV 缓存，进一步降低显存占用。评估表明，在相同延迟水平下，vLLM
+  将主流 LLM 的吞吐相比 FasterTransformer、Orca 等 SOTA 系统提升 2–4 倍；序列更长、模型更大、解码算法更复杂时收益更明显。vLLM 源码已开源：https://github.com/vllm-project/vllm。
+summary: 把 KV 缓存切成固定大小的块，用逻辑块表映射到非连续物理显存，并支持写时复制共享；vLLM 以此把 LLM 服务吞吐提升 2–4 倍。
+cover: assets/cover.svg
+cover_alt: vLLM 封面：分页 KV 缓存与逻辑块表示意
+pdf: assets/source.pdf
+source_url: https://arxiv.org/abs/2309.06180
+pages: 16
+featured: false
+order: 14
+citation_key: kwon2023vllm
+translation_note: 中文精读版：摘要、PagedAttention、显存管理与关键实验对译；完整实现与附录见 PDF。
+original_note: 'English reading edition: abstract, PagedAttention, memory management, and key experiments.
+  Complete paper in the PDF.'

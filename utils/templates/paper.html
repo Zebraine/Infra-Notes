@@ -108,7 +108,7 @@
         <div><dt>原文标题</dt><dd lang="en">{{ paper.title }}</dd></div>
         <div><dt>作者</dt><dd>{{ paper.authors_line }}</dd></div>
         <div><dt>发表</dt><dd>{{ paper.venue_full_zh or paper.venue_zh or "未注明" }} · {{ paper.year }}</dd></div>
-        {% if paper.conference_url %}<div><dt>会议页</dt><dd><a href="{{ paper.conference_url }}" target="_blank" rel="noopener noreferrer">SC26 官方 program</a></dd></div>{% endif %}
+        {% if paper.conference_url %}<div><dt>会议页</dt><dd><a href="{{ paper.conference_url }}" target="_blank" rel="noopener noreferrer">{{ paper.venue_zh or paper.venue or "官方" }} 官方页面</a></dd></div>{% endif %}
         {% if paper.code_url %}<div><dt>代码</dt><dd><a href="{{ paper.code_url }}" target="_blank" rel="noopener noreferrer">{{ paper.code_url }}</a></dd></div>{% endif %}
         {% if paper.source_url %}<div><dt>原文链接</dt><dd><a href="{{ paper.source_url }}" target="_blank" rel="noopener noreferrer">{{ paper.source_url }}</a></dd></div>{% endif %}
         <div><dt>PDF</dt><dd><a href="{{ pdf_url }}" target="_blank" rel="noopener">本地存档（{{ paper.pages or "?" }} 页）</a></dd></div>
@@ -151,9 +151,9 @@
       </dl>
       <div class="rail-links">
         <a href="{{ pdf_url }}" target="_blank" rel="noopener">{{ icon("file", 15) }}PDF 原文</a>
-        {% if paper.conference_url %}<a href="{{ paper.conference_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}SC26 会议页</a>{% endif %}
+        {% if paper.conference_url %}<a href="{{ paper.conference_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}{{ paper.venue_zh or "会议" }} 页面</a>{% endif %}
         {% if paper.code_url %}<a href="{{ paper.code_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}代码仓库</a>{% endif %}
-        {% if paper.source_url %}<a href="{{ paper.source_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}在线 PDF</a>{% endif %}
+        {% if paper.source_url %}<a href="{{ paper.source_url }}" target="_blank" rel="noopener noreferrer">{{ icon("external", 15) }}在线原文</a>{% endif %}
         <a href="{{ original_url if lang == 'zh' else translation_url }}">{{ icon("book", 15) }}{{ "English Original" if lang == "zh" else "中文译文" }}</a>
       </div>
     </div>

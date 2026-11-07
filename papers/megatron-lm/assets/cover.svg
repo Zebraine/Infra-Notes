@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Megatron-LM 封面：矩阵切分与多 GPU 张量并行">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a1515"/>
+      <stop offset="0.52" stop-color="#0d1d1b"/>
+      <stop offset="1" stop-color="#122a27"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="18%" cy="8%" r="85%">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0.22"/>
+      <stop offset="0.58" stop-color="#2dd4bf" stop-opacity="0.03"/>
+      <stop offset="1" stop-color="#2dd4bf" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#7ff5e4" stroke-opacity="0.09" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="accentLine" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4" stop-opacity="0"/>
+      <stop offset="0.5" stop-color="#5eead4" stop-opacity="0.7"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5eead4"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <rect width="1200" height="900" fill="url(#glow)"/>
+  <rect width="1200" height="900" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1200" height="6" fill="url(#accentLine)"/>
+  <text x="70" y="82" fill="#8fb8b1" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="600" letter-spacing="4">AI INFRA · FOUNDATIONS</text>
+  <text x="70" y="236" fill="#f2fbf9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="92" font-weight="800" letter-spacing="-3">Megatron-LM</text>
+  <text x="72" y="282" fill="#c6ded9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="26" font-weight="400">Training Multi-Billion Parameter</text>
+  <text x="72" y="316" fill="#c6ded9" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="26" font-weight="400">Language Models Using Model Parallelism</text>
+  <text x="72" y="410" fill="#9bbdb8" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="19" font-weight="500">Shoeybi · Patwary · Puri · LeGresley · Casper · Catanzaro</text>
+  <text x="72" y="444" fill="#5eead4" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="18" font-weight="700" letter-spacing="1.2">arXiv · 2019</text>
+  <g transform="translate(70 500)">
+<g opacity="0.95">
+  <text x="0" y="18" fill="#5eead4" font-family="'Noto Sans CJK SC',sans-serif" font-size="15" font-weight="700" letter-spacing="2">TENSOR PARALLEL MLP</text>
+  <g transform="translate(0 46)">
+    <rect x="0" y="0" width="160" height="56" rx="8" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+    <text x="80" y="35" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="18" font-weight="700" text-anchor="middle">X</text>
+    <path d="M168 28 H214" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="224" y="0" width="196" height="56" rx="8" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+    <text x="322" y="35" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="17" font-weight="700" text-anchor="middle">A = [A₁ | A₂]</text>
+    <path d="M428 28 H474" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="484" y="0" width="214" height="56" rx="8" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+    <text x="591" y="35" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="17" font-weight="700" text-anchor="middle">GeLU(XA₁), GeLU(XA₂)</text>
+    <path d="M706 28 H752" stroke="#5eead4" stroke-width="2" marker-end="url(#arrow)"/>
+    <rect x="762" y="0" width="196" height="56" rx="8" fill="#10312c" stroke="#2dd4bf" stroke-opacity="0.55"/>
+    <text x="860" y="35" fill="#e7f8f4" font-family="'Noto Sans CJK SC',sans-serif" font-size="17" font-weight="700" text-anchor="middle">[B₁; B₂] rows</text>
+  </g>
+  <g transform="translate(0 142)">
+    <text x="0" y="0" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13">forward: one all-reduce per layer · backward: one all-reduce per layer</text>
+    <g transform="translate(0 26)">
+      <rect x="0" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="132" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="264" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="396" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="528" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="660" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="792" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <rect x="924" y="0" width="118" height="82" rx="8" fill="#0e2723" stroke="#5eead4" stroke-opacity="0.4"/>
+      <g fill="#d7fff8" font-family="'Noto Sans CJK SC',sans-serif" font-size="14" font-weight="700" text-anchor="middle">
+        <text x="59" y="34">GPU 0</text><text x="191" y="34">GPU 1</text><text x="323" y="34">GPU 2</text><text x="455" y="34">GPU 3</text><text x="587" y="34">GPU 4</text><text x="719" y="34">GPU 5</text><text x="851" y="34">GPU 6</text><text x="983" y="34">GPU 7</text>
+      </g>
+      <g fill="#f0a44a" font-family="'Noto Sans CJK SC',sans-serif" font-size="12" text-anchor="middle">
+        <text x="59" y="58">A₁</text><text x="191" y="58">A₂</text><text x="323" y="58">B₁</text><text x="455" y="58">B₂</text><text x="587" y="58">heads</text><text x="719" y="58">heads</text><text x="851" y="58">heads</text><text x="983" y="58">heads</text>
+      </g>
+    </g>
+  </g>
+  <text x="0" y="280" fill="#8fb8b1" font-family="'Noto Sans CJK SC',sans-serif" font-size="13">8-way tensor parallel · 8.3B parameters · 15.1 PFLOPs on 512 GPUs</text>
+</g>
+</g>
+  <text x="1130" y="846" fill="#5f837d" font-family="'Noto Sans CJK SC','PingFang SC',sans-serif" font-size="15" font-weight="600" letter-spacing="2" text-anchor="end">FOUNDATIONAL PAPER</text>
+</svg>

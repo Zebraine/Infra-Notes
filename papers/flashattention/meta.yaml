@@ -1,0 +1,60 @@
+slug: flashattention
+title: 'FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness'
+title_zh: FlashAttention：IO 感知的快速省显存精确注意力
+short_title: FlashAttention
+authors:
+- Tri Dao
+- Daniel Y. Fu
+- Stefano Ermon
+- Atri Rudra
+- Christopher Ré
+affiliation: Stanford University · University at Buffalo, SUNY
+year: 2022
+date: '2022-05-27'
+venue: NeurIPS 2022
+venue_zh: NeurIPS
+venue_full_zh: 神经信息处理系统大会（NeurIPS）
+conference_url: ''
+code_url: https://github.com/Dao-AILab/flash-attention
+type: 经典论文
+tags:
+- 基础
+- Attention
+- IO-Aware
+- Kernel
+abstract: 'Transformers are slow and memory-hungry on long sequences, since the time and memory complexity
+  of self-attention are quadratic in sequence length. Approximate attention methods have attempted to
+  address this problem by trading off model quality to reduce the compute complexity, but often do not
+  achieve wall-clock speedup. We argue that a missing principle is making attention algorithms IO-aware—accounting
+  for reads and writes between levels of GPU memory. We propose FlashAttention, an IO-aware exact attention
+  algorithm that uses tiling to reduce the number of memory reads/writes between GPU high bandwidth memory
+  (HBM) and GPU on-chip SRAM. We analyze the IO complexity of FlashAttention, showing that it requires
+  fewer HBM accesses than standard attention, and is optimal for a range of SRAM sizes. We also extend
+  FlashAttention to block-sparse attention, yielding an approximate attention algorithm that is faster
+  than any existing approximate attention method. FlashAttention trains Transformers faster than existing
+  baselines: 15% end-to-end wall-clock speedup on BERT-large (seq. length 512) compared to the MLPerf
+  1.1 training speed record, 3× speedup on GPT-2 (seq. length 1K), and 2.4× speedup on long-range arena
+  (seq. length 1K-4K). FlashAttention and block-sparse FlashAttention enable longer context in Transformers,
+  yielding higher quality models (0.7 better perplexity on GPT-2 and 6.4 points of lift on long-document
+  classification) and entirely new capabilities: the first Transformers to achieve better-than-chance
+  performance on the Path-X challenge (seq. length 16K, 61.4% accuracy) and Path-256 (seq. length 64K,
+  63.1% accuracy).'
+abstract_zh: Transformer 在长序列上又慢又耗显存，因为自注意力的时间和显存复杂度随序列长度平方增长。近似注意力方法试图以牺牲模型质量为代价降低计算复杂度，但往往没有实际墙钟加速。我们认为缺失的原则是让注意力算法具备
+  IO 感知：显式考虑 GPU 不同层级显存之间的读写。我们提出 FlashAttention，一种 IO 感知的精确注意力算法，用分块（tiling）减少 GPU 高带宽显存（HBM）与片上 SRAM
+  之间的读写次数。我们分析了 FlashAttention 的 IO 复杂度，证明它比标准注意力需要更少的 HBM 访问，并在一定 SRAM 容量范围内达到最优。我们还将 FlashAttention
+  扩展到块稀疏注意力，得到比现有近似方法更快的近似注意力算法。FlashAttention 训练 Transformer 更快：在 BERT-large（序列长度 512）上相比 MLPerf 1.1
+  训练速度纪录取得 15% 端到端加速，GPT-2（1K）上 3 倍，Long Range Arena（1K–4K）上 2.4 倍。FlashAttention 与块稀疏 FlashAttention
+  让 Transformer 支持更长上下文，带来更高质量（GPT-2 困惑度改善 0.7，长文档分类提升 6.4 分）以及全新能力：首次在 Path-X（16K，61.4% 准确率）和 Path-256（64K，63.1%
+  准确率）上取得优于随机的性能。
+summary: 把注意力计算分块搬进 SRAM、用在线 softmax 避免物化 N×N 矩阵，并在反向时重算；FlashAttention 用 IO 复杂度而非 FLOPs 重新定义了高效注意力。
+cover: assets/cover.svg
+cover_alt: FlashAttention 封面：HBM/SRAM 分块与注意力 tile 示意
+pdf: assets/source.pdf
+source_url: https://arxiv.org/abs/2205.14135
+pages: 34
+featured: false
+order: 15
+citation_key: dao2022flashattention
+translation_note: 中文精读版：摘要、分块与重算方法、IO 复杂度与关键实验对译；完整证明与附录见 PDF。
+original_note: 'English reading edition: abstract, tiling and recomputation, IO complexity, and key experiments.
+  Complete paper in the PDF.'

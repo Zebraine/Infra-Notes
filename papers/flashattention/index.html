@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light" style="--accent-base: #0f766e">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FlashAttention：IO 感知的快速省显存精确注意力 · AI Infra 论文库</title>
+  <meta name="description" content="Transformer 在长序列上又慢又耗显存，因为自注意力的时间和显存复杂度随序列长度平方增长。近似注意力方法试图以牺牲模型质量为代价降低计算复杂度，但往往没有实际墙钟加速。我们认为缺失的原则是让注意力算法具备 IO 感知：显式考虑 GPU 不同层级显存之间的读写。我们提出 FlashAttention，一种 IO ">
+  <meta name="author" content="Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, Christopher Ré">
+  <meta name="theme-color" content="#0f766e">
+  <meta property="og:title" content="FlashAttention：IO 感知的快速省显存精确注意力 · AI Infra 论文库">
+  <meta property="og:description" content="Transformer 在长序列上又慢又耗显存，因为自注意力的时间和显存复杂度随序列长度平方增长。近似注意力方法试图以牺牲模型质量为代价降低计算复杂度，但往往没有实际墙钟加速。我们认为缺失的原则是让注意力算法具备 IO 感知：显式考虑 GPU 不同层级显存之间的读写。我们提出 FlashAttention，一种 IO ">
+  <meta property="og:type" content="article">
+<meta property="article:published_time" content="2022-05-27">  <link rel="icon" href="../assets/site/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('aiinfra-theme');
+        var params = new URLSearchParams(window.location.search);
+        var forced = params.get('theme');
+        var theme = forced === 'dark' || forced === 'light' ? forced : (saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        document.documentElement.dataset.theme = theme;
+      } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">  <link rel="stylesheet" href="../assets/site/pygments.css">
+  <link rel="stylesheet" href="../assets/site/site.css?v=8ebc7816e8">
+</head>
+<body id="top" class="page-article nav-library">
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <svg class="svg-sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M20 12H5M11 18l-6-6 6-6"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 20V5M6 11l6-6 6 6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z"/><path d="M14 3v5h5M8 13h8M8 17h5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M3.5 5.5A2.5 2.5 0 0 1 6 3h13v15H6a2.5 2.5 0 0 0-2.5 2.5Z"/><path d="M3.5 5.5v15A2.5 2.5 0 0 0 6 23h13v-5"/><path d="M8 7h7M8 11h5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M15 9V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5Z"/></symbol>
+    <symbol id="i-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5M8 10.5h5M10.5 8v5"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 6C6 7.5 4.5 10 4.5 13c0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/><path d="M19 6c-3 1.5-4.5 4-4.5 7 0 2.5 1.4 4 3.4 4 1.8 0 3.1-1.3 3.1-3.1 0-1.7-1.2-3-2.9-3-.3 0-.6 0-.8.1.3-1.5 1.4-2.8 3-3.7Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path d="M9 19c-4 1.2-4-2-5.5-2.5M15 21v-3.4c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.7 4.7 0 0 0-1.3-3.3 4.4 4.4 0 0 0-.1-3.3s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6.2 0C6.6 2.7 5.5 3 5.5 3a4.4 4.4 0 0 0-.1 3.3A4.7 4.7 0 0 0 4.1 9.6c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.4V21"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../index.html" aria-label="AI Infra 论文库 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+            <path d="M23.5 19.5 27 23l-3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>AI Infra</strong>
+          <span>论文库</span>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="站点导航">
+          <a href="../index.html" aria-current="page" class="is-active">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+      </nav>
+
+      <div class="topbar-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="切换深色模式" title="切换深色模式">
+          <svg class="icon icon-sun" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-sun"></use></svg><svg class="icon icon-moon" width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-moon"></use></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+<div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+
+<section class="paper-hero">
+  <div class="paper-hero-inner">
+    <nav class="breadcrumbs" aria-label="面包屑">
+      <a href="../index.html">论文库</a>
+      <span aria-hidden="true">/</span>
+      <span>PAPER 06</span>
+      <span aria-hidden="true">/</span>
+      <span>中文译文</span>
+    </nav>
+
+    <div class="paper-hero-grid">
+      <div class="paper-hero-copy">
+        <p class="eyebrow"><span class="status-dot"></span>PAPER 06 · 2022 · NeurIPS</p>
+        <h1>FlashAttention：IO 感知的快速省显存精确注意力</h1>
+        <p class="paper-alt-title" lang="en">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</p>
+        <p class="paper-authors">Tri Dao · Daniel Y. Fu · Stefano Ermon · Atri Rudra · Christopher Ré <span class="affiliation">· Stanford University · University at Buffalo, SUNY</span></p>
+        <div class="paper-meta paper-meta-lg">
+<span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>34 页原文</span>          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg>约 5 分钟</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>中英双语</span>
+          <span><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-layers"></use></svg>4 个主题</span>
+        </div>
+      </div>
+
+      <div class="paper-hero-side">
+        <div class="lang-switch" role="group" aria-label="选择语言">
+          <a href="index.html" class="is-active" aria-current="page" data-lang="zh">中文译文</a>
+          <a href="original/index.html" class="" data-lang="en">English</a>
+        </div>
+        <div class="paper-actions">
+          <a class="btn btn-primary btn-sm" href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF</a>
+          <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>引用</button>
+          <button class="btn btn-ghost btn-sm toc-toggle" type="button" aria-controls="toc-drawer" aria-expanded="false"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-menu"></use></svg>目录</button>
+        </div>
+        <p class="paper-side-note">译文由 AI 辅助完成，技术细节以原文为准。</p>
+      </div>
+    </div>
+
+    <div class="paper-tags paper-tags-lg">
+<a class="chip chip-static" href="../index.html?tag=%E5%9F%BA%E7%A1%80">基础</a><a class="chip chip-static" href="../index.html?tag=Attention">Attention</a><a class="chip chip-static" href="../index.html?tag=IO-Aware">IO-Aware</a><a class="chip chip-static" href="../index.html?tag=Kernel">Kernel</a>    </div>
+  </div>
+</section>
+
+<div class="reading-shell">
+  <div class="toc-backdrop" data-toc-close hidden></div>
+
+  <aside class="toc-rail" id="toc-drawer" aria-label="本文目录">
+    <div class="toc-head">
+      <span>本文目录</span>
+      <button class="icon-btn toc-close" type="button" data-toc-close aria-label="关闭目录"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-x"></use></svg></button>
+    </div>
+    <div class="toc-scroll">
+      <nav class="toc" aria-label="章节导航"><div class="toc">
+<ul>
+<li><a href="#sec-1">摘要</a></li>
+<li><a href="#sec-2">1 精读导读</a></li>
+<li><a href="#sec-3">2 问题与背景</a></li>
+<li><a href="#sec-4">3 方法</a><ul>
+<li><a href="#sec-4-1">3.1 分块与在线 softmax</a></li>
+<li><a href="#sec-4-2">3.2 重算与 IO 复杂度</a></li>
+</ul>
+</li>
+<li><a href="#sec-5">4 实验与结果</a></li>
+<li><a href="#sec-6">5 影响与局限</a></li>
+</ul>
+</div>
+</nav>
+    </div>
+    <div class="toc-foot">
+      <div class="font-size-control" role="group" aria-label="调整正文字号">
+        <span>字号</span>
+        <button type="button" data-font-size="sm" aria-label="小号字">A</button>
+        <button type="button" data-font-size="md" class="is-active" aria-label="默认字号">A</button>
+        <button type="button" data-font-size="lg" aria-label="大号字">A</button>
+      </div>
+      <a class="back-top" href="#top"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-up"></use></svg>回到顶部</a>
+    </div>
+  </aside>
+
+  <article class="paper-prose" id="paper-body">
+    <div class="translation-banner">
+      <span class="banner-icon"><svg class="icon " width="18" height="18" aria-hidden="true" focusable="false"><use href="#i-info"></use></svg></span>
+      <p>
+        <strong>中文译文</strong><span>中文精读版：摘要、分块与重算方法、IO 复杂度与关键实验对译；完整证明与附录见 PDF。</span>
+      </p>
+    </div>
+
+    <h2 id="sec-1">摘要<a class="headerlink" href="#sec-1" title="复制本节链接">§</a></h2>
+<p>Transformer 在长序列上又慢又耗显存，因为自注意力的时间和显存复杂度随序列长度平方增长。近似注意力方法试图以牺牲模型质量为代价降低计算复杂度，但往往没有实际墙钟加速。我们认为缺失的原则是让注意力算法具备 IO 感知：显式考虑 GPU 不同层级显存之间的读写。我们提出 FlashAttention，一种 IO 感知的精确注意力算法，用分块（tiling）减少 GPU 高带宽显存（HBM）与片上 SRAM 之间的读写次数。我们分析了 FlashAttention 的 IO 复杂度，证明它比标准注意力需要更少的 HBM 访问，并在一定 SRAM 容量范围内达到最优。我们还将 FlashAttention 扩展到块稀疏注意力，得到比现有近似方法更快的近似注意力算法。FlashAttention 训练 Transformer 更快：在 BERT-large（序列长度 512）上相比 MLPerf 1.1 训练速度纪录取得 15% 端到端加速，GPT-2（1K）上 3 倍，Long Range Arena（1K–4K）上 2.4 倍。FlashAttention 与块稀疏 FlashAttention 让 Transformer 支持更长上下文，带来更高质量（GPT-2 困惑度改善 0.7，长文档分类提升 6.4 分）以及全新能力：首次在 Path-X（16K，61.4% 准确率）和 Path-256（64K，63.1% 准确率）上取得优于随机的性能。</p>
+<h2 id="sec-2">1 精读导读<a class="headerlink" href="#sec-2" title="复制本节链接">§</a></h2>
+<p>FlashAttention 是把 IO——而不只是 FLOPs——变成高效注意力组织原则的论文。标准注意力会物化 <span class="arithmatex">\(N \times N\)</span> 的 score 矩阵：写入 HBM、读回做 softmax、写入概率、再读回与 V 相乘。在现代 GPU 上，这些 HBM 往返比算术更贵。近似注意力方法降低了 FLOPs，却因为忽视这些显存流量而没有转化为墙钟加速。</p>
+<p>FlashAttention 在不物化完整矩阵的前提下计算精确注意力。它把 Q、K、V 切成能放进片上 SRAM 的块，在块上做在线 softmax，并把整个注意力操作融合进一个 kernel。反向传播只保存 softmax 归一化统计量，在片上重算注意力块，用少量额外计算换取大幅减少的 HBM 读取。</p>
+<p>这是现代 AI 基础设施中最有影响力的 kernel 之一。FlashAttention-2/3 改进了工作划分并利用新硬件特性，但分块、在线 softmax、重算和 IO 感知这些核心思想都来自这里。它也与 PagedAttention 天然互补：一个管理 KV cache 的显存，一个管理注意力的显存流量。</p>
+<h2 id="sec-3">2 问题与背景<a class="headerlink" href="#sec-3" title="复制本节链接">§</a></h2>
+<p>Transformer 已成为主流架构，但自注意力模块的时间和显存复杂度随序列长度平方增长。稀疏、低秩及其组合等近似注意力方法把计算复杂度降到线性或近线性，但很多方法相对标准注意力并没有墙钟加速，也没有被广泛采用。原因是它们优化 FLOPs，却忽略显存访问开销。</p>
+<p>现代 GPU 的算力增速快于显存速度，Transformer 中多数算子受显存带宽限制。IO 感知算法在数据库、图像处理、数值线性代数中已是常识，但 PyTorch、TensorFlow 等深度学习接口并不暴露细粒度显存访问控制。论文主张：注意力需要一种 IO 感知算法，显式考虑 HBM（大而慢）与 SRAM（小而快）之间的读写。</p>
+<h2 id="sec-4">3 方法<a class="headerlink" href="#sec-4" title="复制本节链接">§</a></h2>
+<h3 id="sec-4-1">3.1 分块与在线 softmax<a class="headerlink" href="#sec-4-1" title="复制本节链接">§</a></h3>
+<p>标准注意力计算 <span class="arithmatex">\(S=QK^{\top}\)</span>，把 <span class="arithmatex">\(S\)</span> 写入 HBM，读回做 softmax，写入 <span class="arithmatex">\(P=\mathrm{softmax}(S)\)</span>，再读回计算 <span class="arithmatex">\(PV\)</span>。FlashAttention 通过分块避免这些往返：它把一块 Q 和一块 K 载入 SRAM，计算块内 score，并维护运行中的 softmax 最大值与归一化因子。这就是在线 softmax 技巧——不必一次看到所有 score，也能得到最终 softmax。</p>
+<p>分块循环让显存流量随块数而不是完整 <span class="arithmatex">\(N \times N\)</span> 矩阵增长；输出在 SRAM 中累加，最后只写回一次 HBM。整个注意力计算——矩阵乘、mask、softmax、dropout 和最后的 value 乘积——被融合进一个 CUDA kernel，中间张量不再往返 HBM。</p>
+<h3 id="sec-4-2">3.2 重算与 IO 复杂度<a class="headerlink" href="#sec-4-2" title="复制本节链接">§</a></h3>
+<p>反向传播时，标准注意力会保存 <span class="arithmatex">\(N \times N\)</span> 注意力矩阵并再次读取。FlashAttention 只保存前向的输出和 softmax 归一化统计量 <span class="arithmatex">\((m,\ell)\)</span>，在反向时于片上重算注意力块。这会略微增加 FLOPs，却大幅减少 HBM 访问——后者才是真正的瓶颈。</p>
+<p>论文证明：标准注意力需要 <span class="arithmatex">\(\Theta(Nd+N^2)\)</span> 次 HBM 访问，而 FlashAttention 在头维度 <span class="arithmatex">\(d\)</span>、SRAM 大小 <span class="arithmatex">\(M\)</span> 下需要 <span class="arithmatex">\(\Theta(N^2d^2M^{-1})\)</span> 次，并在一定 SRAM 范围内达到最优。对典型参数，FlashAttention 的 HBM 访问少很多——论文测量中最多少 9 倍——运行时跟随 HBM 访问次数，而不是 FLOPs。</p>
+<h2 id="sec-5">4 实验与结果<a class="headerlink" href="#sec-5" title="复制本节链接">§</a></h2>
+<p>FlashAttention 在墙钟时间上更快：BERT-large（序列长度 512）相比 MLPerf 1.1 训练速度纪录取得 15% 端到端加速；GPT-2（1K）相比 HuggingFace 与 Megatron-LM 基线最高 3 倍；Long Range Arena（1K–4K）上 2.4 倍。注意力 kernel 本身最高快 3 倍，显存随序列长度线性增长；论文报告 GPT-2 注意力计算最高 7.6 倍加速。</p>
+<p>更长上下文也提升模型质量。FlashAttention 在 GPT-2 上改善 0.7 困惑度，在长文档分类上提升 6.4 分。它让 Transformer 首次在 Path-X（16K，61.4% 准确率）上超过随机；配合块稀疏注意力，在 Path-256（64K，63.1% 准确率）上也取得成功。</p>
+<h2 id="sec-6">5 影响与局限<a class="headerlink" href="#sec-6" title="复制本节链接">§</a></h2>
+<p>FlashAttention 改变了高效注意力的设计标准：不只看 FLOPs，还要看显存访问的次数与模式。分块、在线 softmax、重算如今已是注意力 kernel 的标配，这项工作也直接推动了长上下文训练与服务。FlashAttention-2、FlashAttention-3 以及分页/块稀疏变体已广泛用于训练和推理栈。</p>
+<p>局限同样重要。FlashAttention 是精确注意力，不改变 <span class="arithmatex">\(O(N^2)\)</span> 的算术复杂度；它降低的是显存流量和显存占用，不是渐近计算量。性能依赖 SRAM 大小、块大小和硬件代际；反向传播用额外计算换更低的显存流量。它也不解决 KV cache 容量与调度问题——那仍是 PagedAttention、vLLM 以及后续服务系统要处理的系统级问题。</p>
+
+    <section class="citation-card" id="cite">
+      <div class="citation-head">
+        <div>
+          <p class="eyebrow">CITE</p>
+          <h2>引用这篇论文</h2>
+        </div>
+        <button class="btn btn-ghost btn-sm" type="button" data-copy-target="bibtex"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制 BibTeX</button>
+      </div>
+      <pre class="bibtex" id="bibtex"><code>@misc{dao2022flashattention,
+  author = {Tri Dao and Daniel Y. Fu and Stefano Ermon and Atri Rudra and Christopher Ré},
+  title = {FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness},
+  year = {2022},
+  howpublished = {NeurIPS 2022},
+  url = {https://arxiv.org/abs/2205.14135},
+  note = {AI Infra Paper Library, flashattention}
+}</code></pre>
+    </section>
+
+    <section class="provenance">
+      <h2>来源与版本</h2>
+      <dl>
+        <div><dt>原文标题</dt><dd lang="en">FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness</dd></div>
+        <div><dt>作者</dt><dd>Tri Dao · Daniel Y. Fu · Stefano Ermon · Atri Rudra · Christopher Ré</dd></div>
+        <div><dt>发表</dt><dd>神经信息处理系统大会（NeurIPS） · 2022</dd></div>
+<div><dt>代码</dt><dd><a href="https://github.com/Dao-AILab/flash-attention" target="_blank" rel="noopener noreferrer">https://github.com/Dao-AILab/flash-attention</a></dd></div><div><dt>原文链接</dt><dd><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener noreferrer">https://arxiv.org/abs/2205.14135</a></dd></div>        <div><dt>PDF</dt><dd><a href="assets/source.pdf" target="_blank" rel="noopener">本地存档（34 页）</a></dd></div>
+        <div><dt>译本</dt><dd>中文译文由 AI 辅助完成；如发现术语或公式问题，请以英文原文为准。</dd></div>
+      </dl>
+    </section>
+
+    <nav class="paper-pager" aria-label="论文翻页">
+      <a class="pager-link pager-prev" href="../orca/index.html">
+        <span class="pager-label"><svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-left"></use></svg>更新一篇</span>
+        <strong>Orca：面向 Transformer 生成模型的分布式服务系统</strong>
+      </a>
+      <a class="pager-link pager-next" href="../roformer/index.html">
+        <span class="pager-label">更早一篇<svg class="icon " width="14" height="14" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span>
+        <strong>RoFormer：使用旋转位置嵌入增强的 Transformer</strong>
+      </a>
+    </nav>
+  </article>
+
+  <aside class="paper-rail">
+    <div class="rail-card paper-info-card">
+      <div class="rail-cover"><img src="assets/cover.svg" alt="FlashAttention 封面：HBM/SRAM 分块与注意力 tile 示意" loading="lazy" decoding="async"></div>
+      <p class="rail-kicker">PAPER INFO</p>
+      <h2>FlashAttention</h2>
+      <p class="rail-authors">Tri Dao · Daniel Y. Fu · Stefano Ermon · Atri Rudra · Christopher Ré</p>
+      <dl class="rail-meta">
+        <div><dt>年份</dt><dd>2022</dd></div>
+        <div><dt>页数</dt><dd>34</dd></div>
+        <div><dt>阅读</dt><dd>5 分钟</dd></div>
+        <div><dt>版本</dt><dd>中文译文</dd></div>
+      </dl>
+      <div class="rail-links">
+        <a href="assets/source.pdf" target="_blank" rel="noopener"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-file"></use></svg>PDF 原文</a>
+<a href="https://github.com/Dao-AILab/flash-attention" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>代码仓库</a><a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener noreferrer"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>在线原文</a>        <a href="original/index.html"><svg class="icon " width="15" height="15" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>English Original</a>
+      </div>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">TOOLS</p>
+      <button class="rail-action" type="button" data-copy-target="bibtex"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-copy"></use></svg>复制引用</button>
+      <button class="rail-action" type="button" data-copy-url><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-external"></use></svg>复制本页链接</button>
+      <a class="rail-action" href="#cite"><svg class="icon " width="16" height="16" aria-hidden="true" focusable="false"><use href="#i-quote"></use></svg>跳转到引用</a>
+    </div>
+
+    <div class="rail-card">
+      <p class="rail-kicker">NEXT</p>
+      <h2>继续阅读</h2>
+      <div class="related-list">
+        <a class="related-item" href="../bidkv/index.html">
+          <span class="related-year">2026</span>
+          <strong>BidKV：面向 KV 压力场景的效用引导抢占调度</strong>
+          <span class="related-meta">约 40 分钟</span>
+        </a>
+        <a class="related-item" href="../transmla/index.html">
+          <span class="related-year">2025</span>
+          <strong>TransMLA：多头潜变量注意力足矣</strong>
+          <span class="related-meta">约 29 分钟</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <rect x="4" y="5" width="24" height="6.5" rx="2.2" fill="currentColor" opacity=".28"/>
+            <rect x="4" y="13" width="17" height="6.5" rx="2.2" fill="currentColor" opacity=".55"/>
+            <rect x="4" y="21" width="10" height="6.5" rx="2.2" fill="currentColor"/>
+          </svg>
+        </span>
+        <div>
+          <strong>AI Infra 论文库</strong>
+          <p>AI Infra 方向系统论文的中文精读与原文对照：LLM 推理、KV 缓存、调度与算力系统。</p>
+        </div>
+      </div>
+      <div class="footer-meta">
+        <p>内容以论文原文为准。译文由 AI 辅助完成，欢迎校对与讨论。</p>
+        <p class="footer-links">
+          <a href="../index.html">论文库</a>
+          <a href="../about/index.html">格式手册</a>
+          <span>由 <code>utils/build.py</code> 生成 · 2026</span>
+        </p>
+      </div>
+    </div>
+  </footer>
+
+<script src="../assets/vendor/katex/katex.min.js"></script>  <script src="../assets/site/site.js?v=8ebc7816e8"></script>
+</body>
+</html>
